@@ -1,0 +1,44 @@
+# Headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 9100
+      name: admin-http
+    - port: 9101
+      name: admin-https
+    - port: 2389
+      name: ldap
+    - port: 2636
+      name: ldaps
+  selector:
+    {{- include "fid.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}-ext
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 7070
+      name: cp-http
+    - port: 7171
+      name: cp-https
+    - port: 8089
+      name: http
+    - port: 8090
+      name: https
+  selector:
+#    {{- include "fid.selectorLabels" . | nindent 4 }}
+    statefulset.kubernetes.io/pod-name: {{ include "fid.fullname" . }}-0
+  type: {{ .Values.service.type }}
+#  sessionAffinity: ClientIP
+---

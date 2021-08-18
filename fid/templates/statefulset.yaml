@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  serviceName: {{ template "fid.fullname" . }}
+  selector:
+    matchLabels:
+    {{- include "fid.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+      {{- include "fid.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+  {{- if .Values.zk.external }}
+      - name: check-zk
+        image: radial/busyboxplus:curl
+        imagePullPolicy: IfNotPresent
+#        command: ['sh', '-c', 'until $(echo "ruok" | timeout 5 nc -w 5 {{ .Values.zk.host }} {{ .Values.zk.port }} | grep imok);  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+        command: ['sh', '-c', 'until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+  {{- end }}
+      - name: sysctl
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh","-c","sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
+        securityContext:
+          privileged: true
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh","-c","echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
+          preStop:
+            exec:
+{{- if .Values.fid.detach }}
+              command: ["/opt/radiantone/vds/bin/advanced/cluster.sh", "detach"]
+{{- else }}
+              command: ["/opt/radiantone/vds/bin/stopVDSServer.sh"]
+{{- end }}
+        ports:
+        - containerPort: 2181
+          name: zk-client
+        - containerPort: 7070
+          name: cp-http
+        - containerPort: 7171
+          name: cp-https
+        - containerPort: 9100
+          name: admin-http
+        - containerPort: 9101
+          name: admin-https
+        - containerPort: 2389
+          name: ldap
+        - containerPort: 2636
+          name: ldaps
+        - containerPort: 8089
+          name: http
+        - containerPort: 8090
+          name: https
+        readinessProbe:
+          tcpSocket:
+            port: 2389
+          initialDelaySeconds: {{ .Values.metrics.readinessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.metrics.readinessProbe.timeoutSeconds }}
+          periodSeconds: 30
+          failureThreshold: 5
+          successThreshold: 1
+        livenessProbe:
+          exec:
+            command: [ "/opt/radiantone/check", "run", "-type", "liveness" ]
+          initialDelaySeconds: {{ .Values.metrics.livenessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.metrics.livenessProbe.timeoutSeconds }}
+          periodSeconds: 30
+          failureThreshold: 5
+          successThreshold: 1
+        envFrom:
+        - configMapRef:
+            name: fid-environment-variables
+        env:
+        - name: ZK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds
+              key: password
+        resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: r1-pvc
+          mountPath: /opt/radiantone/vds
+        - name: scripts
+          mountPath: /mnt/scripts
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: scripts
+        emptyDir: {}
+{{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: r1-pvc
+      annotations:
+      {{- range $key, $value := .Values.persistence.annotations }}
+        {{ $key }}: {{ $value }}
+      {{- end }}
+      labels:
+        {{- include "fid.labels" . | nindent 4 }}
+    spec:
+      accessModes:
+      {{- range .Values.persistence.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size | quote }}
+      {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+{{- else }}
+      - name: r1-pvc
+        emptyDir: {}
+{{- end }}
