@@ -13,11 +13,11 @@ image:
 fid:
   ## FID root user name
   ## Default values cn=Directory Manager
-  rootUser: "cn=Directory Manager"
+  rootUser: "cn=Dir Man"
 
   ## Password for FID root user
   ##
-  rootPassword: "secret1234"
+  rootPassword: "atreides1"
 
   ## License for FID
   ##
@@ -27,13 +27,17 @@ fid:
   ##
   detach: true
   
+  ## Deploy a readonly sts, that joins an existing FID cluster
+  ##
+  readonly: false
+  
 zk:
   external: true
   connectionString: "zk.dev:2181"
-  host: "zk.dev"
-  port: "2181"
   clusterName: "fid-cluster"
   ruok: "http://zk.dev:8080/commands/ruok"
+  userName: "admin"
+  password: "secret1234"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -78,7 +82,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
+#resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -98,12 +102,20 @@ resources: {}
 #    cpu: 2
 #    memory: 2Gi
 
+resources:
+  limits:
+    cpu: 1
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+    
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+#  targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
