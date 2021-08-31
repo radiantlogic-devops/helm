@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zookeeper.fullname" . }}
+  labels:
+    {{- include "zookeeper.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+{{- if contains "ClusterIP" .Values.service.type }}
+  clusterIP: None
+{{- end }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.zk.clientPort }}
+      targetPort: zk-client
+      protocol: TCP
+      name: zk-client
+    - port: {{ .Values.zk.ensemblePort }}
+      targetPort: zk-ensemble
+      protocol: TCP
+      name: zk-ensemble
+    - port: {{ .Values.zk.leaderRelectionPort }}
+      targetPort: zk-election
+      protocol: TCP
+      name: zk-election
+  selector:
+    {{- include "zookeeper.selectorLabels" . | nindent 4 }}
