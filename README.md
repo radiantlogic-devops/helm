@@ -1,5 +1,5 @@
 # helm
-Helm charts for FID deployment
+Helm charts for FID and Zookeeper deployment
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
 Helm's [documentation](https://helm.sh/docs) to get started.
@@ -28,25 +28,25 @@ helm repo remove radiantone
 * Helm 3
 
 ### Charts
-* Install ZK
-Install Zookeeper with default values
+#### Install Zookeeper
+* Install Zookeeper with default values
 ```
 helm install --namespace=<name space> <release name> radiantone/zookeeper
 ```
-Install Zookeeper with overridden values
+* Install Zookeeper with overridden values
 ```
 helm install --namespace=<name space> <release name> radiantone/zookeeper \
 --set replicaCount="5"
 ```
-* List ZK releases
+* List Zookeeper releases
 ```
 helm list --namespace=<name space>
 ```
-* Upgrade ZK release
+* Upgrade a Zookeeper release
 ```
 helm upgrade --namespace=<name space> <release name> radiantone/zookeeper
 ```
-* Delete ZK release
+* Delete a Zookeeper release
 ```
 helm delete --namespace=<name space> <release name>
 ```
@@ -58,12 +58,12 @@ helm delete --namespace=<name space> <release name>
 * Helm 3
 
 ### Charts
-```
-Install FID with default values
+#### Install FID
+* Install FID with default values
 ```
 helm install --namespace=<name space> <release name> radiantone/fid
 ```
-Install FID with overridden values
+* Install FID with overridden values
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
 --set zk.connectionString="zk.dev:2181" \
