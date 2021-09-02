@@ -1,37 +1,78 @@
-## Welcome to GitHub Pages
+# helm
+Helm charts for FID deployment
 
-You can use the [editor on GitHub](https://github.com/radiantlogic-devops/helm/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+## Add Helm repo
+### TODO
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Remove Helm repo
+### TODO
 
-### Markdown
+## Install Zookeeper
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+### Prerequisites
+* Kubernetes 1.18+
+* Helm 3
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+### Charts
+* Clone repo
+```
+git clone https://github.com/radiantlogic-devops/helm.git
+```
+* Install ZK
+Install Zookeeper with default values
+```
+helm install --namespace=<name space> <release name> zookeeper
+```
+Install Zookeeper with overridden values
+```
+helm install --namespace=<name space> <release name> zookeeper \
+--set replicaCount="5"
+```
+* List ZK releases
+```
+helm list --namespace=<name space>
+```
+* Upgrade ZK release
+```
+helm upgrade --namespace=<name space> <release name> zookeeper
+```
+* Delete ZK release
+```
+helm delete --namespace=<name space> <release name>
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Install FID
 
-### Jekyll Themes
+### Prerequisites
+* Kubernetes 1.18+
+* Helm 3
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/radiantlogic-devops/helm/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+### Charts
+* Clone repo
+```
+git clone https://github.com/radiantlogic-devops/helm.git
+```
+Install FID with default values
+```
+helm install --namespace=<name space> <release name> fid
+```
+Install FID with overridden values
+```
+helm install --namespace=<name space> <release name> fid \
+--set zk.connectionString="zk.dev:2181" \
+--set zk.ruok="http://zk.dev:8080/commands/ruok" \
+--set fid.license="<FID cluster license>" \
+--set fid.rootPassword="test1234"
+```
+* List FID releases
+```
+helm list --namespace=<name space>
+```
+* Upgrade FID release
+```
+helm upgrade --namespace=<name space> <release name> fid
+```
+* Delete FID release
+```
+helm delete --namespace=<name space> <release name>
+```
