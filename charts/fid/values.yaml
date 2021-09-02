@@ -13,15 +13,15 @@ image:
 fid:
   ## FID root user name
   ## Default values cn=Directory Manager
-  rootUser: "cn=Dir Man"
+  rootUser: "cn=Directory Manager"
 
   ## Password for FID root user
   ##
-  rootPassword: "atreides1"
+  rootPassword: "Welcome#123"
 
   ## License for FID
   ##
-  license: "{rlib}x9TJ257Q3K3l0NeRyNrF3KHi3Lvc2tjRxMbZ3cbg53rS1taPwtPTzdbR6InhmNzcwMTX38ThoMDo186gt9fF1Y3T7LzY2crXu9DSppKeo3yglpuThJKQ0sWrpI2fqZmXhY6WmZGeoXyfmKCQlJaYrY6wq4KfqpmTgpGUmZOwoK/hzMrXu9DSvcrb2b/jyNbTj5Kam5qgpYKhnpychZOQ1sLmwrvTzNyghQ=="
+  license: "<FID Cluster License>"
   
   ## Detach from cluster on termination
   ##
@@ -144,6 +144,8 @@ persistence:
   size: 10Gi
   annotations: {}
 
+## Still in development
+##
 metrics:
   enabled: false
   image: radiantone/fid-exporter
