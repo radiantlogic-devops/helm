@@ -146,8 +146,8 @@ persistence:
 
 metrics:
   enabled: false
-  image: prom/mysqld-exporter
-  imageTag: v0.10.0
+  image: radiantone/fid-exporter
+  imageTag: 0.1.0
   annotations: {}
 
   livenessProbe:

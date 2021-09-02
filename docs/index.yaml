@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  fid:
+  - apiVersion: v2
+    appVersion: 7.3.16
+    created: "2021-09-01T17:41:47.0753284-07:00"
+    description: A Helm chart for FID Kubernetes deployment
+    digest: ae707d3a83a5816e1e095dc560e288b08ef00db4b82a237fd04c6f5d64025540
+    name: fid
+    type: application
+    urls:
+    - fid-0.1.0.tgz
+    version: 0.1.0
+  zookeeper:
+  - apiVersion: v2
+    appVersion: 3.5.8
+    created: "2021-09-01T17:41:47.0763212-07:00"
+    description: A Helm chart for Kubernetes
+    digest: 097d57fe72933c60018cedb1f5dabded1ec2bb9b15fef82c894b2ea846ae9784
+    name: zookeeper
+    type: application
+    urls:
+    - zookeeper-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-09-01T17:41:47.0733289-07:00"
