@@ -4,12 +4,19 @@ Helm charts for FID and Zookeeper deployment
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
 Helm's [documentation](https://helm.sh/docs) to get started.
 
+## TL;DR
+
+```console
+$ helm repo add radiantone https://radiantlogic-devops.github.io/helm
+$ helm install my-release radiantone/fid
+```
+
 ## Add Helm repo
 
 Once Helm has been set up correctly, add the repo as follows:
 
 ```
-helm repo add radiantone https://radiantlogic-devops.github.io/helm/
+helm repo add radiantone https://radiantlogic-devops.github.io/helm
 ```
 
 If you had already added this repo earlier, run `helm repo update` to retrieve
