@@ -3,9 +3,10 @@ entries:
   fid:
   - apiVersion: v2
     appVersion: 7.3.16
-    created: "2021-09-02T11:21:41.1516543-07:00"
+    created: "2021-09-07T13:53:16.1216032-07:00"
     description: A Helm chart for FID Kubernetes deployment
-    digest: 9e3702c15c7ee93031e2ebf3b146933a901295da03ab2ef32b3e232eb877eff2
+    digest: 73b6177d5dceee71f169b7c94e4039886ca009382bd1a27dc1e7e74c29a8914b
+    home: https://github.com/radiantlogic-devops/helm
     name: fid
     type: application
     urls:
@@ -14,12 +15,12 @@ entries:
   zookeeper:
   - apiVersion: v2
     appVersion: 3.5.8
-    created: "2021-09-02T11:21:41.1536479-07:00"
-    description: A Helm chart for Kubernetes
-    digest: 2e19c9e5b0a0fbf16e4e4bef0d1fdda52149373ea5a69f6f010e86bb59a57643
+    created: "2021-09-07T13:53:16.1235976-07:00"
+    description: A Helm chart for Zookeeper deployment on Kubernetes
+    digest: 48f19059ac139f94856bae6d6ac8fd8a2a50046601085024209afcbf0617be68
     name: zookeeper
     type: application
     urls:
     - zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2021-09-02T11:21:41.1496598-07:00"
+generated: "2021-09-07T13:53:16.1196088-07:00"
