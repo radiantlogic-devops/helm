@@ -6,6 +6,9 @@ data:
   ZK_CONN_STR: {{ .Values.zk.connectionString | quote }} #this should match the service name from zk deployment
   ZK_CLUSTER: {{ .Values.zk.clusterName | quote }}
   LICENSE: {{ .Values.fid.license | quote }}
+  {{- if .Values.fid.readonly }}
+  NODE_TYPE: "follower"
+  {{- end }}
 kind: ConfigMap
 metadata:
   labels:
