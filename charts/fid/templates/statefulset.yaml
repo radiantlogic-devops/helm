@@ -55,8 +55,7 @@ spec:
           preStop:
             exec:
 {{- if .Values.fid.detach }}
-#              command: ["/opt/radiantone/vds/bin/advanced/cluster.sh", "detach"]
-              command: ["/opt/radiantone/vds/bin/stopVDSServer.sh"]
+              command: ["/opt/radiantone/vds/bin/advanced/cluster.sh", "detach"]
 {{- else }}
               command: ["/opt/radiantone/vds/bin/stopVDSServer.sh"]
 {{- end }}
