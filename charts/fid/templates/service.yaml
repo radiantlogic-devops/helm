@@ -19,3 +19,24 @@ spec:
     {{- include "fid.selectorLabels" . | nindent 4 }}
   type: ClusterIP
   clusterIP: None
+---
+# LDAP and Rest service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}-app
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 2389
+      name: ldap
+    - port: 2636
+      name: ldaps
+    - port: 8089
+      name: http
+    - port: 8090
+      name: https
+  selector:
+    {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
+  type: ClusterIP

@@ -52,6 +52,13 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Service Selector labels
+*/}}
+{{- define "fid.serviceSelectorLabels" -}}
+app.kubernetes.io/name: {{ include "fid.name" . }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "fid.serviceAccountName" -}}

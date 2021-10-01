@@ -2,11 +2,9 @@ apiVersion: v1
 data:
   {{- if .Values.zk.external }}
   ZK: "external"
-  ZK_CONN_STR: {{ .Values.zk.connectionString | quote }} #this should match the service name from zk deployment
-#  ZK_CONN_STR: {{- printf "%s:%s" .Values.zk.host .Values.zk.port | quote -}} #this should match the service name from zk deployment
-#  ZK_CONN_STR: {{ .Values.zk.host }}:{{ .Values.zk.port }} #this should match the service name from zk deployment
-  ZK_CLUSTER: {{ .Values.zk.clusterName | quote }}
   {{- end }}
+  ZK_CONN_STR: {{ .Values.zk.connectionString | quote }} #this should match the service name from zk deployment
+  ZK_CLUSTER: {{ .Values.zk.clusterName | quote }}
   LICENSE: {{ .Values.fid.license | quote }}
 kind: ConfigMap
 metadata:

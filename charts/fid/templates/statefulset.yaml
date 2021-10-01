@@ -30,11 +30,8 @@ spec:
       initContainers:
   {{- if .Values.zk.external }}
       - name: check-zk
-#        image: busybox:latest
         image: radial/busyboxplus:curl
         imagePullPolicy: IfNotPresent
-#        command: ['/bin/sh', '-c', 'until nc -w 5 -z {{ .Values.zk.host }} {{ .Values.zk.port }}; do echo "Waiting for zookeeper service"; sleep 5; done; echo connection to zookeeper ok']
-#        command: ['sh', '-c', 'until $(echo "ruok" | timeout 5 nc -w 5 {{ .Values.zk.host }} {{ .Values.zk.port }} | grep imok);  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
         command: ['sh', '-c', 'until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
   {{- end }}
       - name: sysctl
@@ -47,7 +44,6 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
         lifecycle:
           postStart:
             exec:
