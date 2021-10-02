@@ -17,7 +17,7 @@ fid:
 
   ## Password for FID root user
   ##
-  rootPassword: "Welcome#123"
+  rootPassword: "Welcome1234"
 
   ## License for FID
   ##
@@ -30,6 +30,12 @@ fid:
   ## Deploy a readonly sts, that joins an existing FID cluster
   ##
   readonly: false
+  
+  migration:
+  ## Migration file that will be imported during first install (export.zip)
+#    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
+  ## Post migration script to be run after install (configure_fid.sh)
+#    script: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/prometheus/alert.rules
   
 zk:
   external: true

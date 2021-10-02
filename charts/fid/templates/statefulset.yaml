@@ -30,9 +30,9 @@ spec:
       initContainers:
   {{- if .Values.zk.external }}
       - name: check-zk
-        image: radial/busyboxplus:curl
+        image: alpine:latest
         imagePullPolicy: IfNotPresent
-        command: ['sh', '-c', 'until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+        command: ['sh', '-c', 'apk add -q --no-cache curl && until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
   {{- end }}
       - name: sysctl
         image: busybox:latest
@@ -40,6 +40,28 @@ spec:
         command: ["/bin/sh", "-c", "sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
         securityContext:
           privileged: true
+  {{- if hasKey .Values.fid.migration "url" }}
+  {{- if .Values.fid.migration.url }}
+      - name: migration
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }} && echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations"]
+        volumeMounts:
+        - name: migrations
+          mountPath: /migrations
+  {{- if hasKey .Values.fid.migration "script" }}
+  {{- if .Values.fid.migration.script }}
+      - name: script
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }} && chmod +x /opt/radiantone/scripts/test.sh && echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /opt/radiantone/scripts
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -127,8 +149,10 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+        - name: migrations
+          mountPath: /migrations
         - name: scripts
-          mountPath: /mnt/scripts
+          mountPath: /opt/radiantone/scripts
         resources:
 {{ toYaml .Values.resources | indent 10 }}
 {{- if .Values.fid.readonly }}
@@ -150,6 +174,8 @@ spec:
       {{- end }}
       volumes:
       - name: scripts
+        emptyDir: {}
+      - name: migrations
         emptyDir: {}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
