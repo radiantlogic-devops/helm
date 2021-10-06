@@ -45,21 +45,36 @@ spec:
       - name: migration
         image: alpine:latest
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }} && echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations"]
+#        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }} && echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations"]
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -ex
+            # Download the curl package
+            apk add -q --no-cache curl
+            # Download the migrations file
+            curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }}
+            
+            echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations
+  {{- if hasKey .Values.fid.migration "script" }}
+  {{- if .Values.fid.migration.script }}
+            # Download the script
+            curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }}
+            # make it executable
+            chmod +x /opt/radiantone/scripts/test.sh            
+            echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts
+  {{- end }}
+  {{- end }}            
         volumeMounts:
         - name: migrations
           mountPath: /migrations
   {{- if hasKey .Values.fid.migration "script" }}
   {{- if .Values.fid.migration.script }}
-      - name: script
-        image: alpine:latest
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }} && chmod +x /opt/radiantone/scripts/test.sh && echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts"]
-        volumeMounts:
         - name: scripts
           mountPath: /opt/radiantone/scripts
   {{- end }}
-  {{- end }}
+  {{- end }}            
+
   {{- end }}
   {{- end }}
       containers:
@@ -153,13 +168,41 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
-        resources:
-{{ toYaml .Values.resources | indent 10 }}
 {{- if .Values.fid.readonly }}
         command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
 {{- else }}
         command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
 {{- end }}
+{{- if .Values.metrics.enabled }}
+      - name: {{ .Chart.Name }}-exporter
+        image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
+        ports:
+        - containerPort: 9095
+          name: exporter
+        env:
+        - name: PUSH_MODE
+          value: {{ .Values.metrics.pushMode | quote }}
+        - name: PUSHGATEWAY_URI
+          value: {{ .Values.metrics.pushGateway | quote }}
+        - name: LDAP_URI
+          value: "ldap://localhost:2389"
+{{- if .Values.fid.rootUser }}
+        - name: BIND_DN
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-root-username
+{{- end }}
+{{- if .Values.fid.rootPassword }}
+        - name: BIND_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-root-password
+{{- end }}
+
+{{- end }}
+              
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

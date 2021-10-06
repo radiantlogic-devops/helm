@@ -33,9 +33,10 @@ fid:
   
   migration:
   ## Migration file that will be imported during first install (export.zip)
-#    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
+    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
+#    url:
   ## Post migration script to be run after install (configure_fid.sh)
-#    script: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/prometheus/alert.rules
+    script:
   
 zk:
   external: true
@@ -153,15 +154,17 @@ persistence:
 ## Still in development
 ##
 metrics:
-  enabled: false
+  enabled: true
   image: radiantone/fid-exporter
-  imageTag: 0.1.0
+  imageTag: latest
   annotations: {}
+  pushMode: true
+  pushGateway: http://prometheus:9091
 
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
   readinessProbe:
-    initialDelaySeconds: 60
-    timeoutSeconds: 1
+    initialDelaySeconds: 120
+    timeoutSeconds: 5
 
