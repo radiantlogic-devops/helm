@@ -33,20 +33,22 @@ fid:
   
   migration:
   ## Migration file that will be imported during first install (export.zip)
-    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
-#    url:
+#    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
+    url:
   ## Post migration script to be run after install (configure_fid.sh)
     script:
   
 zk:
   external: true
-  connectionString: "zk.dev:2181"
+  connectionString: "zookeeper:2181"
   clusterName: "fid-cluster"
-  ruok: "http://zk.dev:8080/commands/ruok"
+  ruok: "http://zookeeper:8080/commands/ruok"
   userName: "admin"
   password: "secret1234"
 
 imagePullSecrets: []
+#imagePullSecrets:
+#- name: regcred
 nameOverride: ""
 fullnameOverride: ""
 

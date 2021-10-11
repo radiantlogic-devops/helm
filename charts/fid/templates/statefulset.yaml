@@ -23,7 +23,7 @@ spec:
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 6 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -45,7 +45,6 @@ spec:
       - name: migration
         image: alpine:latest
         imagePullPolicy: IfNotPresent
-#        command: ["/bin/sh", "-c", "apk add -q --no-cache curl && curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }} && echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations"]
         command: ["/bin/sh", "-c"]
         args:
           - |
