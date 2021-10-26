@@ -1,0 +1,84 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ include "fid.fullname" . }}-gateway
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: {{ .Values.gateway.http.fid.port }}
+      name: {{ .Values.gateway.http.fid.name }}
+      protocol: HTTP
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+  - port:
+      number: {{ .Values.gateway.https.fid.port }} 
+      name: {{ .Values.gateway.https.fid.name }}
+      protocol: HTTPS
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+    tls:
+      mode: PASSTHROUGH
+  - port:
+      number: {{ .Values.gateway.http.api.port }}
+      name: {{ .Values.gateway.http.api.name }}
+      protocol: HTTP
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+  - port:
+      number: {{ .Values.gateway.https.api.port }}
+      name: {{ .Values.gateway.https.api.name }}
+      protocol: HTTPS
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+    tls:
+      mode: PASSTHROUGH
+  - port:
+      number: {{ .Values.gateway.http.admin.port }}
+      name: {{ .Values.gateway.http.admin.name }}
+      protocol: HTTP
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+  - port:
+      number: {{ .Values.gateway.https.admin.port }}
+      name: {{ .Values.gateway.https.admin.name }}
+      protocol: HTTPS
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+    tls:
+      mode: PASSTHROUGH
+  - port:
+      number: {{ .Values.gateway.ldaps.port }}
+      name: {{ .Values.gateway.ldaps.name }}
+      protocol: TLS
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+    tls:
+      mode: PASSTHROUGH
+  - port:
+      number: {{ .Values.gateway.ldap.port }}
+      name: {{ .Values.gateway.ldap.name }}
+      protocol: TCP
+    hosts:
+    {{- range .Values.gateway.hosts }}
+      - {{ . }}
+    {{- end }}
+{{- end }}

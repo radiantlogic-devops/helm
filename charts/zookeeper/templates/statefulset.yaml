@@ -84,7 +84,7 @@ spec:
         {{ $key }}: {{ $value }}
       {{- end }}
       labels:
-        {{- include "fid.labels" . | nindent 4 }}
+        {{- include "zookeeper.labels" . | nindent 8 }}
     spec:
       accessModes:
       {{- range .Values.persistence.accessModes }}

@@ -32,7 +32,9 @@ spec:
       - name: check-zk
         image: alpine:latest
         imagePullPolicy: IfNotPresent
-        command: ['sh', '-c', 'apk add -q --no-cache curl && until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+#        command: ['sh', '-c', 'apk add -q --no-cache curl && until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+#        command: ['sh', '-c', 'until $(echo "ruok" | timeout 2 nc -w 2 {{ (split ":" .Values.zk.connectionString)._0 }} {{ (split ":" .Values.zk.connectionString)._1 }} | grep -v imok);  do echo waiting for zookeeper -- {{ .Values.zk.connectionString }}; sleep 10; done; echo connection to zookeeper ok']
+        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
   {{- end }}
       - name: sysctl
         image: busybox:latest
@@ -83,7 +85,7 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh","-c","echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
+              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt; unset FID_PASSWORD ZK_PASSWORD LICENSE;"]
           preStop:
             exec:
 {{- if .Values.fid.detach }}
@@ -171,6 +173,18 @@ spec:
         command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
 {{- else }}
         command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
+        command: ["/bin/sh", "-c"]
+        args: 
+          - |
+            set -ex
+            if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then 
+              export CLUSTER=join; 
+            fi;
+            ./run.sh
+            export FID_PASSWORD=null
+            export ZK_PASSWORD=null
+            export LICENSE=null
+            tail -f /dev/null
 {{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
@@ -228,7 +242,7 @@ spec:
         {{ $key }}: {{ $value }}
       {{- end }}
       labels:
-        {{- include "fid.labels" . | nindent 4 }}
+        {{- include "fid.labels" . | nindent 8 }}
     spec:
       accessModes:
       {{- range .Values.persistence.accessModes }}

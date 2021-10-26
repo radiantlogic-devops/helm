@@ -1,0 +1,82 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "fid.fullname" . }}-vs
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  hosts:
+  {{- range .Values.gateway.hosts }}
+    - {{ . }}
+  {{- end }}
+  gateways:
+  - {{ include "fid.fullname" . }}-gateway
+  http:
+  - match:
+    - port: {{ .Values.gateway.http.fid.port }}
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}-ext
+        port:
+          number: 7070
+  - match:
+    - port: {{ .Values.gateway.http.api.port }}
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}-ext
+        port:
+          number: 8089
+  - match:
+    - port: {{ .Values.gateway.http.admin.port }}
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}
+        port:
+          number: 9100
+  tls:
+  - match:
+    - port: {{ .Values.gateway.https.fid.port }}
+      sniHosts:
+      - "*"
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}-ext
+        port:
+          number: 7171
+  - match:
+    - port: {{ .Values.gateway.https.api.port }}
+      sniHosts:
+      - "*"
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}-ext
+        port:
+          number: 8090
+  - match:
+    - port: {{ .Values.gateway.https.admin.port }}
+      sniHosts:
+      - "*"
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}
+        port:
+          number: 9101
+  - match:
+    - port: {{ .Values.gateway.ldaps.port }}
+      sniHosts:
+      - "*"
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}
+        port:
+          number: 2636
+  tcp:
+  - match:
+    - port: {{ .Values.gateway.ldap.port }}
+    route:
+    - destination:
+        host: {{ include "fid.fullname" . }}
+        port:
+          number: 2389
+{{- end }}

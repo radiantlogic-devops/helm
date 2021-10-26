@@ -153,10 +153,10 @@ persistence:
   size: 10Gi
   annotations: {}
 
-## Still in development
+## Under development
 ##
 metrics:
-  enabled: true
+  enabled: false
   image: radiantone/fid-exporter
   imageTag: latest
   annotations: {}
@@ -169,4 +169,36 @@ metrics:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+
+# Istio specific settings
+gateway:
+  enabled: false
+  hosts:
+    - chart-example.local
+  http:
+    fid:
+      name: "http-fid"
+      port: 7070
+    admin:
+      name: "http-admin"
+      port: 9100
+    api:
+      name: "http-api"
+      port: 8089
+  https:
+    fid:
+      name: "https-fid"
+      port: 7171
+    admin:
+      name: "https-admin"
+      port: 9101
+    api:
+      name: "https-api"
+      port: 8090
+  ldap:
+    name: "ldap"
+    port: 2389
+  ldaps:
+    name: "ldaps"
+    port: 2636
 
