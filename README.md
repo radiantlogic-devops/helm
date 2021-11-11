@@ -78,6 +78,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set fid.license="<FID cluster license>" \
 --set fid.rootPassword="test1234"
 ```
+Note: Curly brackets in the liense must be escaped ```--set fid.license="\{rlib\}xxx"```
 * List FID releases
 ```
 helm list --namespace=<name space>

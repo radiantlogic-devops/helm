@@ -23,19 +23,18 @@ spec:
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 6 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
   {{- if .Values.zk.external }}
       - name: check-zk
-#        image: busybox:latest
-        image: radial/busyboxplus:curl
+        image: alpine:latest
         imagePullPolicy: IfNotPresent
-#        command: ['/bin/sh', '-c', 'until nc -w 5 -z {{ .Values.zk.host }} {{ .Values.zk.port }}; do echo "Waiting for zookeeper service"; sleep 5; done; echo connection to zookeeper ok']
-#        command: ['sh', '-c', 'until $(echo "ruok" | timeout 5 nc -w 5 {{ .Values.zk.host }} {{ .Values.zk.port }} | grep imok);  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
-        command: ['sh', '-c', 'until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+#        command: ['sh', '-c', 'apk add -q --no-cache curl && until $(curl --connect-timeout 2 --output /dev/null --silent --fail {{ .Values.zk.ruok }});  do echo waiting for zookeeper -- {{ .Values.zk.ruok }}; sleep 10; done; echo connection to zookeeper ok']
+#        command: ['sh', '-c', 'until $(echo "ruok" | timeout 2 nc -w 2 {{ (split ":" .Values.zk.connectionString)._0 }} {{ (split ":" .Values.zk.connectionString)._1 }} | grep -v imok);  do echo waiting for zookeeper -- {{ .Values.zk.connectionString }}; sleep 10; done; echo connection to zookeeper ok']
+        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
   {{- end }}
       - name: sysctl
         image: busybox:latest
@@ -43,15 +42,50 @@ spec:
         command: ["/bin/sh", "-c", "sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
         securityContext:
           privileged: true
+  {{- if hasKey .Values.fid.migration "url" }}
+  {{- if .Values.fid.migration.url }}
+      - name: migration
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -ex
+            # Download the curl package
+            apk add -q --no-cache curl
+            # Download the migrations file
+            curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }}
+            
+            echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations
+  {{- if hasKey .Values.fid.migration "script" }}
+  {{- if .Values.fid.migration.script }}
+            # Download the script
+            curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }}
+            # make it executable
+            chmod +x /opt/radiantone/scripts/test.sh            
+            echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts
+  {{- end }}
+  {{- end }}            
+        volumeMounts:
+        - name: migrations
+          mountPath: /migrations
+  {{- if hasKey .Values.fid.migration "script" }}
+  {{- if .Values.fid.migration.script }}
+        - name: scripts
+          mountPath: /opt/radiantone/scripts
+  {{- end }}
+  {{- end }}            
+
+  {{- end }}
+  {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh","-c","echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
+              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt; unset FID_PASSWORD ZK_PASSWORD LICENSE;"]
           preStop:
             exec:
 {{- if .Values.fid.detach }}
@@ -131,15 +165,57 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+        - name: migrations
+          mountPath: /migrations
         - name: scripts
-          mountPath: /mnt/scripts
-        resources:
-{{ toYaml .Values.resources | indent 10 }}
+          mountPath: /opt/radiantone/scripts
 {{- if .Values.fid.readonly }}
         command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
 {{- else }}
         command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
+        command: ["/bin/sh", "-c"]
+        args: 
+          - |
+            set -ex
+            if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then 
+              export CLUSTER=join; 
+            fi;
+            ./run.sh
+            export FID_PASSWORD=null
+            export ZK_PASSWORD=null
+            export LICENSE=null
+            tail -f /dev/null
 {{- end }}
+{{- if .Values.metrics.enabled }}
+      - name: {{ .Chart.Name }}-exporter
+        image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
+        ports:
+        - containerPort: 9095
+          name: exporter
+        env:
+        - name: PUSH_MODE
+          value: {{ .Values.metrics.pushMode | quote }}
+        - name: PUSHGATEWAY_URI
+          value: {{ .Values.metrics.pushGateway | quote }}
+        - name: LDAP_URI
+          value: "ldap://localhost:2389"
+{{- if .Values.fid.rootUser }}
+        - name: BIND_DN
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-root-username
+{{- end }}
+{{- if .Values.fid.rootPassword }}
+        - name: BIND_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-root-password
+{{- end }}
+
+{{- end }}
+              
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -155,6 +231,8 @@ spec:
       volumes:
       - name: scripts
         emptyDir: {}
+      - name: migrations
+        emptyDir: {}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
@@ -164,7 +242,7 @@ spec:
         {{ $key }}: {{ $value }}
       {{- end }}
       labels:
-        {{- include "fid.labels" . | nindent 4 }}
+        {{- include "fid.labels" . | nindent 8 }}
     spec:
       accessModes:
       {{- range .Values.persistence.accessModes }}

@@ -17,7 +17,7 @@ fid:
 
   ## Password for FID root user
   ##
-  rootPassword: "Welcome#123"
+  rootPassword: "Welcome1234"
 
   ## License for FID
   ##
@@ -31,15 +31,24 @@ fid:
   ##
   readonly: false
   
+  migration:
+  ## Migration file that will be imported during first install (export.zip)
+#    url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
+    url:
+  ## Post migration script to be run after install (configure_fid.sh)
+    script:
+  
 zk:
   external: true
-  connectionString: "zk.dev:2181"
+  connectionString: "zookeeper:2181"
   clusterName: "fid-cluster"
-  ruok: "http://zk.dev:8080/commands/ruok"
+  ruok: "http://zookeeper:8080/commands/ruok"
   userName: "admin"
   password: "secret1234"
 
 imagePullSecrets: []
+#imagePullSecrets:
+#- name: regcred
 nameOverride: ""
 fullnameOverride: ""
 
@@ -144,18 +153,52 @@ persistence:
   size: 10Gi
   annotations: {}
 
-## Still in development
+## Under development
 ##
 metrics:
   enabled: false
   image: radiantone/fid-exporter
-  imageTag: 0.1.0
+  imageTag: latest
   annotations: {}
+  pushMode: true
+  pushGateway: http://prometheus:9091
 
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
   readinessProbe:
-    initialDelaySeconds: 60
-    timeoutSeconds: 1
+    initialDelaySeconds: 120
+    timeoutSeconds: 5
+
+# Istio specific settings
+gateway:
+  enabled: false
+  hosts:
+    - chart-example.local
+  http:
+    fid:
+      name: "http-fid"
+      port: 7070
+    admin:
+      name: "http-admin"
+      port: 9100
+    api:
+      name: "http-api"
+      port: 8089
+  https:
+    fid:
+      name: "https-fid"
+      port: 7171
+    admin:
+      name: "https-admin"
+      port: 9101
+    api:
+      name: "https-api"
+      port: 8090
+  ldap:
+    name: "ldap"
+    port: 2389
+  ldaps:
+    name: "ldaps"
+    port: 2636
 
