@@ -1,14 +1,14 @@
+{{- if hasKey .Values.fid "followerOnly" }}
+{{- if .Values.fid.followerOnly.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ template "fid.fullname" . }}
+  name: {{ template "fid.fullname" . }}-follower
   labels:
     {{- include "fid.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
-  serviceName: {{ template "fid.fullname" . }}
+  replicas: {{ .Values.fid.followerOnly.minReplicas }}
+  serviceName: {{ template "fid.fullname" . }}-follower
   selector:
     matchLabels:
     {{- include "fid.selectorLabels" . | nindent 6 }}
@@ -34,48 +34,16 @@ spec:
         imagePullPolicy: IfNotPresent
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
   {{- end }}
+      - name: check-fid
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}', '2389']
       - name: sysctl
         image: busybox:latest
         imagePullPolicy: IfNotPresent
         command: ["/bin/sh", "-c", "sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
         securityContext:
           privileged: true
-  {{- if hasKey .Values.fid.migration "url" }}
-  {{- if .Values.fid.migration.url }}
-      - name: migration
-        image: alpine:latest
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c"]
-        args:
-          - |
-            set -ex
-            # Download the curl package
-            apk add -q --no-cache curl
-            # Download the migrations file
-            curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }}
-            
-            echo 'Migration file copied to /migrations/export.zip' && ls -ltr /migrations
-  {{- if hasKey .Values.fid.migration "script" }}
-  {{- if .Values.fid.migration.script }}
-            # Download the script
-            curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }}
-            # make it executable
-            chmod +x /opt/radiantone/scripts/test.sh            
-            echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts
-  {{- end }}
-  {{- end }}            
-        volumeMounts:
-        - name: migrations
-          mountPath: /migrations
-  {{- if hasKey .Values.fid.migration "script" }}
-  {{- if .Values.fid.migration.script }}
-        - name: scripts
-          mountPath: /opt/radiantone/scripts
-  {{- end }}
-  {{- end }}            
-
-  {{- end }}
-  {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -83,7 +51,7 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt; unset FID_PASSWORD ZK_PASSWORD LICENSE;"]
+              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
           preStop:
             exec:
 {{- if .Values.fid.detach }}
@@ -167,22 +135,11 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
-{{- if .Values.fid.readonly }}
-        command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
-{{- else }}
-        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
         command: ["/bin/sh", "-c"]
         args: 
           - |
-            #set -ex
-            if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then 
-              export CLUSTER=join; 
-            fi;
+            export CLUSTER=join; 
             ./run.sh fg
-            #export FID_PASSWORD=null
-            #export ZK_PASSWORD=null
-            #export LICENSE=null
-{{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
         image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
@@ -210,9 +167,7 @@ spec:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
 {{- end }}
-
-{{- end }}
-              
+{{- end }}             
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -258,4 +213,6 @@ spec:
 {{- else }}
       - name: r1-pvc
         emptyDir: {}
+{{- end }}
+{{- end }}
 {{- end }}
