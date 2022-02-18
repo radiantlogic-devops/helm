@@ -170,7 +170,6 @@ spec:
 {{- if .Values.fid.readonly }}
         command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
 {{- else }}
-        command: ["/bin/sh", "-c", "if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then export CLUSTER=join; fi;./run.sh fg"]
         command: ["/bin/sh", "-c"]
         args: 
           - |

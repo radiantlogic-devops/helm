@@ -138,7 +138,8 @@ spec:
         command: ["/bin/sh", "-c"]
         args: 
           - |
-            export CLUSTER=join; 
+            export CLUSTER=join;
+            export NODE_TYPE=follower;
             ./run.sh fg
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
