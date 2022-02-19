@@ -56,12 +56,7 @@ spec:
             exec:
 {{- if .Values.fid.detach }}
               #command: ["/opt/radiantone/vds/bin/advanced/cluster.sh", "detach"]
-              command: ["/bin/sh", "-c"]
-              args:
-                - |
-                  /opt/radiantone/vds/bin/advanced/cluster.sh detach
-                  # remove this file so fid gets installed again
-                  rm /opt/radiantone/vds/vds_server/conf/cloud.properties                  
+              command: ["/bin/sh", "-c", "/opt/radiantone/vds/bin/advanced/cluster.sh detach;rm /opt/radiantone/vds/vds_server/conf/cloud.properties"]
 {{- else }}
               command: ["/opt/radiantone/vds/bin/stopVDSServer.sh"]
 {{- end }}
