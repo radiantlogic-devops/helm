@@ -37,7 +37,7 @@ spec:
   selector:
     matchLabels:
     {{- include "fid.selectorLabels" . | nindent 6 }}
-    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+      app.kubernetes.io/core-name: {{ include "fid.name" . }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
