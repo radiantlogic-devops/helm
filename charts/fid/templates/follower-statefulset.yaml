@@ -1,5 +1,34 @@
 {{- if hasKey .Values.fid "followerOnly" }}
 {{- if .Values.fid.followerOnly.enabled }}
+# Headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}-follower
+  labels:
+    helm.sh/chart: {{ include "fid.chart" . }}
+    app.kubernetes.io/name: {{ include "fid.name" . }}-follower
+    app.kubernetes.io/instance: {{ .Release.Name }}    
+    {{- if .Chart.AppVersion }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    {{- end }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}    
+spec:
+  ports:
+    - port: 9100
+      name: admin-http
+    - port: 9101
+      name: admin-https
+    - port: 2389
+      name: ldap
+    - port: 2636
+      name: ldaps
+  selector:
+    app.kubernetes.io/name: {{ include "fid.name" . }}-follower
+    app.kubernetes.io/instance: {{ .Release.Name }}    
+  type: ClusterIP
+  clusterIP: None
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -11,7 +40,13 @@ spec:
   serviceName: {{ template "fid.fullname" . }}-follower
   selector:
     matchLabels:
-    {{- include "fid.selectorLabels" . | nindent 6 }}
+      helm.sh/chart: {{ include "fid.chart" . }}
+      app.kubernetes.io/name: {{ include "fid.name" . }}-follower
+      app.kubernetes.io/instance: {{ .Release.Name }}    
+      {{- if .Chart.AppVersion }}
+      app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+      {{- end }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}    
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +54,8 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-      {{- include "fid.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "fid.name" . }}-follower
+        app.kubernetes.io/instance: {{ .Release.Name }}    
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
