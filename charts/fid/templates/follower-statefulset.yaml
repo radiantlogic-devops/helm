@@ -46,7 +46,7 @@ spec:
       {{- end }}
       labels:
         {{- include "fid.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "fid.name" . }}
+        app.kubernetes.io/follower-name: {{ include "fid.name" . }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
