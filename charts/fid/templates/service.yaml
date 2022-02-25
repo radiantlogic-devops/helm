@@ -38,5 +38,5 @@ spec:
     - port: 8090
       name: https
   selector:
-    {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
+    {{- include "fid.selectorLabels" . | nindent 4 }}
   type: ClusterIP
