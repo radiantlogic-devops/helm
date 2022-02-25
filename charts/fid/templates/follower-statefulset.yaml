@@ -30,6 +30,7 @@ metadata:
   name: {{ template "fid.fullname" . }}-follower
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/follower-name: {{ include "fid.name" . }}
 spec:
   replicas: {{ .Values.fid.followerOnly.minReplicas }}
   serviceName: {{ template "fid.fullname" . }}-follower
