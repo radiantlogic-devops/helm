@@ -25,7 +25,7 @@ fid:
   
   ## Detach from cluster on termination
   ##
-  detach: true
+  detach: false
   
   ## Deploy a readonly sts, that joins an existing FID cluster
   ##
@@ -46,7 +46,8 @@ fid:
     maxReplicas: 3
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
-    
+    ## Detach from cluster on termination
+    detach: true    
   
 zk:
   external: true
