@@ -1,6 +1,6 @@
 ---
 app: fid-helm
-#auto_deploy: true
+auto_deploy: true
 context: release-customer-us-west-2
 domain: fid-helm.rls.sh
 mode: development
