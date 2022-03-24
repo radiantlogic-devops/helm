@@ -1,5 +1,5 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps/v1 
+kind: Deployment 
 metadata:
   name: {{ include "cfs.fullname" . }}
   labels:
@@ -15,10 +15,10 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "cfs.selectorLabels" . | nindent 8 }}
+      {{- include "cfs.selectorLabels" . | nindent 8 }}
       name: {{ include "cfs.fullname" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
@@ -30,46 +30,35 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: https
-              containerPort: 443
-              protocol: TCP
-          livenessProbe:
-            exec:
-              command: 
-              - cmd
-              - /c
-              - curl
-              - -k
-              - https://127.0.0.1/system
-            initialDelaySeconds: 60
-            periodSeconds: 30
           envFrom:
-          - configMapRef:
-              name: {{ template "cfs.fullname" . }}
+            - configMapRef:
+                name: {{ template "cfs.fullname" . }}
           env:
-{{- if .Values.cfs.userName }}
-        - name: VDS_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: fid-creds
-              key: username
-{{- end }}
-{{- if .Values.cfs.password }}
-        - name: VDS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: fid-creds
-              key: password
-{{- end }}
-{{- if .Values.cfs.machine-key }}
-        - name: MACHINE_KEY
-          valueFrom:
-            secretKeyRef:
-              name: fid-creds
-              key: machine-key
-{{- end }}
+            - name: VDS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: username
+            - name: VDS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: password
+            - name: MACHINE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: machine-key
+          ports:
+            - containerPort: 443
+              name: cfs-master
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

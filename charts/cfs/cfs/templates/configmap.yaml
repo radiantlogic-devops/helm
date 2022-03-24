@@ -1,7 +1,7 @@
 apiVersion: v1
 data:
-  VDS_HOSTNAME: {{ .Values.vds.hostName | quote }} #this should match the service name from fid deployment
-  VDS_PORT: {{ .Values.vds.port | quote }}
+  VDS_HOSTNAME: {{ .Values.fid.hostName | quote }}
+  VDS_PORT: {{ .Values.fid.port | quote }}
   CFS_LOG_LEVEL: {{ .Values.cfs.cfs_log_level | quote }}
 kind: ConfigMap
 metadata:
