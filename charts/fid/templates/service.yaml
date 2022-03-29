@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fid.fullname" . }}
+  name: {{ include "fid.fullname" . }}-headless
   labels:
     {{- include "fid.labels" . | nindent 4 }}
 spec:
@@ -20,7 +20,6 @@ spec:
   type: ClusterIP
   clusterIP: None
 ---
-# LDAP and Rest service
 apiVersion: v1
 kind: Service
 metadata:
@@ -39,4 +38,4 @@ spec:
       name: https
   selector:
     {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
-  type: ClusterIP
+  type: {{ default "ClusterIP" .Values.service.type }}

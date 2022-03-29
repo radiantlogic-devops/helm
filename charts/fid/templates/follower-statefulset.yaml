@@ -58,19 +58,44 @@ spec:
   {{- if .Values.zk.external }}
       - name: check-zk
         image: alpine:latest
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi        
         imagePullPolicy: IfNotPresent
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
   {{- end }}
       - name: check-fid
         image: alpine:latest
         imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi        
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}', '2389']
+  {{- if hasKey .Values.sysctl "enabled" }}
+  {{- if .Values.sysctl.enabled }}
       - name: sysctl
         image: busybox:latest
         imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi        
         command: ["/bin/sh", "-c", "sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
         securityContext:
           privileged: true
+  {{- end }}
+  {{- end }}            
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -109,16 +134,16 @@ spec:
         readinessProbe:
           tcpSocket:
             port: 2389
-          initialDelaySeconds: {{ .Values.metrics.readinessProbe.initialDelaySeconds }}
-          timeoutSeconds: {{ .Values.metrics.readinessProbe.timeoutSeconds }}
+          initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
           periodSeconds: 30
           failureThreshold: 5
           successThreshold: 1
         livenessProbe:
           exec:
             command: [ "/opt/radiantone/check", "run", "-type", "liveness" ]
-          initialDelaySeconds: {{ .Values.metrics.livenessProbe.initialDelaySeconds }}
-          timeoutSeconds: {{ .Values.metrics.livenessProbe.timeoutSeconds }}
+          initialDelaySeconds: {{ .Values.fid.livenessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.fid.livenessProbe.timeoutSeconds }}
           periodSeconds: 30
           failureThreshold: 5
           successThreshold: 1
@@ -172,6 +197,13 @@ spec:
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
         image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi        
         ports:
         - containerPort: 9095
           name: exporter
