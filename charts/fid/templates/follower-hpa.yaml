@@ -14,17 +14,17 @@ spec:
   minReplicas: {{ .Values.fid.followerOnly.minReplicas }}
   maxReplicas: {{ .Values.fid.followerOnly.maxReplicas }}
   metrics:
-  {{- if .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        targetAverageUtilization: {{ .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
-  {{- end }}
   {{- if .Values.fid.followerOnly.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         targetAverageUtilization: {{ .Values.fid.followerOnly.targetMemoryUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
   {{- end }}
 {{- end }}
 {{- end }}

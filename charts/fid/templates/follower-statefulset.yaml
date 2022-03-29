@@ -46,7 +46,7 @@ spec:
       {{- end }}
       labels:
         {{- include "fid.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "fid.name" . }}
+        app.kubernetes.io/follower-name: {{ include "fid.name" . }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -106,8 +106,7 @@ spec:
               command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
           preStop:
             exec:
-{{- if .Values.fid.detach }}
-              #command: ["/opt/radiantone/vds/bin/advanced/cluster.sh", "detach"]
+{{- if .Values.fid.followerOnly.detach }}
               command: ["/bin/sh", "-c", "/opt/radiantone/vds/bin/advanced/cluster.sh detach;rm /opt/radiantone/vds/vds_server/conf/cloud.properties"]
 {{- else }}
               command: ["/opt/radiantone/vds/bin/stopVDSServer.sh"]

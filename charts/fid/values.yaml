@@ -46,6 +46,8 @@ fid:
     maxReplicas: 3
     targetCPUUtilizationPercentage: 80
     #targetMemoryUtilizationPercentage: 80
+    ## Detach from cluster on termination
+    detach: true    
     
   livenessProbe:
     initialDelaySeconds: 60
@@ -53,6 +55,7 @@ fid:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+    targetMemoryUtilizationPercentage: 80
   
 zk:
   external: true

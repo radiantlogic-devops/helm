@@ -20,6 +20,7 @@ spec:
   type: ClusterIP
   clusterIP: None
 ---
+# LDAP and Rest service
 apiVersion: v1
 kind: Service
 metadata:

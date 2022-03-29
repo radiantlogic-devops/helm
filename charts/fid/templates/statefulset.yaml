@@ -1,9 +1,34 @@
+# Headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+spec:
+  ports:
+    - port: 9100
+      name: admin-http
+    - port: 9101
+      name: admin-https
+    - port: 2389
+      name: ldap
+    - port: 2636
+      name: ldaps
+  selector:
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}    
+  type: ClusterIP
+  clusterIP: None
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ template "fid.fullname" . }}
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -12,6 +37,7 @@ spec:
   selector:
     matchLabels:
     {{- include "fid.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/core-name: {{ include "fid.name" . }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,6 +46,7 @@ spec:
       {{- end }}
       labels:
       {{- include "fid.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/core-name: {{ include "fid.name" . }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
