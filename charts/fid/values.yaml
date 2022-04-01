@@ -55,7 +55,6 @@ fid:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
-    targetMemoryUtilizationPercentage: 80
   
 zk:
   external: true

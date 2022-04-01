@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fid.fullname" . }}
+  name: {{ include "fid.fullname" . }}-headless
   labels:
     {{- include "fid.labels" . | nindent 4 }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}

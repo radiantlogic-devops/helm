@@ -56,6 +56,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Service Selector labels
 */}}
 {{- define "fid.serviceSelectorLabels" -}}
+app: {{ include "fid.name" . }}
 app.kubernetes.io/name: {{ include "fid.name" . }}
 {{- end }}
 

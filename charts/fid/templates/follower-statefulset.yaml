@@ -78,7 +78,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi        
-        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}', '2389']
+        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}-app', '2389']
   {{- if hasKey .Values.sysctl "enabled" }}
   {{- if .Values.sysctl.enabled }}
       - name: sysctl
