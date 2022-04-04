@@ -230,9 +230,6 @@ spec:
               export CLUSTER=join; 
             fi;
             ./run.sh fg
-            #export FID_PASSWORD=null
-            #export ZK_PASSWORD=null
-            #export LICENSE=null
 {{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
