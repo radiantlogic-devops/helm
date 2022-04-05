@@ -244,6 +244,9 @@ spec:
         ports:
         - containerPort: 9095
           name: exporter
+        volumeMounts:
+        - name: r1-pvc
+          mountPath: /opt/radiantone/vds
         env:
         - name: PUSH_MODE
           value: {{ .Values.metrics.pushMode | quote }}

@@ -206,6 +206,9 @@ spec:
         ports:
         - containerPort: 9095
           name: exporter
+        volumeMounts:
+        - name: r1-pvc
+          mountPath: /opt/radiantone/vds
         env:
         - name: PUSH_MODE
           value: {{ .Values.metrics.pushMode | quote }}
@@ -227,6 +230,17 @@ spec:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
 {{- end }}
+{{- if hasKey .Values.metrics.fluentd "enabled" }}
+{{- if .Values.metrics.fluentd.enabled }}
+        - name: FLUENTD_ENABLE
+          value: {{ .Values.metrics.fluentd.enabled | quote }}
+        - name: FLUENTD_CONF
+          value: {{ .Values.metrics.fluentd.configFile | quote }}
+        - name: ELASTICSEARCH_HOST
+          value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+{{- end }}
+{{- end }}
+
 {{- end }}             
       {{- with .Values.nodeSelector }}
       nodeSelector:
