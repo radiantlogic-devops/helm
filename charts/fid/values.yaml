@@ -25,7 +25,7 @@ fid:
   
   ## Detach from cluster on termination
   ##
-  detach: true
+  detach: false
   
   ## Deploy a readonly sts, that joins an existing FID cluster
   ##
@@ -37,6 +37,24 @@ fid:
     url:
   ## Post migration script to be run after install (configure_fid.sh)
     script:
+ 
+  ## Deploy a readonly/follower-only sts, that joins current FID cluster
+  ##
+  followerOnly:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    #targetMemoryUtilizationPercentage: 80
+    ## Detach from cluster on termination
+    detach: true    
+    
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 5
   
 zk:
   external: true
@@ -46,6 +64,9 @@ zk:
   userName: "admin"
   password: "secret1234"
 
+sysctl:
+  enabled: false
+  
 imagePullSecrets: []
 #imagePullSecrets:
 #- name: regcred
@@ -75,7 +96,7 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 7070
 
 ingress:
@@ -162,6 +183,10 @@ metrics:
   annotations: {}
   pushMode: true
   pushGateway: http://prometheus:9091
+  fluentd:
+    enabled: false
+    configFile: /fluentd/etc/fluent.conf
+    elasticSearchHost: elasticsearch
 
   livenessProbe:
     initialDelaySeconds: 60

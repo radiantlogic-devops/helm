@@ -1,25 +1,3 @@
-# Headless service
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "fid.fullname" . }}
-  labels:
-    {{- include "fid.labels" . | nindent 4 }}
-spec:
-  ports:
-    - port: 9100
-      name: admin-http
-    - port: 9101
-      name: admin-https
-    - port: 2389
-      name: ldap
-    - port: 2636
-      name: ldaps
-  selector:
-    {{- include "fid.selectorLabels" . | nindent 4 }}
-  type: ClusterIP
-  clusterIP: None
----
 # LDAP and Rest service
 apiVersion: v1
 kind: Service
@@ -39,4 +17,4 @@ spec:
       name: https
   selector:
     {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
-  type: ClusterIP
+  type: {{ default "ClusterIP" .Values.service.type }}
