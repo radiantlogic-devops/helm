@@ -183,6 +183,10 @@ metrics:
   annotations: {}
   pushMode: true
   pushGateway: http://prometheus:9091
+  fluentd:
+    enabled: false
+    configFile: /fluentd/etc/fluent.conf
+    elasticSearchHost: elasticsearch
 
   livenessProbe:
     initialDelaySeconds: 60
