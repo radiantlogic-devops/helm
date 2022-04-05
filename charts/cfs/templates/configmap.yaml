@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  VDS_HOSTNAME: {{ .Values.fid.hostName | quote }}
+  VDS_PORT: {{ .Values.fid.port | quote }}
+  CFS_LOG_LEVEL: {{ .Values.cfs.cfs_log_level | quote }}
+kind: ConfigMap
+metadata:
+  labels:
+    role: cfs
+  name: {{ template "cfs.fullname" . }}
+  labels:
+    app: {{ template "cfs.fullname" . }}
+    chart: "{{ template "cfs.chart" . }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
