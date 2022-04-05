@@ -1,9 +1,31 @@
 apiVersion: v1
 entries:
+  cfs:
+  - apiVersion: v2
+    appVersion: 3.16.1-ltsc2019
+    created: "2022-04-04T19:02:47.0867724-07:00"
+    description: A Helm chart for CFS Kubernetes Deployment
+    digest: 9492ef52ec33f06d630509d16913e851520030e8a17873c8e72139e630cedeb4
+    name: cfs
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/cfs-0.1.0.tgz
+    version: 0.1.0
   fid:
   - apiVersion: v2
+    appVersion: 7.4.0
+    created: "2022-04-04T19:02:47.0967715-07:00"
+    description: A Helm chart for FID Kubernetes deployment
+    digest: accde5b8e9f24ea46dbf599cbc969fd013743be423efa78eef53361a60a0305c
+    home: https://github.com/radiantlogic-devops/helm
+    name: fid
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/fid-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
     appVersion: 7.3.17
-    created: "2021-10-26T12:45:37.9681671-07:00"
+    created: "2022-04-04T19:02:47.0947732-07:00"
     description: A Helm chart for FID Kubernetes deployment
     digest: 63e5b648694dec7f02d005b793e0c81d59312e46e4f80f085f30c932da735c2d
     home: https://github.com/radiantlogic-devops/helm
@@ -14,7 +36,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 7.3.16
-    created: "2021-10-26T12:45:37.9661671-07:00"
+    created: "2022-04-04T19:02:47.0917726-07:00"
     description: A Helm chart for FID Kubernetes deployment
     digest: 73b6177d5dceee71f169b7c94e4039886ca009382bd1a27dc1e7e74c29a8914b
     home: https://github.com/radiantlogic-devops/helm
@@ -26,9 +48,9 @@ entries:
   zookeeper:
   - apiVersion: v2
     appVersion: 3.5.8
-    created: "2021-10-26T12:45:37.9711659-07:00"
+    created: "2022-04-04T19:02:47.1007722-07:00"
     description: A Helm chart for Zookeeper deployment on Kubernetes
-    digest: e882e82c8939100faa5251ad3c6d1b8ea11957ada322ecb8affe94282e92790e
+    digest: 91f5be1be072661fa877e523f4d97d142c6bc02d5dad9642e7e7c13c14501728
     name: zookeeper
     type: application
     urls:
@@ -36,7 +58,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 3.5.8
-    created: "2021-10-26T12:45:37.9701688-07:00"
+    created: "2022-04-04T19:02:47.0987726-07:00"
     description: A Helm chart for Zookeeper deployment on Kubernetes
     digest: 48f19059ac139f94856bae6d6ac8fd8a2a50046601085024209afcbf0617be68
     name: zookeeper
@@ -44,4 +66,4 @@ entries:
     urls:
     - https://radiantlogic-devops.github.io/helm/zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2021-10-26T12:45:37.9651668-07:00"
+generated: "2022-04-04T19:02:47.0837709-07:00"
