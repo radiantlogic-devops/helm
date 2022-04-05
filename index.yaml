@@ -1,0 +1,58 @@
+apiVersion: v1
+entries:
+  cfs:
+  - apiVersion: v2
+    appVersion: 3.16.1-ltsc2019
+    created: "2022-04-05T02:01:35.42878962Z"
+    description: A Helm chart for CFS Kubernetes Deployment
+    digest: aa67ffb7fc6b49b0a887e8ddd93aed1bc52c5d4a3b34492ccb3e9fde6a3b801e
+    name: cfs
+    type: application
+    urls:
+    - https://github.com/radiantlogic-devops/helm/releases/download/cfs-0.1.0/cfs-0.1.0.tgz
+    version: 0.1.0
+  fid:
+  - apiVersion: v2
+    appVersion: 7.3.17
+    created: "2021-10-26T12:45:37.9681671-07:00"
+    description: A Helm chart for FID Kubernetes deployment
+    digest: 63e5b648694dec7f02d005b793e0c81d59312e46e4f80f085f30c932da735c2d
+    home: https://github.com/radiantlogic-devops/helm
+    name: fid
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/fid-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 7.3.16
+    created: "2021-10-26T12:45:37.9661671-07:00"
+    description: A Helm chart for FID Kubernetes deployment
+    digest: 73b6177d5dceee71f169b7c94e4039886ca009382bd1a27dc1e7e74c29a8914b
+    home: https://github.com/radiantlogic-devops/helm
+    name: fid
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/fid-0.1.0.tgz
+    version: 0.1.0
+  zookeeper:
+  - apiVersion: v2
+    appVersion: 3.5.8
+    created: "2021-10-26T12:45:37.9711659-07:00"
+    description: A Helm chart for Zookeeper deployment on Kubernetes
+    digest: e882e82c8939100faa5251ad3c6d1b8ea11957ada322ecb8affe94282e92790e
+    name: zookeeper
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/zookeeper-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 3.5.8
+    created: "2021-10-26T12:45:37.9701688-07:00"
+    description: A Helm chart for Zookeeper deployment on Kubernetes
+    digest: 48f19059ac139f94856bae6d6ac8fd8a2a50046601085024209afcbf0617be68
+    name: zookeeper
+    type: application
+    urls:
+    - https://radiantlogic-devops.github.io/helm/zookeeper-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-10-26T12:45:37.9651668-07:00"
