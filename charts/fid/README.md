@@ -67,5 +67,5 @@ helm upgrade --namespace=<name space> <release name> radiantone/fid --set image.
 ```
 * Delete FID release
 ```
-helm delete --namespace=<name space> <release name>
+helm uninstall --namespace=<name space> <release name>
 ```

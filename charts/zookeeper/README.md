@@ -55,5 +55,5 @@ helm upgrade --namespace=<name space> <release name> radiantone/zookeeper
 ```
 * Delete a Zookeeper release
 ```
-helm delete --namespace=<name space> <release name>
+helm uninstall --namespace=<name space> <release name>
 ```

@@ -54,5 +54,7 @@ helm install --namespace=<name space> <release name> radiantone/cfs
 - Install CFS with overidden values
 
 ```bash
-helm install --namespace=<name space> <release name> radiantone/cfs --set cfs.machineKey="<machine-key>" --set fid.hostName="<fid-hostname>" --set fid.password="<directory manager password>"
+helm install --namespace=<name space> <release name> radiantone/cfs \
+--set cfs.machineKey="<machine-key>" --set fid.hostName="<fid-hostname>" \
+--set fid.password="<directory manager password>"
 ```
