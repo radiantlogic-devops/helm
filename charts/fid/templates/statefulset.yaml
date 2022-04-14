@@ -248,7 +248,7 @@ spec:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
         securityContext:
-          privileged: true
+          runAsUser: 0
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2389; do echo Waiting for fid -- 2389;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
         env:
         - name: PUSH_MODE

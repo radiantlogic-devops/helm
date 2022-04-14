@@ -209,6 +209,8 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+        securityContext:
+          runAsUser: 0
         env:
         - name: PUSH_MODE
           value: {{ .Values.metrics.pushMode | quote }}
