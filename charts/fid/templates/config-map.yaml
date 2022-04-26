@@ -8,13 +8,15 @@ data:
     #!/bin/sh
     
     function import_index {
-        echo "Importing index..."
-        cat /kibana/index-pattern.ndjson > /opt/index-pattern.ndjson
-        until curl --location --request POST "http://${KIBANA_URL}:${KIBANA_PORT}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/kibana/index-pattern.ndjson"' ; do sleep 5; done
+        echo "Importing Index-Patterns and Dashboard"
+        echo "The curl command creates symlinks so using an alternative method"
+        echo "Copying the Index-Pattern file from /kibana/index_pattern to /opt/index_pattern to make it hardlink"
+        cat /kibana/index_pattern.ndjson > /opt/index_pattern.ndjson
+        until curl --location --request POST "http://${KIBANA_URL}:${KIBANA_PORT}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/opt/index_pattern.ndjson"' ; do sleep 5; done
         if [[ $(echo "$?") == "0" ]]; then
-          printf "\n########## Imported index-pattern and dashboards successfully! #############################\n"
+          printf "\nThe Kibana Index Patterns and Dashboard have been successfully imported\n"
         else
-          printf "\n########## Failure while importing index-pattern and dashboards #############\n"
+          printf "\nFailure while importing index-pattern and dashboard\n"
         fi
     }
 
