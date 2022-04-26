@@ -10,7 +10,7 @@ data:
     function import_index {
         echo "Importing index..."
         cat /kibana/index-pattern.ndjson > /opt/index-pattern.ndjson
-        until curl --location --request POST "http://${KIBANA_URL}:${KIBANA_PORT}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/opt/index-pattern.ndjson"' ; do sleep 5; done
+        until curl --location --request POST "http://${KIBANA_URL}:${KIBANA_PORT}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/kibana/index-pattern.ndjson"' ; do sleep 5; done
         if [[ $(echo "$?") == "0" ]]; then
           printf "\n########## Imported index-pattern and dashboards successfully! #############################\n"
         else
