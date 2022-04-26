@@ -227,3 +227,8 @@ gateway:
     name: "ldaps"
     port: 2636
 
+# Kibana
+
+kibana:
+  serviceName: "localhost"
+  port: "5601"
