@@ -14,18 +14,18 @@ spec:
       volumes:
       - name: kibana-data
         configMap:
-            name: kibana-data
-            defaultMode: 0777
+          name: kibana-data
+          defaultMode: 0777
       containers:
       - name: kibana-import
-        image: centos/centos7
+        image: centos:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
           value: "{{ .Values.kibana.serviceName }}"
         - name: KIBANA_PORT
           value: "{{ .Values.kibana.port }}"
-        command: ["/bin/sh","/opt/kibana/curl-script.sh"]
+        command: ["/bin/sh","/kibana/curl-script.sh"]
         volumeMounts:
         - name: kibana-data
           mountPath: /kibana/
