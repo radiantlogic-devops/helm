@@ -18,14 +18,18 @@ spec:
           defaultMode: 0777
       containers:
       - name: kibana-import
-        image: centos:latest
+        image: alpine:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
           value: "{{ .Values.kibana.serviceName }}"
         - name: KIBANA_PORT
           value: "{{ .Values.kibana.port }}"
-        command: ["/bin/sh","/kibana/curl-script.sh"]
+        command: ["/bin/sh", "-c"]
+        args: 
+            - |  
+              apk add -q --no-cache curl 
+              /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
           mountPath: /kibana/
