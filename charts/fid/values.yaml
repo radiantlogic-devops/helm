@@ -230,5 +230,4 @@ gateway:
 # Kibana
 
 kibana:
-  serviceName: "kibana-kibana.fid-full.svc.cluster.local"
-  port: "5601"
+  serviceName: "kibana-kibana.fid-full.svc.cluster.local:5601"

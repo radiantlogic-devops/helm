@@ -10,7 +10,7 @@ spec:
   backoffLimit: 0
   template:
     spec:
-      restartPolicy: Never
+      restartPolicy: OnFailure
       volumes:
       - name: kibana-data
         configMap:
@@ -23,8 +23,6 @@ spec:
         env:
         - name: KIBANA_URL
           value: "{{ .Values.kibana.serviceName }}"
-        - name: KIBANA_PORT
-          value: "{{ .Values.kibana.port }}"
         command: ["/bin/sh", "-c"]
         args: 
             - |  
