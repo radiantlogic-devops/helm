@@ -1,3 +1,4 @@
+{{- if eq .Values.kibana.enabled true }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -26,8 +27,9 @@ spec:
         command: ["/bin/sh", "-c"]
         args: 
             - |  
-              apk add -q --no-cache curl 
+              apk add -q --no-cache curl jq 
               /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
           mountPath: /kibana/
+{{- end }}
