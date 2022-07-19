@@ -8,7 +8,7 @@ data:
     #!/bin/sh
     
     function import_index {
-        echo "Importing Index-Patterns and Dashboard"
+        echo "Importing Index-Patterns"
         echo "The curl command creates symlinks so using an alternative method"
         echo "Copying the Index-Pattern file from /kibana/index_pattern to /opt/index_pattern to make it hardlink"
         cat /kibana/index_pattern.ndjson > /opt/index_pattern.ndjson
@@ -20,11 +20,25 @@ data:
         fi
     }
     
+    function import_dashboard {
+        echo "Importing Dashboard"
+        echo "The curl command creates symlinks so using an alternative method"
+        echo "Copying the Index-Pattern file from /kibana/index_pattern to /opt/index_pattern to make it hardlink"
+        cat /kibana/index_pattern.ndjson > /opt/index_pattern.ndjson
+        until curl --location --request POST "http://${KIBANA_URL}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/opt/dashboard.ndjson"' ; do sleep 5; done
+        if [[ $(echo "$?") == "0" ]]; then
+          printf "\nThe Kibana Index Patterns and Dashboard have been successfully imported\n"
+        else
+          printf "\nFailure while importing index-pattern and dashboard\n"
+        fi
+    }
+
     while true
     do
       if [[ $(curl -s http://${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
         echo "kibana is healthy"
         import_index
+        import_dashboard
         break
       else
         echo "kibana is unhealthy"
@@ -50,3 +64,6 @@ data:
     {"attributes":{"fields":"[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"_id\",\"type\":\"string\",\"esTypes\":[\"_id\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_index\",\"type\":\"string\",\"esTypes\":[\"_index\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_source\",\"type\":\"_source\",\"esTypes\":[\"_source\"],\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_type\",\"type\":\"string\",\"esTypes\":[\"_type\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"hostname\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"hostname.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"hostname\",\"subType\":\"multi\"},{\"name\":\"message\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"message.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"message\",\"subType\":\"multi\"}]","timeFieldName":"@timestamp","title":"web.log*"},"id":"ac137fa0-8ed5-11ec-9dd0-eb57eb980cf2","migrationVersion":{"index-pattern":"6.5.0"},"references":[],"type":"index-pattern","updated_at":"2022-02-16T03:08:12.023Z","version":"WzEyLDFd"}
     {"attributes":{"fields":"[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"_id\",\"type\":\"string\",\"esTypes\":[\"_id\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_index\",\"type\":\"string\",\"esTypes\":[\"_index\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_source\",\"type\":\"_source\",\"esTypes\":[\"_source\"],\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_type\",\"type\":\"string\",\"esTypes\":[\"_type\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"hostname\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"hostname.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"hostname\",\"subType\":\"multi\"},{\"name\":\"message\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"message.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"message\",\"subType\":\"multi\"}]","timeFieldName":"@timestamp","title":"sync_engine.log*"},"id":"dad58cf0-8f40-11ec-9dd0-eb57eb980cf2","migrationVersion":{"index-pattern":"6.5.0"},"references":[],"type":"index-pattern","updated_at":"2022-02-16T15:55:26.537Z","version":"WzE2LDFd"}
     {"attributes":{"fields":"[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"_id\",\"type\":\"string\",\"esTypes\":[\"_id\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_index\",\"type\":\"string\",\"esTypes\":[\"_index\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_source\",\"type\":\"_source\",\"esTypes\":[\"_source\"],\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_type\",\"type\":\"string\",\"esTypes\":[\"_type\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"hostname\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"hostname.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"hostname\",\"subType\":\"multi\"},{\"name\":\"message\",\"type\":\"string\",\"esTypes\":[\"text\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"message.keyword\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true,\"parent\":\"message\",\"subType\":\"multi\"}]","timeFieldName":"@timestamp","title":"web_access.log*"},"id":"f2d65920-8f67-11ec-9dd0-eb57eb980cf2","migrationVersion":{"index-pattern":"6.5.0"},"references":[],"type":"index-pattern","updated_at":"2022-02-16T20:35:17.012Z","version":"WzI1LDFd"}
+
+
+  dashboard.ndjson: |
