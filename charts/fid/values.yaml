@@ -231,4 +231,4 @@ gateway:
 
 kibana:
   enabled: true
-  serviceName: "kibana-kibana.fid-full.svc.cluster.local:5601"
+  serviceName: "kibana-kibana.<namespace>.svc.cluster.local:5601"
