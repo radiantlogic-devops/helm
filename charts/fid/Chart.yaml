@@ -27,5 +27,7 @@ home: https://github.com/radiantlogic-devops/helm
 
 dependencies:
   - name: zookeeper
+    alias: zookeeper
+    # condition: zookeeper-dependency.enabled
     version: "0.1.1"
-    repository: "https://radiantlogic-devops.github.io/helm"
+    repository: "file://../zookeeper"

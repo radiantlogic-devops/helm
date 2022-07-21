@@ -227,3 +227,13 @@ gateway:
     name: "ldaps"
     port: 2636
 
+
+# Zookeeper Dependency Chart Settings
+# Alias value for the chart can be changed from chart.yaml file
+# Default Values is set to zookeeper-dependency
+
+zookeeper:
+  fullnameOverride: zookeeper
+  persistence:
+    enabled: false
+  storageClass: "default"
