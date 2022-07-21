@@ -1,0 +1,37 @@
+{{- if eq .Values.kibana.enabled true }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kibana-import
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: OnFailure
+      volumes:
+      - name: kibana-data
+        configMap:
+          name: kibana-data
+          defaultMode: 0777
+      containers:
+      - name: kibana-import
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: KIBANA_URL
+          value: "{{ .Values.kibana.kibanaURL }}"
+        # - name: INDEX_PATTERN_DATA
+        #   value: "{{ .Values.kibana.index_pattern_data | toJson | b64enc | quote}}
+        command: ["/bin/sh", "-c"]
+        args: 
+            - |  
+              apk add -q --no-cache curl jq 
+              /kibana/curl-script.sh
+        volumeMounts:
+        - name: kibana-data
+          mountPath: /kibana/
+{{- end }}
