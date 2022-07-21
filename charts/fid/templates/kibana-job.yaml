@@ -23,7 +23,9 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
-          value: "{{ .Values.kibana.serviceName }}"
+          value: "{{ .Values.kibana.kibanaURL }}"
+        # - name: INDEX_PATTERN_DATA
+        #   value: "{{ .Values.kibana.index_pattern_data | toJson | b64enc | quote}}
         command: ["/bin/sh", "-c"]
         args: 
             - |  

@@ -228,7 +228,10 @@ gateway:
     port: 2636
 
 # Kibana
-
+# Below is to import Kibana Dahsboard and Index patterns
+# If Kibana is deployed and healthy, changed the enabled to "true"
+# Provide kibana URL in the kibanaURL field
+# Setting enable to true will create a config_map and run a kubernetes job
 kibana:
-  enabled: true
-  serviceName: "kibana-kibana.<namespace>.svc.cluster.local:5601"
+  enabled: false
+  kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
