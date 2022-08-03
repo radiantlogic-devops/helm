@@ -1,5 +1,5 @@
 {{- if .Values.autoscaling.enabled }}
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "fid.fullname" . }}
@@ -24,5 +24,18 @@ spec:
       resource:
         name: cpu
         targetAverageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.autoscaling.targetLDAPConnectionCount }}
+    - type: Object
+      object:
+        metric:
+          name: ldap_connection_count
+          describedObject:
+            apiVersion: extensions/v1beta1
+            kind: Job
+            name: tests
+          target:
+            kind: Value
+            value: {{ .Values.metrics.targetLDAPConnectionCount}}
   {{- end }}
 {{- end }}
