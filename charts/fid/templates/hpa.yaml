@@ -1,5 +1,5 @@
 {{- if .Values.autoscaling.enabled }}
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "fid.fullname" . }}
@@ -13,29 +13,25 @@ spec:
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
-  {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: memory
-        targetAverageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
-  {{- end }}
-  {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        targetAverageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
-  {{- end }}
   {{- if .Values.autoscaling.targetLDAPConnectionCount }}
     - type: Object
       object:
-        metric:
-          name: ldap_connection_count
-          describedObject:
-            apiVersion: extensions/v1beta1
-            kind: Job
-            name: tests
-          target:
-            kind: Value
-            value: {{ .Values.metrics.targetLDAPConnectionCount}}
+        target:
+          apiVersion: extensions/v1beta1
+          kind: Job
+          name: tests1
+        targetValue: {{ .Values.autoscaling.targetLDAPConnectionCount}}
+        metricName: avg(ldap_connection_count)
+    # - type: Object
+    #   object:
+    #     metric:
+    #       name: ldap_connection_count
+    #       describedObject:
+    #         apiVersion: batch/v1
+    #         kind: Job
+    #         name: tests
+    #       target:
+    #         kind: Value
+    #         value: {{ .Values.metrics.targetLDAPConnectionCount}}
   {{- end }}
 {{- end }}

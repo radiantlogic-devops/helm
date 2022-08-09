@@ -148,7 +148,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-  targetLDAPConnectionCount: 500
+  targetLDAPConnectionCount: 230
 #  targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
