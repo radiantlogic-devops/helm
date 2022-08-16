@@ -113,11 +113,11 @@ helm install --namespace=<name space> <release name> radiantone/fid \
     - Metrics from Prometheus can be visualized using [Grafana](https://grafana.com/grafana/) with available dashboards.
 
 
-* Prerequisites
-    - Zookeeper Deployed with Persistence enabled
-    - Prometheus Deployed and push gateway URL available
-    - To deploy Prometheus follow the documentation [here](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md)
-    - To deploy Grafana follow the documentation [here](https://grafana.com/docs/agent/latest/operator/helm-getting-started/)
+    * Prerequisites
+        - Zookeeper Deployed with Persistence enabled
+        - Prometheus Deployed and push gateway URL available
+        - To deploy Prometheus follow the documentation [here](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md)
+        - To deploy Grafana follow the documentation [here](https://grafana.com/docs/agent/latest/operator/helm-getting-started/)
 
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
@@ -143,13 +143,13 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 
     - Learn more about Kibana [here](https://www.elastic.co/kibana?ultron=B-Stack-Trials-AMER-US-W-Exact&gambit=Stack-Kibana&blade=adwords-s&hulk=paid&Device=c&thor=kibana&gclid=Cj0KCQjw3eeXBhD7ARIsAHjssr8Yhz4S7AmKvoc4LxgrfG7EDr0b6i8i7FRhBBmth7JK_ylVOvv-FOEaAlp5EALw_wcB)
 
-* Prerequisites
+    * Prerequisites
 
-    - Zookeeper Deployed with Persistence enabled
-    - Elasticsearch Deployed with Kibana
-    - To deploy Elasticsearch follow the documentation [here](https://artifacthub.io/packages/helm/elastic/elasticsearch)
-    - To deploy Kibana follow the documentation [here](https://artifacthub.io/packages/helm/elastic/kibana)
-    - Elasticsearch Host URL available
+        - Zookeeper Deployed with Persistence enabled
+        - Elasticsearch Deployed with Kibana
+        - To deploy Elasticsearch follow the documentation [here](https://artifacthub.io/packages/helm/elastic/elasticsearch)
+        - To deploy Kibana follow the documentation [here](https://artifacthub.io/packages/helm/elastic/kibana)
+        - Elasticsearch Host URL available
 
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
@@ -165,6 +165,15 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set metrics.fluentd.elasticSearchHost="<elasticSearchHost URL"
 ```
 
+* Install FID with Ingress Enabled
+    - FID has capability of using Ingress to allow traffic securely
+    - TLS termination on the load balancer is possible through Istio Ingress
+    - Prerequisites
+        - Istio ingress controller installed 
+
+```
+
+```
 
 * List FID releases
 ```
