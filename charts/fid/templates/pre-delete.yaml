@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "fid.fullname" . }}-pre-delete-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "fid.fullname" . }}-modify-fid-pods
+  #namespace: <namespace_name> 
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources:
+      - pods
+      - pods/exec
+    verbs:
+      - get
+      - list
+      - delete
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "fid.fullname" . }}-modify-fid-pods
+  #namespace: <namespace_name>
+subjects:
+- kind: ServiceAccount
+  name: {{ include "fid.fullname" . }}-pre-delete-account
+  #namespace: <namespace_name>
+roleRef:
+  kind: Role
+  name: {{ include "fid.fullname" . }}-modify-fid-pods
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fid.fullname" . }}-pre-delete-job
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": pre-delete
+spec:
+  template:
+    metadata:
+      name: {{ include "fid.fullname" . }}-pre-delete-job
+    spec:
+      serviceAccountName: {{ include "fid.fullname" . }}-pre-delete-account
+      restartPolicy: Never
+      containers:
+      - name: pre-install-job
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args: ["apk add --no-cache curl;curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;chmod +x ./kubectl;mv ./kubectl /usr/local/bin;kubectl exec -it {{ .Values.preDelete.podname }} -n {{ .Values.preDelete.namespace }} -- bash -c './migrate.sh export {{ .Values.preDelete.filename }}.zip';kubectl -n {{ .Values.preDelete.namespace }} cp {{ .Values.preDelete.podname }}:/opt/radiantone/vds/work/{{ .Values.preDelete.filename }}.zip ./test.zip"]
+

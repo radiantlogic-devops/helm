@@ -235,3 +235,12 @@ gateway:
 kibana:
   enabled: false
   kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
+
+
+preDelete:
+  podname: fid-0
+  namespace: predelete
+  filename: test
+  #destinationURL:
+  #s3url: 
+  
