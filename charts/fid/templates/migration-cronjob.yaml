@@ -1,0 +1,42 @@
+{{- if eq .Values.cronjob.migration.enabled true }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fid.fullname" . }}-migration-cronjob-job
+spec:
+  schedule: {{ .Values.cronjob.migration.schedule | default "0 * * * *" }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "fid.fullname" . }}-hook-account
+          containers:
+          - name: migration-cronjob
+            image: alpine
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                set -ex
+
+                # TODO: generate a bucket if bucket does not exist
+                AWS_BUCKET={{ .Values.cronjob.migration.s3 | default "fid-exports" }}
+                EXPORT_FILE_NAME=export-{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Release.Name }}-{{ .Release.Revision }}-{{ now | date "20060102150405" }}.zip
+            
+                echo "Starting migration cronjob at {{ now | date "20060102150405" }}";
+                apk add --no-cache curl;
+                apk add aws-cli;
+                curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+                chmod +x ./kubectl;
+                mv ./kubectl /usr/local/bin;
+                kubectl get po -n {{ .Release.Namespace }};
+                kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "./migrate.sh export $EXPORT_FILE_NAME" ;
+                kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "ls -ltr /opt/radiantone/vds/work/" ;
+                kubectl -n {{ .Release.Namespace }} cp fid-0:/opt/radiantone/vds/work/$EXPORT_FILE_NAME $EXPORT_FILE_NAME ;
+                ls -ltr
+                aws s3 ls $AWS_BUCKET
+                aws s3 mv ./$EXPORT_FILE_NAME $AWS_BUCKET ;
+                echo done;
+
+          restartPolicy: OnFailure
+{{- end }}

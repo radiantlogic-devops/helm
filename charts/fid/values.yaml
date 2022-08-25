@@ -232,6 +232,36 @@ gateway:
 # If Kibana is deployed and healthy, changed the enabled to "true"
 # Provide kibana URL in the kibanaURL field
 # Setting enable to true will create a config_map and run a kubernetes job
+
 kibana:
   enabled: false
   kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
+
+# Cronjob that runs migration export on a schedule
+# Uploads the artifact to an s3 bucket
+
+cronjob:
+  migration:
+    enabled: true
+    schedule: "0 0 * * *"
+    s3: "s3://fid-exports/cronjob"
+
+hooks:
+  pre_install:
+    enabled: true
+  post_install:
+    enabled: true
+  pre_upgrade:
+    enabled: true
+    s3: "s3://fid-exports/pre_ugrade"
+  post_upgrade:
+    enabled: true
+  pre_rollback:
+    enabled: true
+  post_rollback:
+    enabled: true
+  pre_delete:
+    enabled: true
+  post_delete:
+    enabled: true
+
