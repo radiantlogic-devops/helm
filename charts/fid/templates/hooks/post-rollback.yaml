@@ -9,8 +9,9 @@ metadata:
   annotations:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
-    "helm.sh/hook": "post-rollback"
-    #"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook": post-rollback
+    # Comment the line below to keep the container created from the Hook
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
     metadata:
@@ -27,14 +28,23 @@ spec:
             set -ex
             
             echo "Starting post-rollback hook";
-            ## install curl and aws-cli
-            #apk add --no-cache curl;
-            #apk add aws-cli;
-            ## install kubectl
-            #curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
-            #chmod +x ./kubectl;
-            #mv ./kubectl /usr/local/bin;
-            #kubectl get po -n {{ .Release.Namespace }};
+            # install curl and aws-cli
+            apk add --no-cache curl;
+            # Install openldap tools
+            apk add openldap openldap-back-mdb openldap-clients;
+            # Install AWS Command Line Interface
+            apk add aws-cli;
+            # install kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            chmod +x ./kubectl;
+            mv ./kubectl /usr/local/bin;
+            kubectl get po -n {{ .Release.Namespace }};
+            # Data Integrity Check
+            # Validate Cache Connectors
+            #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh list-connectors -namingcontextdn o=test2_view";
+            #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh list-agents" ;
+            # Validate Replication
+            #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin"
             echo done;
 {{- end }}
 
