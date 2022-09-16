@@ -228,9 +228,38 @@ gateway:
     port: 2636
 
 
-# Zookeeper Dependency Chart Settings
+
+### Dependency Chart Deployment
+# Change the value to true to deploy the dependency charts along with VDS
+# Dependency charts include Zookeeper, Prometheus&Grafana(Monitoring), ELasticsearch&Kibana(Logging)
+## Zookeeper Dependency Chart Settings:
 # Alias value for the chart can be changed from chart.yaml file
 # Default Values is set to zookeeper
+
+dependency :
+  deployZookeeper:
+    enabled: true
+  deployPrometheus:
+    enabled: true
+  deployGrafana:
+    enabled: false
+  deployElasticSearch:
+    enabled: false
+  deployKibana:
+    enabled: false
+
+
+prometheus:
+  fullnameOverride: prometheus
+
+grafana:
+  fullnameOverride: grafana
+
+elasticsearch:
+  fullnameOverride: elasticsearch
+
+kibana:
+  fullnameOverride: kibana
 
 zookeeper:
   fullnameOverride: zookeeper
