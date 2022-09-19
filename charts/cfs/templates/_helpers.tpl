@@ -1,8 +1,7 @@
-{{/* vim: set filetype=mustache: */}}
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "fid.name" -}}
+{{- define "cfs.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -11,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "fid.fullname" -}}
+{{- define "cfs.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -27,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "fid.chart" -}}
+{{- define "cfs.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "fid.labels" -}}
-helm.sh/chart: {{ include "fid.chart" . }}
-{{ include "fid.selectorLabels" . }}
+{{- define "cfs.labels" -}}
+helm.sh/chart: {{ include "cfs.chart" . }}
+{{ include "cfs.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,26 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "fid.selectorLabels" -}}
-app: {{ include "fid.name" . }}
-app.kubernetes.io/name: {{ include "fid.name" . }}
+{{- define "cfs.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "cfs.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Service Selector labels
-*/}}
-{{- define "fid.serviceSelectorLabels" -}}
-app: {{ include "fid.name" . }}
-app.kubernetes.io/name: {{ include "fid.name" . }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "fid.serviceAccountName" -}}
+{{- define "cfs.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "fid.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "cfs.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

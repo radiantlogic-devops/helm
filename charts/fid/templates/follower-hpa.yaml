@@ -1,0 +1,30 @@
+{{- if hasKey .Values.fid "followerOnly" }}
+{{- if .Values.fid.followerOnly.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ include "fid.fullname" . }}-follower
+  minReplicas: {{ .Values.fid.followerOnly.minReplicas }}
+  maxReplicas: {{ .Values.fid.followerOnly.maxReplicas }}
+  metrics:
+  {{- if .Values.fid.followerOnly.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.fid.followerOnly.targetMemoryUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.fid.followerOnly.targetCPUUtilizationPercentage }}
+  {{- end }}
+{{- end }}
+{{- end }}

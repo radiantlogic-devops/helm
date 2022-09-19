@@ -1,5 +1,5 @@
 # helm
-Helm charts for FID and Zookeeper deployment
+Helm chart for FID deployment
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
 Helm's [documentation](https://helm.sh/docs) to get started.
@@ -30,36 +30,6 @@ the latest versions of the packages.  You can then run `helm search repo radiant
 helm repo remove radiantone
 ```
 
-## Install Zookeeper
-
-### Prerequisites
-* Kubernetes 1.18+
-* Helm 3
-
-### Charts
-#### Install Zookeeper
-* Install Zookeeper with default values
-```
-helm install --namespace=<name space> <release name> radiantone/zookeeper
-```
-* Install Zookeeper with overridden values
-```
-helm install --namespace=<name space> <release name> radiantone/zookeeper \
---set replicaCount="5"
-```
-* List Zookeeper releases
-```
-helm list --namespace=<name space>
-```
-* Upgrade a Zookeeper release
-```
-helm upgrade --namespace=<name space> <release name> radiantone/zookeeper
-```
-* Delete a Zookeeper release
-```
-helm uninstall --namespace=<name space> <release name>
-```
-
 ## Install FID
 
 ### Prerequisites
@@ -72,15 +42,21 @@ helm uninstall --namespace=<name space> <release name>
 ```
 helm install --namespace=<name space> <release name> radiantone/fid
 ```
-* Install FID with overridden values
+* Install FID with local Zookeeper
+```
+helm upgrade --install --namespace=<name space> <release name> radiantone/fid --set zk.external=false --set zk.clusterName=my-demo-cluster
+```
+
+* Install FID with external Zookeeper
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
+--set zk.clusterName=my-demo-cluster \
 --set zk.connectionString="zk.dev:2181" \
 --set zk.ruok="http://zk.dev:8080/commands/ruok" \
 --set fid.license="<FID cluster license>" \
 --set fid.rootPassword="test1234"
 ```
-Note: Curly brackets in the liense must be escaped ```--set fid.license="\{rlib\}xxx"```
+Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 * List FID releases
 ```
 helm list --namespace=<name space>

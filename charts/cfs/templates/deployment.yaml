@@ -1,0 +1,64 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: {{ include "cfs.fullname" . }}
+  labels:
+    {{- include "cfs.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "cfs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+      {{- include "cfs.selectorLabels" . | nindent 8 }}
+      name: {{ include "cfs.fullname" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cfs.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "cfs.fullname" . }}
+          env:
+            - name: VDS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: username
+            - name: VDS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: password
+            - name: MACHINE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: creds-{{ template "cfs.fullname" . }}
+                  key: machine-key
+          ports:
+            - containerPort: 443
+              name: cfs-master
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
