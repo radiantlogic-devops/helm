@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/core-name: {{ include "fid.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}

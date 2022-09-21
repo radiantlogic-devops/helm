@@ -1,6 +1,10 @@
 name: Lint and Test Charts
 
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - 'charts/fid/**'
+      - 'charts/zookeeper/**'
 
 jobs:
   lint-test:
@@ -31,6 +35,7 @@ jobs:
             echo "::set-output name=changed::true"
           fi
           helm repo add radiantone https://radiantlogic-devops.github.io/helm
+          helm repo add pgodey https://pgodey.github.io/helm
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ github.event.repository.default_branch }}
@@ -47,4 +52,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --helm-extra-args="--timeout=10m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=zk.chartTest=true --set=replicaCount=2" --debug --upgrade
+        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=zk.chartTest=true --set=replicaCount=2" --debug --upgrade
