@@ -1,9 +1,0 @@
----
-defaults:
-- key: LICENSE
-  value: "{AES}kf4ok4E7q2kviI+4Kd1duZvWkuCEDIByXPCff6Ym/GuQ1TrHN7V7TaY8eIbmb6w/0QELBeagPWgLGYhY3DRes6jQuUV/v4QEtaopkDvQ4f665K+q0LRvWwOfZuktbv60fL8xd8F+CoNaMqd3ZKLtVg=="
-  secret: false
-- key: FID_PASSWORD
-  value: "Radiant1Rocks!"
-  secret: true
-services: {}

@@ -1,2 +1,0 @@
-application_template: .release/application-template.yaml
-environment_variables: .release/environment-variables.yaml
