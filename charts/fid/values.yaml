@@ -247,21 +247,23 @@ cronjob:
     s3: "s3://fid-exports/cronjob"
 
 hooks:
+  hooks-sa:
+    enabled: false
   pre_install:
-    enabled: true
+    enabled: false
   post_install:
-    enabled: true
+    enabled: false
   pre_upgrade:
-    enabled: true
+    enabled: false
     s3: "s3://fid-exports/pre_ugrade"
   post_upgrade:
-    enabled: true
+    enabled: false
   pre_rollback:
-    enabled: true
+    enabled: false
   post_rollback:
-    enabled: true
+    enabled: false
   pre_delete:
-    enabled: true
+    enabled: false
   post_delete:
-    enabled: true
+    enabled: false
 
