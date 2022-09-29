@@ -9,7 +9,7 @@ entries:
     name: cfs
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/cfs-0.1.0.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/cfs-0.1.0/cfs-0.1.0.tgz
     version: 0.1.0
   fid:
   - apiVersion: v2
@@ -32,7 +32,7 @@ entries:
     name: fid
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/fid-0.1.2.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/fid-0.1.2/fid-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
     appVersion: 7.3.17
@@ -43,7 +43,7 @@ entries:
     name: fid
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/fid-0.1.1.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/fid-0.1.1/fid-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v2
     appVersion: 7.3.16
@@ -54,7 +54,7 @@ entries:
     name: fid
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/fid-0.1.0.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/fid-0.1.0/fid-0.1.0.tgz
     version: 0.1.0
   zookeeper:
   - apiVersion: v2
@@ -65,7 +65,7 @@ entries:
     name: zookeeper
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/zookeeper-0.1.1.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.1/zookeeper-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v2
     appVersion: 3.5.8
@@ -75,6 +75,6 @@ entries:
     name: zookeeper
     type: application
     urls:
-    - https://radiantlogic-devops.github.io/helm/zookeeper-0.1.0.tgz
+    - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.0/zookeeper-0.1.0.tgz
     version: 0.1.0
 generated: "2022-04-14T15:30:32.9021093-07:00"
