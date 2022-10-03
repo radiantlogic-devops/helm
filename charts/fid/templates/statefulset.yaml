@@ -68,7 +68,7 @@ spec:
             memory: 128Mi        
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
       - name: check-zk-readonly
-        image: alpine:latest
+        image: alpine/curl:latest
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -77,7 +77,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi        
-        command: ['sh', '-c', 'apk add -q --no-cache curl; until $(curl --silent http://$0:8080/commands/is_read_only | grep false >> /dev/null); do echo Waiting for zookeeper to be writeable;sleep 5; done; echo zookeeper is writable', '{{ (split ":" .Values.zk.connectionString)._0 }}']
+        command: ['sh', '-c', 'until $(curl --silent http://$0:8080/commands/is_read_only | grep false >> /dev/null); do echo Waiting for zookeeper to be writeable;sleep 5; done; echo zookeeper is writable', '{{ (split ":" .Values.zk.connectionString)._0 }}']
   {{- end }}
   {{- if hasKey .Values.sysctl "enabled" }}
   {{- if .Values.sysctl.enabled }}
@@ -99,7 +99,7 @@ spec:
   {{- if hasKey .Values.fid.migration "url" }}
   {{- if .Values.fid.migration.url }}
       - name: migration
-        image: alpine:latest
+        image: alpinei/curl:latest
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -113,7 +113,7 @@ spec:
           - |
             set -ex
             # Download the curl package
-            apk add -q --no-cache curl
+            # apk add -q --no-cache curl
             # Download the migrations file
             curl -sSo /migrations/export.zip {{ .Values.fid.migration.url }}
             

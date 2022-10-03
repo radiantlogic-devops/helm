@@ -19,7 +19,7 @@ spec:
           defaultMode: 0777
       containers:
       - name: kibana-import
-        image: alpine:latest
+        image: alpine/curl:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
@@ -29,7 +29,7 @@ spec:
         command: ["/bin/sh", "-c"]
         args: 
             - |  
-              apk add -q --no-cache curl jq 
+              # apk add -q --no-cache curl jq 
               /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
