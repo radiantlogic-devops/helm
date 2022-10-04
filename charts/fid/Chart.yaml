@@ -28,7 +28,7 @@ maintainers:
     url: https://www.radiantlogic.com
 dependencies:
   - name: zookeeper
-    version: 0.x.x
+    version: 0.1.2
     repository: https://radiantlogic-devops.github.io/helm
     condition: dependencies.zookeeper
   - name: prometheus
