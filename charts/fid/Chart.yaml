@@ -30,4 +30,20 @@ dependencies:
   - name: zookeeper
     version: 0.x.x
     repository: https://radiantlogic-devops.github.io/helm
-    condition: zk.chartTest
+    condition: dependencies.zookeeper
+  - name: prometheus
+    repository: https://prometheus-community.github.io/helm-charts
+    version: 15.12.0
+    condition: dependencies.prometheus
+  - name: grafana
+    repository: https://grafana.github.io/helm-charts
+    version: 6.38.1
+    condition: dependencies.grafana
+  - name: elasticsearch
+    repository: https://helm.elastic.co
+    version: 7.17.3
+    condition: dependencies.elasticsearch
+  - name: kibana
+    repository: https://helm.elastic.co
+    version: 7.17.3
+    condition: dependencies.kibana
