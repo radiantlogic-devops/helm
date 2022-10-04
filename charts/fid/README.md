@@ -75,8 +75,8 @@ helm uninstall --namespace=<name space> <release name>
 
 * Helm Hooks have been added to allow intervention at certain point (install, upgrade, rollback and delete) of lifecycle
 * These hooks can be found under hooks folder in the templates.
-* Avaibalbe hooks are pre/post-Install, Upgrade, Rollback and Delete
-* A service account with permissions to perform actions required by helm hooks can also be created by enabling(hooks-sa.yaml)
+* Available hooks are pre/post Install, Upgrade, Rollback and Delete
+* A service account with permissions to perform actions required by helm hooks can also be created by enabling (hooks-sa.yaml)
 * All the hook templates can be modified according to the use-case
 
 #### Install FID with Hooks Enabled
