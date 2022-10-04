@@ -25,7 +25,7 @@ fid:
   
   ## Detach from cluster on termination
   ##
-  detach: true
+  detach: false
   
   ## Deploy a readonly sts, that joins an existing FID cluster
   ##
