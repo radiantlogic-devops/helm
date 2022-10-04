@@ -51,4 +51,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=zk.chartTest=true --set=replicaCount=2" --debug
+        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper=true --set=replicaCount=2" --debug
