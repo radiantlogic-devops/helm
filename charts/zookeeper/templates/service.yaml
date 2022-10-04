@@ -28,3 +28,23 @@ spec:
       name: zk-election
   selector:
     {{- include "zookeeper.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-app
+  labels:
+    {{- include "zookeeper.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.zk.clientPort }}
+      targetPort: zk-client
+      protocol: TCP
+      name: zk-client
+  selector:
+    {{- include "zookeeper.selectorLabels" . | nindent 4 }}
