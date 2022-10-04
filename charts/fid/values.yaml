@@ -52,7 +52,6 @@ zk:
   ruok: "http://zookeeper-app:8080/commands/ruok"
   userName: "admin"
   password: "secret1234"
-  chartTest: false
 sysctl:
   enabled: false
 imagePullSecrets: []
@@ -204,3 +203,5 @@ gateway:
 kibana:
   enabled: false
   kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
+dependencies:
+  zookeeper: true
