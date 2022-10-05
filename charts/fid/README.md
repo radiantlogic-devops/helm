@@ -30,14 +30,34 @@ the latest versions of the packages.  You can then run `helm search repo radiant
 helm repo remove radiantone
 ```
 
-## Install FID
+## Install FID/ZOOKEEPER
 
 ### Prerequisites
 * Kubernetes 1.18+
 * Helm 3
 
-### Charts
-#### Install FID
+## Charts
+
+## Install Zookeeper
+
+### Install zookeeper with default Values
+
+```
+helm install --namespace=<name space> <release name>  radiantone/zookeeper
+```
+
+### Install Zookeeper with persistence enabled
+
+ * [Persisitent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PV/PVC) can be enabled to enable storage for FID
+ * A suitable [storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/) should also be selected
+
+```
+helm install --namespace=<name space> <release name> radiantone/zookeeper  --set persistence.enabled="true" --set persistence.storageClass="<storage class name>"
+```
+
+
+
+## Install FID
 * Install FID with default values
 ```
 helm install --namespace=<name space> <release name> radiantone/fid
@@ -57,6 +77,84 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set fid.rootPassword="test1234"
 ```
 Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
+
+* Install FID with Persistence Enabled
+
+    - [Persisitent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PV/PVC) can be enabled to enable storage for FID
+    - A suitable [storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/) should also be selected
+```
+helm install --namespace=<name space> <release name> radiantone/fid \
+--set zk.clusterName=my-demo-cluster \
+--set zk.connectionString="zk.dev:2181" \
+--set zk.ruok="http://zk.dev:8080/commands/ruok" \
+--set fid.license="<FID cluster license>" \
+--set persistence.enabled="true" \
+--set persistence.storageClass="<storage class type>" \
+--set fid.rootPassword="test1234"
+
+```
+
+* Install FID with metrics Enabled
+
+    - FID has a capability to forward the metrics to Prometheus for event/metrics monitoring.
+
+    - Learn more about prometheus [here](https://prometheus.io)
+
+    - Metrics from Prometheus can be visualized using [Grafana](https://grafana.com/grafana/) with available dashboards.
+
+
+    * Prerequisites
+        - Zookeeper Deployed with Persistence enabled
+        - Prometheus Deployed and push gateway URL available
+        - To deploy Prometheus follow the documentation [here](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md)
+        - To deploy Grafana follow the documentation [here](https://grafana.com/docs/agent/latest/operator/helm-getting-started/)
+
+```
+helm install --namespace=<name space> <release name> radiantone/fid \
+--set zk.clusterName=my-demo-cluster \
+--set zk.connectionString="zk.dev:2181" \
+--set zk.ruok="http://zk.dev:8080/commands/ruok" \
+--set fid.license="<FID cluster license>" \
+--set persistence.enabled="true" \
+--set persistence.storageClass="<storage class type>" \
+--set fid.rootPassword="test1234"
+--set metrics.enabled="true" \
+--set metrics.pushMode="true" \
+--set metrics.pushGateway="<pushGateway URL>" \
+```
+
+* Install FID with Log Forwarding Enabled.
+
+    - FID has a capability of forwarding the logs to Elasticsearch using FluentD
+
+    - These logs(data) from elasticsearch can be visualized using Kibana
+
+    - Lean more about Elasticsearch [here](https://www.elastic.co)
+
+    - Learn more about Kibana [here](https://www.elastic.co/kibana?ultron=B-Stack-Trials-AMER-US-W-Exact&gambit=Stack-Kibana&blade=adwords-s&hulk=paid&Device=c&thor=kibana&gclid=Cj0KCQjw3eeXBhD7ARIsAHjssr8Yhz4S7AmKvoc4LxgrfG7EDr0b6i8i7FRhBBmth7JK_ylVOvv-FOEaAlp5EALw_wcB)
+
+    * Prerequisites
+
+        - Zookeeper Deployed with Persistence enabled
+        - Elasticsearch Deployed with Kibana
+        - To deploy Elasticsearch follow the documentation [here](https://artifacthub.io/packages/helm/elastic/elasticsearch)
+        - To deploy Kibana follow the documentation [here](https://artifacthub.io/packages/helm/elastic/kibana)
+        - Elasticsearch Host URL available
+
+```
+helm install --namespace=<name space> <release name> radiantone/fid \
+--set zk.clusterName=my-demo-cluster \
+--set zk.connectionString="zk.dev:2181" \
+--set zk.ruok="http://zk.dev:8080/commands/ruok" \
+--set fid.license="<FID cluster license>" \
+--set persistence.enabled="true" \
+--set persistence.storageClass="<storage class type>" \
+--set fid.rootPassword="test1234" \
+--set metrics.enabled="true" \
+--set metrics.fluentd.enabled="true" \
+--set metrics.fluentd.elasticSearchHost="<elasticSearchHost URL"
+```
+
 * List FID releases
 ```
 helm list --namespace=<name space>

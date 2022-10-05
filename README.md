@@ -47,6 +47,12 @@ helm install --namespace=<name space> <release name> radiantone/zookeeper
 helm install --namespace=<name space> <release name> radiantone/zookeeper \
 --set replicaCount="5"
 ```
+* Install Zookeeper with Persistence Enabled
+
+```
+helm install --namespace=<name space> <release name> radiantone/zookeeper  --set persistence.enabled="true" --set persistence.storageClass="<storage class name>"
+```
+
 * List Zookeeper releases
 ```
 helm list --namespace=<name space>
@@ -81,6 +87,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set fid.rootPassword="test1234"
 ```
 Note: Curly brackets in the liense must be escaped ```--set fid.license="\{rlib\}xxx"```
+
 * List FID releases
 ```
 helm list --namespace=<name space>
