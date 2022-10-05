@@ -5,12 +5,19 @@ Helm chart for FID deployment
 Helm's [documentation](https://helm.sh/docs) to get started.
 
 ## TL;DR
+```
+helm repo add radiantone https://radiantlogic-devops.github.io/helm
+helm install fid radiantone/fid --set fid.license=<license> \
+--set dependencies.zookeeper=true
+```
+
+Install Zookeeper and FID seperately
 
 ```console
-$ helm repo add radiantone https://radiantlogic-devops.github.io/helm
-$ helm install my-zk-release radiantone/zookeeper
-$ helm install my-fid-release radiantone/fid --set fid.license=<license> \
---set zk.connectionString="my-zk-release-zookeeper:2181" --set zk.ruok="http://my-zk-release-zookeeper:8080/commands/ruok"
+helm repo add radiantone https://radiantlogic-devops.github.io/helm
+helm install zookeeper radiantone/zookeeper
+helm install fid radiantone/fid --set fid.license=<license> \
+--set zk.connectionString="zookeeper:2181" --set zk.ruok="http://zookeeper:8080/commands/ruok"
 ```
 
 ## Add Helm repo
