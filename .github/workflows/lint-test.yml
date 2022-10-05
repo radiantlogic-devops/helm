@@ -53,6 +53,7 @@ jobs:
         run: |
           kubectl cluster-info --context kind-chart-testing
           kubectl get nodes --context kind-chart-testing
+          echo RADIANTONE_LICENSE: ${{ secrets.RADIANTONE_LICENSE }}
 
       - name: Run chart-testing (install)
         run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper=true --set=replicaCount=2" --debug
