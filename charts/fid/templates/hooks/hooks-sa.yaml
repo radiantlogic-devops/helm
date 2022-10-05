@@ -1,4 +1,4 @@
-{{- if eq .Values.hooks.hooks_sa true }}
+{{- if eq .Values.hooks.hooks_sa.enabled true }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
