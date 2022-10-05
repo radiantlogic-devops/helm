@@ -247,7 +247,7 @@ cronjob:
     s3: "s3://fid-exports/cronjob"
 
 hooks:
-  hooks-sa:
+  hooks_sa:
     enabled: false
   pre_install:
     enabled: false
