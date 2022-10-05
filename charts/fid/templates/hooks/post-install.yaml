@@ -1,0 +1,42 @@
+{{- if .Values.hooks.post_install.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fid.fullname" . }}-post-install-job
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": "post-install"
+    # Comment the line below to keep the container created from the Hook
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ include "fid.fullname" . }}-post-install-job
+    spec:
+      serviceAccountName: {{ include "fid.fullname" . }}-hook-account
+      restartPolicy: Never
+      containers:
+      - name: post-install-job
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -ex
+            
+            echo "Starting post-install hook";
+            ## install curl and aws-cli
+            #apk add --no-cache curl;
+            #apk add aws-cli;
+            ## install kubectl
+            #curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            #chmod +x ./kubectl;
+            #mv ./kubectl /usr/local/bin;
+            #kubectl get po -n {{ .Release.Namespace }};
+            echo done;
+{{- end }}
+
+

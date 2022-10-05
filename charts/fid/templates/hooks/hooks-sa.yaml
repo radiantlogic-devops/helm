@@ -1,0 +1,46 @@
+{{- if eq .Values.hooks.hooks_sa.enabled true }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "fid.fullname" . }}-hook-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "fid.fullname" . }}-manage-pods
+  #namespace: <namespace_name> 
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["*"]
+    verbs:
+      - get
+      - list
+      - delete
+      - create
+      - update
+      - patch
+      - watch
+  - apiGroups: ["apps"] # Required to manage statefulsets/deployments
+    resources: ["*"]
+    verbs:
+      - get
+      - list
+      - delete
+      - create
+      - update
+      - patch
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "fid.fullname" . }}-manage-pods
+subjects:
+- kind: ServiceAccount
+  name: {{ include "fid.fullname" . }}-hook-account
+roleRef:
+  kind: Role
+  name: {{ include "fid.fullname" . }}-manage-pods
+  apiGroup: rbac.authorization.k8s.io
+
+{{- end }}

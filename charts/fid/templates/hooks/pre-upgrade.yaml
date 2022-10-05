@@ -1,0 +1,56 @@
+{{- if and (.Release.IsUpgrade) (.Values.hooks.pre_upgrade.enabled) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fid.fullname" . }}-pre-upgrade-job
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": pre-upgrade
+    # Comment the line below to keep the container created from the Hook
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ include "fid.fullname" . }}-pre-upgrade-job
+    spec:
+      serviceAccountName: {{ include "fid.fullname" . }}-hook-account
+      restartPolicy: Never
+      containers:
+      - name: pre-upgrade-job
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -ex
+
+            AWS_BUCKET={{ .Values.hooks.pre_upgrade.s3 }}
+            EXPORT_FILE_NAME=export-{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Release.Name }}-{{ .Release.Revision }}.zip
+            
+            echo "Starting pre-upgrade hook";
+            # Add cURL
+            apk add --no-cache curl;
+            # Add AWS CLI
+            apk add aws-cli;
+            # Install kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            chmod +x ./kubectl;
+            mv ./kubectl /usr/local/bin;
+            # Test kubectl
+            kubectl get po -n {{ .Release.Namespace }};
+            # Run migration export (creates the export in folder /opt/radiantone/vds/work/)
+            kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "./migrate.sh export $EXPORT_FILE_NAME" ;
+            # Lsit the contents
+            kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "ls -ltr /opt/radiantone/vds/work/" ;
+            # Copy the file to pre-upgrade hook container
+            kubectl -n {{ .Release.Namespace }} cp fid-0:/opt/radiantone/vds/work/$EXPORT_FILE_NAME $EXPORT_FILE_NAME ;
+            ls -ltr
+            aws s3 ls $AWS_BUCKET
+            # Push the files to s3 bucket
+            aws s3 mv ./$EXPORT_FILE_NAME $AWS_BUCKET ;
+            echo done;
+{{- end }}
+
