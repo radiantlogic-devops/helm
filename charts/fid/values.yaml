@@ -16,7 +16,7 @@ fid:
   rootPassword: "Welcome1234"
   ## License for FID
   ##
-  license: "<FID Cluster License>"
+  license: "[FID Cluster License]"
   ## Detach from cluster on termination
   ##
   detach: false
@@ -210,7 +210,7 @@ kibana:
 
 cronjob:
   migration:
-    enabled: true
+    enabled: false
     schedule: "0 0 * * *"
     s3: "s3://fid-exports/cronjob"
 
