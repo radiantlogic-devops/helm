@@ -1,0 +1,52 @@
+{{- if .Values.hooks.pre_rollback.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fid.fullname" . }}-pre-rollback-job
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "fid.name" . }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": "pre-rollback"
+    # Comment the line below to keep the container created from the Hook
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ include "fid.fullname" . }}-pre-rollback-job
+    spec:
+      serviceAccountName: {{ include "fid.fullname" . }}-hook-account
+      restartPolicy: Never
+      containers:
+      - name: pre-rollback-job
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -ex
+            
+            echo "Starting pre-upgrade hook";
+            # Add cURL
+            apk add --no-cache curl;
+            # Add AWS CLI
+            apk add aws-cli;
+            # Install kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            chmod +x ./kubectl;
+            mv ./kubectl /usr/local/bin;
+            # Test kubectl
+            kubectl get po -n {{ .Release.Namespace }};
+            # Delete Cache
+            kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh delete-cache -namingcontext o=test_view" ;
+            # Scale fid pods to 0
+            kubectl scale -n {{ .Release.Namespace }} --replicas=0 sts/{{ template "fid.fullname" . }} ;
+            # Delete PVC for FID
+            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-2;
+            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-1;
+            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-0;
+            echo done;
+{{- end }}
+
+
