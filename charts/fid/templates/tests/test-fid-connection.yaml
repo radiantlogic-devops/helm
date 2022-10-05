@@ -11,5 +11,5 @@ spec:
     - name: fid
       image: busybox
       command: ['nc']
-      args: ['-zv', '{{ include "fid.fullname" . }}', '2389']
+      args: ['-zv', '{{ include "fid.fullname" . }}-app', '2389']
   restartPolicy: Never
