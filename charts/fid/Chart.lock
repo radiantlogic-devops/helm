@@ -1,0 +1,18 @@
+dependencies:
+- name: zookeeper
+  repository: https://radiantlogic-devops.github.io/helm
+  version: 0.1.1
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 15.12.2
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 6.38.7
+- name: elasticsearch
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.17.3
+digest: sha256:e2e42458b73ab770c83e81608b0df9a7631047a28f65fe8fc9da6dc5a1b3e722
+generated: "2022-10-06T13:47:15.734543-07:00"
