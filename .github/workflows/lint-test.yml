@@ -6,9 +6,6 @@ on:
       - 'charts/fid/**'
       - 'charts/zookeeper/**'
 
-env:
-  RADIANTONE_LICENSE: "\\{AES\\}kf4ok4E7q2kviI+4Kd1duZvWkuCEDIByXPCff6Ym/GuQ1TrHN7V7TaY8eIbmb6w/0QELBeagPWgLGYhY3DRes6jQuUV/v4QEtaopkDvQ4f665K+q0LRvWwOfZuktbv60fL8xd8F+CoNaMqd3ZKLtVg=="
-
 jobs:
   lint-test:
     runs-on: ubuntu-latest
@@ -59,4 +56,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper=true --set=replicaCount=2" --debug
+        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper=true --set=replicaCount=2" --upgrade --debug
