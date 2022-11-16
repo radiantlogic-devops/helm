@@ -30,9 +30,8 @@ dependencies:
   - name: zookeeper
     alias: zookeeper
     condition: dependencies.zookeeper.enabled
-    version: "0.1.1"
+    version: "0.1.2"
     repository: https://radiantlogic-devops.github.io/helm
-    #repository: "file://../zookeeper"
   - name: prometheus
     alias: prometheus
     version: "15.12.*"
