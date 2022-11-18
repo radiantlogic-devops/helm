@@ -5,7 +5,7 @@ Helm chart for FID deployment
 Helm's [documentation](https://helm.sh/docs) to get started.
 
 ## TL;DR
-```
+```console
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
 helm install fid radiantone/fid --set fid.license=<license> --set dependencies.zookeeper.enabled=true
 ```
