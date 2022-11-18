@@ -11,6 +11,46 @@ entries:
     urls:
     - https://github.com/radiantlogic-devops/helm/releases/download/cfs-0.1.0/cfs-0.1.0.tgz
     version: 0.1.0
+  common-services:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2022-11-18T03:45:57.581597851Z"
+    dependencies:
+    - condition: argo-cd.enabled
+      name: argo-cd
+      repository: https://argoproj.github.io/argo-helm
+      version: 5.6.0
+    - condition: prometheus.enabled
+      name: prometheus
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 15.13.0
+    - condition: grafana.enabled
+      name: grafana
+      repository: https://grafana.github.io/helm-charts
+      version: 6.40.0
+    - condition: elasticsearch.enabled
+      name: elasticsearch
+      repository: https://helm.elastic.co
+      version: 7.17.3
+    - condition: kibana.enabled
+      name: kibana
+      repository: https://helm.elastic.co
+      version: 7.17.3
+    - condition: haproxy.enabled
+      name: haproxy
+      repository: https://haproxytech.github.io/helm-charts
+      version: 1.17.3
+    description: A Helm chart for RadiantOne Common Services on Kubernetes
+    digest: 9e285a2d97e5a97da4eb65e319f7c81efbd431387683a5285f1f93198ccfdea6
+    maintainers:
+    - email: pgodey@radiantlogic.com
+      name: pgodey
+      url: https://www.radiantlogic.com
+    name: common-services
+    type: application
+    urls:
+    - https://github.com/radiantlogic-devops/helm/releases/download/common-services-1.0.0/common-services-1.0.0.tgz
+    version: 1.0.0
   fid:
   - apiVersion: v2
     appVersion: 7.4.2
@@ -127,4 +167,4 @@ entries:
     urls:
     - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.0/zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2022-10-05T15:00:12.676494381Z"
+generated: "2022-11-18T03:45:57.581652452Z"
