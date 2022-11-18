@@ -1,0 +1,56 @@
+{{- if eq .Values.kibana.enabled true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-data
+data:
+  
+  curl-script.sh: |
+    #!/bin/sh
+    
+    function import_index {
+        echo "Importing Index-Patterns"
+        echo "The curl command creates symlinks so using an alternative method"
+        echo "Copying the Index-Pattern file from /kibana/index_pattern to /opt/index_pattern to make it hardlink"
+        cat /kibana/index_pattern.ndjson > /opt/index_pattern.ndjson
+        until curl --location --request POST "${KIBANA_URL}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/opt/index_pattern.ndjson"' ; do sleep 5; done
+        if [[ $(echo "$?") == "0" ]]; then
+          printf "\nThe Kibana Index Patterns have been successfully imported\n"
+        else
+          printf "\nFailure while importing index-pattern\n"
+        fi
+    }
+    
+    function import_dashboard {
+        echo "Importing Dashboard"
+        echo "The curl command creates symlinks so using an alternative method"
+        echo "Copying the Dashboard file from /kibana/dashboard to /opt/dashboard to make it hardlink"
+        cat /kibana/dashboard.ndjson > /opt/dashboard.ndjson
+        until curl --location --request POST "${KIBANA_URL}/api/saved_objects/_import" --header 'kbn-xsrf: true' --form 'file=@"/opt/dashboard.ndjson"' ; do sleep 5; done
+        if [[ $(echo "$?") == "0" ]]; then
+          printf "\nThe Kibana Dashboard have been successfully imported\n"
+        else
+          printf "\nFailure while importing dashboard\n"
+        fi
+    }
+
+    while true
+    do
+      if [[ $(curl -s ${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
+        echo "kibana is healthy"
+        import_index
+        import_dashboard
+        break
+      else
+        echo "kibana is unhealthy"
+      fi
+    sleep 5
+    done
+
+  index_pattern.ndjson: |
+{{ .Files.Get "dashboards/kibana-index-pattern.ndjson" | indent 4 }}
+
+  dashboard.ndjson: |
+{{ .Files.Get "dashboards/kibana-dashboards.ndjson" | indent 4 }}
+
+{{- end }}

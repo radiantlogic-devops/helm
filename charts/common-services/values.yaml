@@ -1,0 +1,173 @@
+nodeSelector: {}
+
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+#  annotations:
+#    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: chart-example.local
+      paths:
+        - "/"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+argo-cd:
+  enabled: true
+  fullnameOverride: argocd
+  configs:
+    params:
+      server.rootpath: "/argocd"
+      server.insecure: true
+  dex:
+    enabled: false
+  applicationSet:
+    enabled: false
+  notifications:
+    enabled: false
+  controller:
+    nodeSelector: {}
+  redis:
+    nodeSelector: {}
+  server:
+    nodeSelector: {}
+    service:
+      type: NodePort
+  repoServer:
+    nodeSelector: {}
+  crds:
+    keep: false
+
+prometheus:
+  enabled: true
+  server:
+    extraFlags:
+      - web.enable-lifecycle
+      - web.route-prefix=/
+      - web.external-url=http://prometheus-server/prometheus/
+    fullnameOverride: prometheus-server
+    nodeSelector: {}
+  nodeExporter:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  alertmanager:
+    fullnameOverride: prometheus-alertmanager
+    nodeSelector: {}
+  pushgateway:
+    fullnameOverride: prometheus-pushgateway
+    nodeSelector: {}
+
+grafana:
+  fullnameOverride: grafana
+  enabled: true
+  nodeSelector: {}
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/grafana"
+      serve_from_sub_path: true
+
+  # Setup Data Source (prometheus)
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-server
+          access: proxy
+          isDefault: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'fid'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/fid
+      - name: 'zookeeper'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/zookeeper
+  dashboardsConfigMaps:
+    fid: "fid-dashboard"
+    zookeeper: "zookeeper-dashboard"
+
+elasticsearch:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+
+kibana:
+  enabled: true
+  fullnameOverride: kibana
+  nodeSelector: {}
+  kibanaConfig:
+    kibana.yml: |
+      server.basePath: "/kibana"
+
+haproxy:
+  enabled: true
+  fullnameOverride: haproxy
+  nodeSelector: {}
+  service:
+    type: NodePort
+  config: |
+    defaults
+      timeout connect 10s
+      timeout client 30s
+      timeout server 30s
+      log global
+      mode http
+      option httplog
+      maxconn 3000
+    frontend http-in
+      bind *:80
+
+      stats enable
+      stats refresh 30s
+      stats show-node
+      stats uri /stats
+
+      use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
+      use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }
+      use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }
+      use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }
+      use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
+      use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
+      use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
+    backend argocd_backend
+      server argocd argocd-server:80
+    backend grafana_backend
+      http-request set-path %[path,regsub(^/grafana/?,/)]
+      server grafana grafana:80
+    backend kibana_backend
+      http-request set-path %[path,regsub(^/kibana/?,/)]
+      server kibana kibana:5601
+    backend elasticsearch_backend
+      http-request set-path %[path,regsub(^/elasticsearch/?,/)]
+      server elasticsearch elasticsearch-master:9200
+    backend prometheus_backend
+      http-request set-path %[path,regsub(^/prometheus/?,/)]
+      server prometheus prometheus-server:80
+    backend alertmanager_backend
+      http-request set-path %[path,regsub(^/alertmanager/?,/)]
+      server alertmanager prometheus-alertmanager:80
+    backend pushgateway_backend
+      http-request set-path %[path,regsub(^/pushgateway/?,/)]
+      server pushgateway prometheus-pushgateway:9091
