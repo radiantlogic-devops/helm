@@ -8,9 +8,8 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 
 ```console
 $ helm repo add radiantone https://radiantlogic-devops.github.io/helm
-$ helm install my-zk-release radiantone/zookeeper
 $ helm install my-fid-release radiantone/fid --set fid.license=<license> \
---set zk.connectionString="my-zk-release-zookeeper:2181" --set zk.ruok="http://my-zk-release-zookeeper:8080/commands/ruok"
+--set dependencies.zookeeper.enabled=true
 ```
 
 ## Add Helm repo
