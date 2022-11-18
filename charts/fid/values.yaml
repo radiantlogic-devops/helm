@@ -245,7 +245,7 @@ dependencies :
   prometheus:
     enabled: false
   grafana:
-    enabled: true
+    enabled: false
   elasticsearch:
     enabled: false
   kibana:
