@@ -238,8 +238,8 @@ hooks:
   post_delete:
     enabled: false
 
-## Dependencies are disabled by default.
-dependencies :
+# Dependencies are disabled by default.
+dependencies:
   zookeeper:
     enabled: false
   prometheus:
@@ -285,14 +285,14 @@ grafana:
           isDefault: true
   dashboardProviders:
     dashboardproviders.yaml:
-     apiVersion: 1
-     providers:
+      apiVersion: 1
+      providers:
       - name: 'fid'
         orgId: 1
         folder: ''
         type: file
         disableDeletion: false
-        updateIntervalSeconds: 10 
+        updateIntervalSeconds: 10
         allowUiUpdates: true
         editable: true
         options:
