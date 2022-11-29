@@ -13,11 +13,6 @@ jobs:
     
     steps:
     
-      - name: Clear any existing tool cache
-        run: |
-          mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
-          mkdir -p "${{ runner.tool_cache }}"
-          
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -65,6 +60,6 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 \
-                             --set image.repository=radiantone/fid-nightly --image.tag=latest \
-                             --set imageCredentials.enabled=true --set imageCredentials.username=${{ secrets.DOCKER_USERNAME }} --set imageCredentials.password=${{ secrets.DOCKER_PASSWORD }} \
-                             --set imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --imagePullSecrets[0].name=regcred" --debug
+                             --set=image.repository=radiantone/fid-nightly --set=image.tag=latest \
+                             --set=imageCredentials.enabled=true --set=imageCredentials.username=${{ secrets.DOCKER_USERNAME }} --set=imageCredentials.password=${{ secrets.DOCKER_PASSWORD }} \
+                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred" --debug
