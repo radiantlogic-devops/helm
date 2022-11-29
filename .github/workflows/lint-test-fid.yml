@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint-test:
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     
     steps:
       - name: Checkout
@@ -53,6 +53,7 @@ jobs:
         run: |
           kubectl cluster-info --context kind-chart-testing
           kubectl get nodes --context kind-chart-testing
+          df | grep -i r1-pvc
 
       - name: Run chart-testing (install)
         run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2" --debug
