@@ -238,6 +238,14 @@ hooks:
   post_delete:
     enabled: false
 
+# Image Credentials
+imageCredentials:
+  enabled: false
+  registry: docker.io
+  username:
+  password: 
+  email:
+
 # Dependencies are disabled by default.
 dependencies:
   zookeeper:
