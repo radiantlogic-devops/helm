@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    
+      - name: Clear any existing tool cache
+        run: |
+          mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
+          mkdir -p "${{ runner.tool_cache }}"
+          
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -53,7 +59,6 @@ jobs:
         run: |
           kubectl cluster-info --context kind-chart-testing
           kubectl get nodes --context kind-chart-testing
-          df | grep -i r1-pvc
 
       - name: Run chart-testing (install)
         run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2" --debug
