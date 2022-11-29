@@ -3,6 +3,9 @@ name: Lint and Test FID Charts with Nightly Image
 on:
   schedule:
     - cron: "* 0 * * *"
+  pull_request:
+    paths:
+      - 'charts/fid/**'
 
 jobs:
   lint-test:
