@@ -195,13 +195,14 @@ gateway:
   ldaps:
     name: "ldaps"
     port: 2636
+
 # Kibana
 # Below is to import Kibana Dahsboard and Index patterns
 # If Kibana is deployed and healthy, changed the enabled to "true"
 # Provide kibana URL in the kibanaURL field
 # Setting enable to true will create a config_map and run a kubernetes job
 
-kibana:
+kibanadashboard:
   enabled: false
   kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
 
@@ -213,6 +214,8 @@ cronjob:
     enabled: false
     schedule: "0 0 * * *"
     s3: "s3://fid-exports/cronjob"
+
+## Helm Hooks
 
 hooks:
   hooks_sa:
@@ -235,10 +238,89 @@ hooks:
   post_delete:
     enabled: false
 
-# Dependencies are disabled by default
+# Image Credentials
+imageCredentials:
+  enabled: false
+  registry: docker.io
+  username:
+  password:
+  email:
+
+# Dependencies are disabled by default.
 dependencies:
-  zookeeper: false
-  prometheus: false
-  grafana: false
-  elasticsearch: false
-  kibana: false
+  zookeeper:
+    enabled: false
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+  elasticsearch:
+    enabled: false
+  kibana:
+    enabled: false
+
+# Values file Inputs for the dependency charts.
+zookeeper:
+  fullnameOverride: zookeeper
+  replicaCount: 3
+  persistence:
+    enabled: false
+    storageClass: "gp2"
+
+prometheus:
+  server:
+    fullnameOverride: prometheus-server
+  pushgateway:
+    fullnameOverride: prometheus-pushgateway
+  alertmanager:
+    fullnameOverride: prometheus-alertmanager
+  kube-state-metrics:
+    fullnameOverride: prometheus-kube-state-metrics
+  nodeExporter:
+    fullnameOverride: prometheus-node-exporter
+
+grafana:
+  fullnameOverride: grafana
+# Setup Data Source (prometheus)
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-server
+          access: proxy
+          isDefault: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'fid'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/fid
+      - name: 'zookeeper'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/zookeeper
+  dashboardsConfigMaps:
+    fid: "fid-dashboard"
+    zookeeper: "zookeeper-dashboard"
+
+elasticsearch:
+  fullnameOverride: elasticsearch
+
+kibana:
+  fullnameOverride: kibana

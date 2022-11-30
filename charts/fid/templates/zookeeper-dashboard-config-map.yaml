@@ -1,0 +1,11 @@
+{{- if eq .Values.dependencies.grafana.enabled true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zookeeper-dashboard
+  labels:
+    grafana_dashboard: "1"   
+data:
+{{ (.Files.Glob "dashboards/zookeeper-dashboard.json").AsConfig | indent 2 }}
+
+{{- end }}

@@ -268,6 +268,11 @@ spec:
           value: {{ .Values.metrics.pushGateway | quote }}
         - name: LDAP_URI
           value: "ldap://localhost:2389"
+        - name: JOB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "fid.fullname" . }} 
+              key: ZK_CLUSTER
 {{- if .Values.fid.rootUser }}
         - name: BIND_DN
           valueFrom:

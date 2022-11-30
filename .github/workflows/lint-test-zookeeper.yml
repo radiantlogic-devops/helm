@@ -1,9 +1,8 @@
-name: Lint and Test Charts
+name: Lint and Test Zookeeper Charts
 
 on:
   pull_request:
     paths:
-      - 'charts/fid/**'
       - 'charts/zookeeper/**'
 
 jobs:
@@ -35,11 +34,6 @@ jobs:
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
           fi
-          helm repo add radiantone https://radiantlogic-devops.github.io/helm
-          helm repo add prometheus https://prometheus-community.github.io/helm-charts
-          helm repo add grafana https://grafana.github.io/helm-charts
-          helm repo add elastic https://helm.elastic.co
-          helm repo add kibana https://helm.elastic.co
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ github.event.repository.default_branch }}
@@ -56,4 +50,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper=true --set=replicaCount=2" --upgrade --debug
+        run: ct install --helm-extra-args="--timeout=15m0s" --debug
