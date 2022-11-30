@@ -53,6 +53,47 @@ entries:
     version: 1.0.0
   fid:
   - apiVersion: v2
+    appVersion: 7.4.3
+    created: "2022-11-30T00:41:38.595019373Z"
+    dependencies:
+    - alias: zookeeper
+      condition: dependencies.zookeeper.enabled
+      name: zookeeper
+      repository: https://radiantlogic-devops.github.io/helm
+      version: 0.1.2
+    - alias: prometheus
+      condition: dependencies.prometheus.enabled
+      name: prometheus
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 15.12.*
+    - alias: grafana
+      condition: dependencies.grafana.enabled
+      name: grafana
+      repository: https://grafana.github.io/helm-charts
+      version: 6.38.*
+    - alias: elasticsearch
+      condition: dependencies.elasticsearch.enabled
+      name: elasticsearch
+      repository: https://helm.elastic.co
+      version: 7.17.*
+    - alias: kibana
+      condition: dependencies.kibana.enabled
+      name: kibana
+      repository: https://helm.elastic.co
+      version: 7.17.*
+    description: A Helm chart for FID Kubernetes deployment
+    digest: 3ee91cbddf0a9f4dca3ea784dca5fa9b25bedb54918e1397495e798def5e69e7
+    home: https://radiantlogic-devops.github.io/helm
+    maintainers:
+    - email: pgodey@radiantlogic.com
+      name: pgodey
+      url: https://www.radiantlogic.com
+    name: fid
+    type: application
+    urls:
+    - https://github.com/radiantlogic-devops/helm/releases/download/fid-0.1.5/fid-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
     appVersion: 7.4.2
     created: "2022-10-05T15:00:12.676466281Z"
     dependencies:
@@ -167,4 +208,4 @@ entries:
     urls:
     - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.0/zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2022-11-18T03:45:57.581652452Z"
+generated: "2022-11-30T00:41:38.595055075Z"
