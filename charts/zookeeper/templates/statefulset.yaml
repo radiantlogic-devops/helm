@@ -63,6 +63,60 @@ spec:
           mountPath: /opt/radiantone/rli-zookeeper-external
         command: ["/bin/sh","-c"]
         args: ["/opt/radiantone/run.sh"]
+{{- if .Values.metrics.enabled }}
+      - name: {{chat.name}}-exporter
+        image: {{ .Values.metrics.iamge }}:{{ .Values.metrics.imageTag }}
+        resources:
+          limits:
+            cpu: 100m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          ports:
+          - containerPort: 9095
+            name: exporter
+          volumeMounts:
+          - name: zk-pvc
+            mountPath: /opt/radiantone/rli-zookeeper-external
+          securityContext:
+            readOnlyRootFileSystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2181; do echo Waiting for zookeeper -- 2181;sleep 10; done;echo \"Zookeeper is up!\" && /usr/src/zookeeper-exporter/entrypoint.sh"]
+          env:
+          - name: ZK_CONN
+            value: {{ .Values.metrics.zk_conn | quote }}
+          - name: PUSH_MODE
+            value: {{ .Values.metrics.pushMode | quote }}
+          - name: PUSHGATEWAY_URI
+            value: {{ .Values.metrics.pushGateway | quote }}
+{{- if .Values.fid.rootUser }}
+          - name: BIND_DN
+            valueFrom:
+              secretKeyRef:
+                name: rootcreds-{{ template "fid.fullname" . }}
+                key: fid-root-username
+{{- end }}
+{{- if .Values.fid.rootPassword }}
+          - name: BIND_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rootcreds-{{ template "fid.fullname" . }}
+                key: fid-root-password
+{{- end }}
+{{- if hasKey .Values.metrics.fluentd "enabled" }}
+{{- if .Values.metrics.fluentd.enabled }}
+          - name: FLUENTD_ENABLE
+            value: {{ .Values.metrics.fluentd.enabled | quote }}
+          - name: FLUENTD_CONF
+            value: {{ .Values.metrics.fluentd.configFile | quote }}
+          - name: ELASTICSEARCH_HOST
+            value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+{{- end }}
+{{- end }}    
+{{- end }} 
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
