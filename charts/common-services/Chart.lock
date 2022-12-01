@@ -1,0 +1,21 @@
+dependencies:
+- name: argo-cd
+  repository: https://argoproj.github.io/argo-helm
+  version: 5.6.0
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 15.13.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 6.40.0
+- name: elasticsearch
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: haproxy
+  repository: https://haproxytech.github.io/helm-charts
+  version: 1.17.3
+digest: sha256:5a5fb79d3081a2ed8e3d81abf69953d094b9cb3d9ac8eae9131ee1c93685848e
+generated: "2022-12-02T00:17:02.98923+05:30"
