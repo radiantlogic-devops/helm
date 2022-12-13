@@ -62,4 +62,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --debug
+        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=pgadmin4.enabled=false" --debug
