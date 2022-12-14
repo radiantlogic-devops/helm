@@ -69,7 +69,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           limits:
-            cpu: 100m
+            cpu: 1000m
             memory: 1Gi
           requests:
             cpu: 100m
@@ -82,7 +82,6 @@ spec:
           mountPath: /opt/radiantone/rli-zookeeper-external
         securityContext:
           runAsUser: 0
-        command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2181; do echo Waiting for zookeeper -- 2181;sleep 1000; done;echo \"Zookeeper is up!\" && /usr/src/zookeeper-exporter/entrypoint.sh"]
         env:
         - name: ZK_CONN
           value: {{ .Values.metrics.zk_conn | quote }}
@@ -90,7 +89,6 @@ spec:
           value: {{ .Values.metrics.pushMode | quote }}
         - name: PUSHGATEWAY_URI
           value: {{ .Values.metrics.pushGateway | quote }}
-
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE

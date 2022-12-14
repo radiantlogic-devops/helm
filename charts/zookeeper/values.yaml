@@ -104,16 +104,16 @@ persistence:
 
 metrics:
   enabled: false
-  image: rahulnutakki/zk-exporter
+  image: radiantone/zk-exporter
   imageTag: latest
   annotations: {}
-  zk_conn: zk-0:2181
+  zk_conn: zookeeper:2181
   pushMode: true
   pushGateway: http://prometheus:9091
   fluentd:
-    enabled: false
-    configFile: /fluent/etc.fluent.conf
-    elasticSearchHost: elasticsearch
+    enabled: true
+    configFile: /fluentd/etc/fluent.conf
+    elasticSearchHost: elasticsearch-master
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
