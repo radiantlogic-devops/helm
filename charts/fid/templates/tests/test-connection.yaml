@@ -20,3 +20,8 @@ spec:
               set -ex
               curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 5 --retry-max-time 60 --retry-all-errors http://{{ include "fid.fullname" . }}-ext:{{ .Values.service.port }}/main/login
       restartPolicy: Never
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+

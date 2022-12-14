@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.5
+version: 0.1.6
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -32,23 +32,3 @@ dependencies:
     condition: dependencies.zookeeper.enabled
     version: "0.1.2"
     repository: https://radiantlogic-devops.github.io/helm
-  - name: prometheus
-    alias: prometheus
-    version: "15.12.*"
-    repository: https://prometheus-community.github.io/helm-charts
-    condition: dependencies.prometheus.enabled
-  - name: grafana
-    alias: grafana
-    version: "6.38.*"
-    repository: https://grafana.github.io/helm-charts
-    condition: dependencies.grafana.enabled
-  - name: elasticsearch
-    alias: elasticsearch
-    version: "7.17.*"
-    repository: https://helm.elastic.co
-    condition: dependencies.elasticsearch.enabled
-  - name: kibana
-    alias: kibana
-    repository: https://helm.elastic.co
-    version: "7.17.*"
-    condition: dependencies.kibana.enabled

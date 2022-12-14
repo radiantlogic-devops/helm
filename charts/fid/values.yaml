@@ -250,14 +250,6 @@ imageCredentials:
 dependencies:
   zookeeper:
     enabled: false
-  prometheus:
-    enabled: false
-  grafana:
-    enabled: false
-  elasticsearch:
-    enabled: false
-  kibana:
-    enabled: false
 
 # Values file Inputs for the dependency charts.
 zookeeper:
@@ -265,62 +257,5 @@ zookeeper:
   replicaCount: 3
   persistence:
     enabled: false
-    storageClass: "gp2"
+    storageClass: ""
 
-prometheus:
-  server:
-    fullnameOverride: prometheus-server
-  pushgateway:
-    fullnameOverride: prometheus-pushgateway
-  alertmanager:
-    fullnameOverride: prometheus-alertmanager
-  kube-state-metrics:
-    fullnameOverride: prometheus-kube-state-metrics
-  nodeExporter:
-    fullnameOverride: prometheus-node-exporter
-
-grafana:
-  fullnameOverride: grafana
-# Setup Data Source (prometheus)
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-server
-          access: proxy
-          isDefault: true
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'fid'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/fid
-      - name: 'zookeeper'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/zookeeper
-  dashboardsConfigMaps:
-    fid: "fid-dashboard"
-    zookeeper: "zookeeper-dashboard"
-
-elasticsearch:
-  fullnameOverride: elasticsearch
-
-kibana:
-  fullnameOverride: kibana
