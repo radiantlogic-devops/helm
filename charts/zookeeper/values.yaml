@@ -104,7 +104,7 @@ persistence:
 
 metrics:
   enabled: false
-  image: radiantone/zk-exporter
+  image: rahulnutakki/zk-exporter
   imageTag: latest
   annotations: {}
   zk_conn: zk-0:2181
