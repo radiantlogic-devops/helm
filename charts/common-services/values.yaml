@@ -212,6 +212,7 @@ haproxy:
       stats refresh 30s
       stats show-node
       stats uri /stats
+      monitor-uri /healthz
 
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
       use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }
@@ -220,6 +221,8 @@ haproxy:
       use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
       use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
       use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
+      use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+
     backend argocd_backend
       server argocd argocd-server:80
     backend grafana_backend
@@ -240,3 +243,25 @@ haproxy:
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
       server pushgateway prometheus-pushgateway:9091
+    backend pgadmin4_backend
+      server pgadmin4 pgadmin4:80
+
+postgresql:
+  enabled: true
+  fullnameOverride: postgresql
+  primary:
+    nodeSelector: {}
+
+pgadmin4:
+  enabled: true
+  fullnameOverride: pgadmin4
+  nodeSelector: {}
+  persistentVolume:
+    enabled: false
+  env:
+    contextPath: "/pgadmin4"
+
+zookeeper:
+  enabled: true
+  fullnameOverride: zookeeper
+  nodeSelector: {}
