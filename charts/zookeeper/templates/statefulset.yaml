@@ -61,8 +61,23 @@ spec:
         volumeMounts:
         - name: zk-pvc
           mountPath: /opt/radiantone/rli-zookeeper-external
+        # command: ["/bin/sh","-c"]
+        # args: ["/opt/radiantone/run.sh"]
+{{- if .Values.metrics.enabled }}
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            set -ex
+            /opt/radiantone/run.sh;
+            yum install -y nc;
+            until nc -w 2 -z localhost 2181; do echo Waiting for zk -- 2181;sleep 10; done;echo \"zk is up!\";
+            echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg;
+            /opt/radiantone/rli-zookeeper-external/bin/stop_zookeeper.sh;
+            /opt/radiantone/run.sh;
+{{- else }}
         command: ["/bin/sh","-c"]
         args: ["/opt/radiantone/run.sh"]
+{{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
         image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
