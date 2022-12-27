@@ -149,6 +149,16 @@ grafana:
           url: http://prometheus-server
           access: proxy
           isDefault: true
+        - name: Elastic
+          type: elasticsearch
+          url: http://elasticsearch-master:9200
+          access: proxy
+          isDefault: false
+          jsonData:
+            esVersion: 7.10+
+            maxConcurrentShardRequests: 5
+            timeField: "@timestamp"
+
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -173,9 +183,20 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/zookeeper
+      - name: 'elasticsearch'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/elasticsearch
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
+    elasticsearch: "audit-logs-elastic-dashboard"
 
 elasticsearch:
   enabled: true
