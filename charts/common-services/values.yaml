@@ -125,10 +125,10 @@ grafana:
     auth:
       disable_login_form: true
     auth.anonymous:
-      enabled: true
+      enabled: false
       org_role: Editor
     auth.basic:
-      enabled: false
+      enabled: true
     analytics:
       check_for_updates: false
     panels:
@@ -151,13 +151,13 @@ grafana:
           isDefault: true
         - name: Elastic
           type: elasticsearch
+          database: vds_server_access.log*
           url: http://elasticsearch-master:9200
           password: ""
           user: ""
           access: proxy
           isDefault: false
           jsonData:
-            indexName: vds_server_access.log*
             esVersion: 7.10+
             logLevelField: ""
             logMessageField: ""
