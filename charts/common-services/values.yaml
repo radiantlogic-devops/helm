@@ -122,13 +122,9 @@ grafana:
     server:
       root_url: "%(protocol)s://%(domain)s/grafana"
       serve_from_sub_path: true
-    auth:
-      disable_login_form: true
     auth.anonymous:
-      enabled: false
-      org_role: Editor
-    auth.basic:
       enabled: true
+      org_role: Viewer
     analytics:
       check_for_updates: false
     panels:
