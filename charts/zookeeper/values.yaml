@@ -107,7 +107,7 @@ metrics:
   image: radiantone/zk-exporter
   imageTag: latest
   annotations: {}
-  zk_conn: zookeeper-0:2181
+  zk_conn: localhost:2181
   pushMode: true
   pushGateway: http://prometheus-pushgateway:9091
   fluentd:

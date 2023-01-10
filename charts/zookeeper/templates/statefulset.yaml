@@ -67,13 +67,18 @@ spec:
         command: ["/bin/sh","-c"]
         args:
           - |
-            set -ex
-            /opt/radiantone/run.sh;
-            yum install -y nc;
-            until nc -w 2 -z localhost 2181; do echo Waiting for zk -- 2181;sleep 10; done;echo \"zk is up!\";
-            echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg;
-            /opt/radiantone/rli-zookeeper-external/bin/stop_zookeeper.sh;
-            /opt/radiantone/run.sh;
+            /opt/radiantone/run.sh &
+            # check nc installed
+            if rpm -qa | grep -i nmap-ncat; then :; else
+              yum install -y nc;
+            fi
+            # check mntr
+            if echo mntr | nc localhost 2181 | grep "not in the whitelist"; then
+              until nc -w 2 -z localhost 2181; do echo Waiting for zk -- 2181;sleep 10; done;echo \"zk is up!\"
+              echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg
+              /opt/radiantone/rli-zookeeper-external/bin/stop_zookeeper.sh
+              /opt/radiantone/run.sh
+            fi
 {{- else }}
         command: ["/bin/sh","-c"]
         args: ["/opt/radiantone/run.sh"]
