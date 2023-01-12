@@ -22,7 +22,7 @@ spec:
                 # TODO: generate a bucket if bucket does not exist
                 AWS_BUCKET={{ .Values.cronjob.migration.s3 | default "fid-exports" }}
                 EXPORT_FILE_NAME=export-{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Release.Name }}-{{ .Release.Revision }}-{{ now | date "20060102150405" }}.zip
-            
+
                 echo "Starting migration cronjob at {{ now | date "20060102150405" }}";
                 apk add --no-cache curl;
                 apk add aws-cli;
@@ -37,6 +37,9 @@ spec:
                 aws s3 ls $AWS_BUCKET
                 aws s3 mv ./$EXPORT_FILE_NAME $AWS_BUCKET ;
                 echo done;
-
+      {{- with .Values.nodeSelector }}
+          nodeSelector:
+          {{- toYaml . | nindent 12 }}
+      {{- end }}
           restartPolicy: OnFailure
 {{- end }}
