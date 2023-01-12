@@ -217,7 +217,6 @@ kibana:
     kibana.yml: |
       server.basePath: "/kibana"
       telemetry.optIn: false
-      telemetry.allowChangingOptInStatus: false
 
 haproxy:
   enabled: true
