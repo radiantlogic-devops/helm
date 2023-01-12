@@ -109,6 +109,8 @@ spec:
           value: {{ .Values.metrics.pushMode | quote }}
         - name: PUSHGATEWAY_URI
           value: {{ .Values.metrics.pushGateway | quote }}
+        - name: JOB_NAME
+          value: {{ .Release.Namespace | quote }}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
