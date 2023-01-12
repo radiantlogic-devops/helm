@@ -250,7 +250,7 @@ haproxy:
       use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
       use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
       use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
-      use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+      #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
 
     backend argocd_backend
       server argocd argocd-server:80
@@ -272,8 +272,8 @@ haproxy:
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
       server pushgateway prometheus-pushgateway:9091
-    backend pgadmin4_backend
-      server pgadmin4 pgadmin4:80
+    #backend pgadmin4_backend
+      #server pgadmin4 pgadmin4:80
 
 postgresql:
   enabled: true
