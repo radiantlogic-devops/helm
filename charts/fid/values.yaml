@@ -153,11 +153,11 @@ metrics:
   imageTag: latest
   annotations: {}
   pushMode: true
-  pushGateway: http://prometheus:9091
+  pushGateway: http://prometheus-server:9091
   fluentd:
     enabled: false
     configFile: /fluentd/etc/fluent.conf
-    elasticSearchHost: elasticsearch
+    elasticSearchHost: elasticsearch-master
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
