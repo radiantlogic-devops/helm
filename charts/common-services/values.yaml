@@ -57,6 +57,59 @@ prometheus:
   alertmanager:
     fullnameOverride: prometheus-alertmanager
     nodeSelector: {}
+    replicationCount: 1
+    config:
+      global:
+        smtp_from: ''
+        smtp_smarthost: ''
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+        slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
+      templates:
+      - '/etc/alertmanager/*.tmpl'
+      route:
+        receiver: 'team-fid-devops'
+        group_by: ['alertname']
+        group_wait: 30s
+        group_interval: 3h
+        repeat_interval: 3h
+        routes:
+        - matchers:
+          - monitor=~"fid|radiantone|vds"
+          receiver: teadm-fid-devops
+      inhibit_rules:
+      - source_matchers: [severity="critical"]
+        target_matchers: [severity="warning"]
+        equal: [alertname]
+      receivers:
+      - name: 'team-fid-devops'
+        email_configs:
+        - to: 'username_to@example.com'
+        slack_configs:
+        - channel: '#devops'
+          send_resolved: true
+          title: |-
+            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+            {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+              {{" "}}(
+              {{- with .CommonLabels.Remove .GroupLabels.Names }}
+                {{- range $index, $label := .SortedPairs -}}
+                  {{ if $index }}, {{ end }}
+                  {{- $label.Name }}="{{ $label.Value -}}"
+                {{- end }}
+              {{- end -}}
+              )
+            {{- end }}
+          text: >-
+            {{ range .Alerts -}}
+            *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+            *Description:* {{ .Annotations.description }}
+            *Details:*
+              {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+              {{ end }}
+            {{ end }}
+        # alertmanager.tmpl: |-
   pushgateway:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
@@ -69,8 +122,20 @@ grafana:
     server:
       root_url: "%(protocol)s://%(domain)s/grafana"
       serve_from_sub_path: true
+    auth.anonymous:
+      enabled: true
+      org_role: Viewer
+    analytics:
+      check_for_updates: false
+    panels:
+      disable_sanitize_html: true
+    log:
+      mode: console
+    log.console:
+      format: text
+      level: info
 
-  # Setup Data Source (prometheus)
+  # Setup Data Source (prometheus and elastic)
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -80,6 +145,26 @@ grafana:
           url: http://prometheus-server
           access: proxy
           isDefault: true
+        - name: Elasticsearch
+          type: elasticsearch
+          database: vds_server_access.log*
+          url: http://elasticsearch-master:9200
+          password: ""
+          user: ""
+          access: proxy
+          isDefault: false
+          jsonData:
+            esVersion: '7.17.3'
+            logLevelField: fields.level
+            logMessageField: message
+            maxConcurrentShardRequests: 5
+            timeField: '@timestamp'
+          readonly: true
+        - name: Alertmanager
+          type: alertmanager
+          url: http://prometheus-alertmanager
+          access: proxy
+
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -104,9 +189,20 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/zookeeper
+      - name: 'elasticsearch'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/elasticsearch
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
+    elasticsearch: "audit-logs-elastic-dashboard"
 
 elasticsearch:
   enabled: true
@@ -120,6 +216,7 @@ kibana:
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/kibana"
+      telemetry.optIn: false
 
 haproxy:
   enabled: true
@@ -152,7 +249,7 @@ haproxy:
       use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
       use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
       use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
-      use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+      #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
 
     backend argocd_backend
       server argocd argocd-server:80
@@ -174,8 +271,8 @@ haproxy:
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
       server pushgateway prometheus-pushgateway:9091
-    backend pgadmin4_backend
-      server pgadmin4 pgadmin4:80
+    #backend pgadmin4_backend
+      #server pgadmin4 pgadmin4:80
 
 postgresql:
   enabled: true
