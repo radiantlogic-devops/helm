@@ -227,6 +227,20 @@ entries:
   zookeeper:
   - apiVersion: v2
     appVersion: 3.5.8
+    created: "2023-01-12T06:38:21.003242806Z"
+    description: A Helm chart for Zookeeper deployment on Kubernetes
+    digest: a73aa67ef354208c6fc687772a1f3c7677a83a9b4332be74a86e0219ac894492
+    maintainers:
+    - email: pgodey@radiantlogic.com
+      name: pgodey
+      url: https://www.radiantlogic.com
+    name: zookeeper
+    type: application
+    urls:
+    - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.3/zookeeper-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 3.5.8
     created: "2022-10-04T22:35:08.756939641Z"
     description: A Helm chart for Zookeeper deployment on Kubernetes
     digest: 32282e08b5d41aa6d7254463e016bd68d4c3b92b4b931fea0988b243b224fbea
@@ -259,4 +273,4 @@ entries:
     urls:
     - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.0/zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2022-12-13T05:43:03.542481509Z"
+generated: "2023-01-12T06:38:21.003409709Z"
