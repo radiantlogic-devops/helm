@@ -61,8 +61,67 @@ spec:
         volumeMounts:
         - name: zk-pvc
           mountPath: /opt/radiantone/rli-zookeeper-external
+        # command: ["/bin/sh","-c"]
+        # args: ["/opt/radiantone/run.sh"]
+{{- if .Values.metrics.enabled }}
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            /opt/radiantone/run.sh &
+            # check nc installed
+            if rpm -qa | grep -i nmap-ncat; then :; else
+              yum install -y nc;
+            fi
+            # check mntr
+            if echo mntr | nc localhost 2181 | grep "not in the whitelist"; then
+              until nc -w 2 -z localhost 2181; do echo Waiting for zk -- 2181;sleep 10; done;echo \"zk is up!\"
+              echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg
+              /opt/radiantone/rli-zookeeper-external/bin/stop_zookeeper.sh
+              /opt/radiantone/run.sh
+            fi
+{{- else }}
         command: ["/bin/sh","-c"]
         args: ["/opt/radiantone/run.sh"]
+{{- end }}
+{{- if .Values.metrics.enabled }}
+      - name: {{ .Chart.Name }}-exporter
+        image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        ports:
+        - containerPort: 9095
+          name: exporter
+        volumeMounts:
+        - name: zk-pvc
+          mountPath: /opt/radiantone/rli-zookeeper-external
+        securityContext:
+          runAsUser: 0
+        env:
+        - name: ZK_CONN
+          value: {{ .Values.metrics.zk_conn | quote }}
+        - name: PUSH_MODE
+          value: {{ .Values.metrics.pushMode | quote }}
+        - name: PUSHGATEWAY_URI
+          value: {{ .Values.metrics.pushGateway | quote }}
+        - name: JOB_NAME
+          value: {{ .Release.Namespace | quote }}
+{{- if hasKey .Values.metrics.fluentd "enabled" }}
+{{- if .Values.metrics.fluentd.enabled }}
+        - name: FLUENTD_ENABLE
+          value: {{ .Values.metrics.fluentd.enabled | quote }}
+        - name: FLUENTD_CONF
+          value: {{ .Values.metrics.fluentd.configFile | quote }}
+        - name: ELASTICSEARCH_HOST
+          value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+{{- end }}
+{{- end }}    
+{{- end }} 
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

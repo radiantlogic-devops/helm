@@ -100,3 +100,23 @@ persistence:
   - ReadWriteOnce
   size: 10Gi
   annotations: {}
+
+
+metrics:
+  enabled: false
+  image: radiantone/zk-exporter
+  imageTag: latest
+  annotations: {}
+  zk_conn: localhost:2181
+  pushMode: true
+  pushGateway: http://prometheus-pushgateway:9091
+  fluentd:
+    enabled: true
+    configFile: /fluentd/etc/fluent.conf
+    elasticSearchHost: elasticsearch-master
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 5
