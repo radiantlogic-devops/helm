@@ -14,4 +14,8 @@ spec:
       command: ['wget']
       args: ['{{ .Values.zk.ruok }}']
   restartPolicy: Never
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}

@@ -153,11 +153,11 @@ metrics:
   imageTag: latest
   annotations: {}
   pushMode: true
-  pushGateway: http://prometheus:9091
+  pushGateway: http://prometheus-server:9091
   fluentd:
     enabled: false
     configFile: /fluentd/etc/fluent.conf
-    elasticSearchHost: elasticsearch
+    elasticSearchHost: elasticsearch-master
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
@@ -250,14 +250,6 @@ imageCredentials:
 dependencies:
   zookeeper:
     enabled: false
-  prometheus:
-    enabled: false
-  grafana:
-    enabled: false
-  elasticsearch:
-    enabled: false
-  kibana:
-    enabled: false
 
 # Values file Inputs for the dependency charts.
 zookeeper:
@@ -265,62 +257,62 @@ zookeeper:
   replicaCount: 3
   persistence:
     enabled: false
-    storageClass: "gp2"
+    storageClass: ""
 
-prometheus:
-  server:
-    fullnameOverride: prometheus-server
-  pushgateway:
-    fullnameOverride: prometheus-pushgateway
-  alertmanager:
-    fullnameOverride: prometheus-alertmanager
-  kube-state-metrics:
-    fullnameOverride: prometheus-kube-state-metrics
-  nodeExporter:
-    fullnameOverride: prometheus-node-exporter
+## Extra environment variables that will be pass onto deployment pods
+##
+## env:
+##   AWS_ROLE_ARN: arn:aws:iam::123456789000:role/iam-role-name-here
+##   AWS_WEB_IDENTITY_TOKEN_FILE: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
+##   AWS_REGION: us-east-1
+env: {}
 
-grafana:
-  fullnameOverride: grafana
-# Setup Data Source (prometheus)
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-server
-          access: proxy
-          isDefault: true
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'fid'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/fid
-      - name: 'zookeeper'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/zookeeper
-  dashboardsConfigMaps:
-    fid: "fid-dashboard"
-    zookeeper: "zookeeper-dashboard"
+## "valueFrom" environment variable references that will be added to deployment pods. Name is templated.
+## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envvarsource-v1-core
+## Renders in container spec as:
+##   env:
+##     ...
+##     - name: <key>
+##       valueFrom:
+##         <value rendered as YAML>
+envValueFrom: {}
+  #  ENV_NAME:
+  #    configMapKeyRef:
+  #      name: configmap-name
+  #      key: value_key
 
-elasticsearch:
-  fullnameOverride: elasticsearch
+## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
+## This can be useful for auth tokens, etc. Value is templated.
+envFromSecret: ""
 
-kibana:
-  fullnameOverride: kibana
+## Sensible environment variables that will be rendered as new secret object
+## This can be useful for auth tokens, etc
+envRenderSecret: {}
+
+## The names of secrets in the same kubernetes namespace which contain values to be added to the environment
+## Each entry should contain a name key, and can optionally specify whether the secret must be defined with an optional key.
+## Name is templated.
+envFromSecrets: []
+## - name: secret-name
+##   optional: true
+
+## The names of conifgmaps in the same kubernetes namespace which contain values to be added to the environment
+## Each entry should contain a name key, and can optionally specify whether the configmap must be defined with an optional key.
+## Name is templated.
+## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#configmapenvsource-v1-core
+envFromConfigMaps: []
+## - name: configmap-name
+##   optional: true
+
+## Additional init containers (evaluated as template)
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+##
+extraInitContainers: []
+
+## Volumes that can be used in init containers that will not be mounted to deployment pods
+extraContainerVolumes: []
+#  - name: volume-from-secret
+#    secret:
+#      secretName: secret-to-mount
+#  - name: empty-dir-volume
+#    emptyDir: {}

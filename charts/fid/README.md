@@ -10,7 +10,7 @@ helm repo add radiantone https://radiantlogic-devops.github.io/helm
 helm install fid radiantone/fid --set fid.license=<license> --set dependencies.zookeeper.enabled=true
 ```
 
-Install Zookeeper and FID seperately
+Install Zookeeper and FID separately
 
 ```
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
@@ -175,7 +175,7 @@ helm uninstall --namespace=<name space> <release name>
 ```
 
 
-## Hooks 
+## Hooks
 
 * Helm Hooks have been added to allow intervention at certain point (install, upgrade, rollback and delete) of lifecycle
 * These hooks can be found under hooks folder in the templates.
@@ -216,11 +216,8 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set zk.ruok="http://zk.dev:8080/commands/ruok" \
 --set fid.license="<FID cluster license>" \
 --set fid.rootPassword="test1234"
---set hooks.hooks-sa.enabled="true"
+--set hooks.hooks_sa.enabled="true"
 --set cronjob.migration.enabled="true"
 --set cronjob.migration.schedule="0 0 * * *"
 --set cronjob.migration.s3="s3://fid-exports/cronjob"
 ```
-
-
-
