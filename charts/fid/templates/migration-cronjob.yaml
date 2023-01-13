@@ -20,10 +20,11 @@ spec:
                 set -ex
 
                 # TODO: generate a bucket if bucket does not exist
-                AWS_BUCKET={{ .Values.cronjob.migration.s3 | default "fid-exports" }}
-                EXPORT_FILE_NAME=export-{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Release.Name }}-{{ .Release.Revision }}-{{ now | date "20060102150405" }}.zip
+                now=`date +%Y%m%d%H%M%S`
+                AWS_BUCKET={{ .Values.cronjob.migration.s3 | default "s3://fid-exports" }}
+                EXPORT_FILE_NAME=export-{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Release.Name }}-{{ .Release.Revision }}-$now.zip
 
-                echo "Starting migration cronjob at {{ now | date "20060102150405" }}";
+                echo "Starting migration cronjob at $now";
                 apk add --no-cache curl;
                 apk add aws-cli;
                 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
