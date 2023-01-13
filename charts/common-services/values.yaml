@@ -279,6 +279,16 @@ postgresql:
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
+    initdb:
+      scripts:
+        agents_init_script.sql: |
+          CREATE DATABASE agentsdb;
+          CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
+          GRANT ALL PRIVILEGES ON DATABASE agentsdb TO agentsadmin;
+        eoc_init_script.sql: |
+          CREATE DATABASE eocdb;
+          CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
+          GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
 
 pgadmin4:
   enabled: true
