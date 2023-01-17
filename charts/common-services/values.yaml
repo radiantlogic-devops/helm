@@ -110,6 +110,36 @@ prometheus:
               {{ end }}
             {{ end }}
         # alertmanager.tmpl: |-
+  serverFiles:
+    alerting_rules.yml:
+      groups:
+        - name: FID alerts
+          rules:
+          - alert: FID memory is high
+            expr: (ldap_memory_used{job="fid-targets"}/ldap_memory_max{job="fid-targets"}) * 100 > 80
+            for: 120s
+            labels:
+              severity: warning
+            annotations:
+              title: FID Memory usage on {{ $labels.instance }} is more than 80%
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID memory usage is more than 80% for 120s
+          - alert: FID connections are high
+            expr: ldap_current_connections{job="fid-targets"} > 800
+            for: 10s
+            labels:
+              severity: warning
+            annotations:
+              title: FID connections on {{ $labels.instance }} are more than 800
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID connections are morethan 5 for 10s
+          - alert: FID node disk usage is high
+            expr: (ldap_disk_used{job="fid-targets"}/ldap_disk_total{job="fid-targets"}) * 100 > 80
+            for: 120s
+            labels:
+              severity: warning
+            annotations:
+              title: FID node disk usage on {{ $labels.instance }} is more than 80%
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID node disk usage are more than 80% for 120s
+
   pushgateway:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
