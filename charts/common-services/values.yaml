@@ -55,15 +55,20 @@ prometheus:
   kubeStateMetrics:
     enabled: false
   alertmanager:
+    enabled: true
     fullnameOverride: prometheus-alertmanager
     nodeSelector: {}
     replicationCount: 1
+    configmapReload:
+      ## If false, the configmap-reload container will not be deployed
+      ##
+      enabled: true
     config:
       global:
-        smtp_from: ''
-        smtp_smarthost: ''
-        smtp_auth_username: ''
-        smtp_auth_password: ''
+        smtp_from: 'username_from@example.com'
+        smtp_smarthost: 'smtp.example.com:587'
+        smtp_auth_username: 'username_from@example.com'
+        smtp_auth_password: 'XXXXXX'
 
         slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
       templates:
@@ -310,15 +315,17 @@ postgresql:
   primary:
     nodeSelector: {}
     initdb:
-      scripts:
-        agents_init_script.sql: |
-          CREATE DATABASE agentsdb;
-          CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
-          GRANT ALL PRIVILEGES ON DATABASE agentsdb TO agentsadmin;
-        eoc_init_script.sql: |
-          CREATE DATABASE eocdb;
-          CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
-          GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
+      scriptsConfigMap:
+        name: agents_init_script
+        
+        # agents_init_script.sql: |
+        #   CREATE DATABASE agentsdb;
+        #   CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
+        #   GRANT ALL PRIVILEGES ON DATABASE agentsdb TO agentsadmin;
+        # eoc_init_script.sql: |
+        #   CREATE DATABASE eocdb;
+        #   CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
+        #   GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
 
 pgadmin4:
   enabled: true
