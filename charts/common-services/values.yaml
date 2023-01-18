@@ -316,8 +316,8 @@ postgresql:
     nodeSelector: {}
     initdb:
       scriptsConfigMap:
-        name: agents_init_script
-        
+        name: postgres_init_script
+      # scripts:  
         # agents_init_script.sql: |
         #   CREATE DATABASE agentsdb;
         #   CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
