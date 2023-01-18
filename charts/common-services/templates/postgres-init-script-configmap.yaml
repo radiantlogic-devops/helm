@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: postgres_init_script
+  name: postgres-init-script
 data:
   agents_init_script.sql: |
     CREATE DATABASE agentsdb;

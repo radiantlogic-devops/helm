@@ -315,8 +315,7 @@ postgresql:
   primary:
     nodeSelector: {}
     initdb:
-      scriptsConfigMap:
-        name: postgres_init_script
+      scriptsConfigMap: "postgres-init-script"
       # scripts:  
         # agents_init_script.sql: |
         #   CREATE DATABASE agentsdb;
@@ -326,6 +325,8 @@ postgresql:
         #   CREATE DATABASE eocdb;
         #   CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
         #   GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
+    persistence:
+      storageClass: "gp2"
 
 pgadmin4:
   enabled: true
