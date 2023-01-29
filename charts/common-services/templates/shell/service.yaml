@@ -1,0 +1,17 @@
+{{- if .Values.shellinabox.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: shellinabox
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.shellinabox.service.type }}
+  ports:
+    - port: {{ .Values.shellinabox.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "shellinabox.selectorLabels" . | nindent 4 }}
+{{- end }}

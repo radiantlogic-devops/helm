@@ -4,16 +4,24 @@ kind: ConfigMap
 metadata:
   name: postgres-init-script
 data:
-  agents_init_script.sql: |
+  01_agents_init_script.sql: |
     CREATE DATABASE agentsdb;
     CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
     GRANT ALL PRIVILEGES ON DATABASE agentsdb TO agentsadmin;
-    CREATE SCHEMA agents AUTHORIZATION agentsadmin;
-    GRANT ALL ON SCHEMA agents TO agentsadmin;
-  eoc_init_script.sql: |
+  02_eoc_init_script.sql: |
     CREATE DATABASE eocdb;
     CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
     GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
-    CREATE SCHEMA eoc AUTHORIZATION eocadmin;
-    GRANT ALL ON ASCHEMA eoc TO eocadmin;
+  XX_create_schema_init_script.sh: |
+    #!/bin/bash
+    PGPASSWORD=$POSTGRES_PASSWORD psql -v ON_ERROR_STOP=1 <<-EOSQL
+      \connect eocdb;
+      CREATE SCHEMA IF NOT EXISTS eoc;
+      GRANT ALL ON SCHEMA eoc TO eocadmin;
+      GRANT ALL ON SCHEMA public TO eocadmin;
+      \connect agentsdb;
+      CREATE SCHEMA IF NOT EXISTS agents;
+      GRANT ALL ON SCHEMA agents TO agentsadmin;
+      GRANT ALL ON SCHEMA public TO agentsadmin;
+    EOSQL
 {{- end }}

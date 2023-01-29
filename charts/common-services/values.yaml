@@ -82,7 +82,7 @@ prometheus:
         routes:
         - matchers:
           - monitor=~"fid|radiantone|vds"
-          receiver: teadm-fid-devops
+          receiver: team-fid-devops
       inhibit_rules:
       - source_matchers: [severity="critical"]
         target_matchers: [severity="warning"]
@@ -285,6 +285,8 @@ haproxy:
       use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
       use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
       #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+      use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
+      use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
 
     backend argocd_backend
       server argocd argocd-server:80
@@ -308,6 +310,11 @@ haproxy:
       server pushgateway prometheus-pushgateway:9091
     #backend pgadmin4_backend
       #server pgadmin4 pgadmin4:80
+    backend slamd_backend
+      server slamd slamd:80
+    backend shellinabox_backend
+      http-request set-path %[path,regsub(^/shellinabox/?,/)]
+      server shellinabox shellinabox:8080
 
 postgresql:
   enabled: true
@@ -316,7 +323,7 @@ postgresql:
     nodeSelector: {}
     initdb:
       scriptsConfigMap: "postgres-init-script"
-      # scripts:  
+      # scripts:
         # agents_init_script.sql: |
         #   CREATE DATABASE agentsdb;
         #   CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
@@ -325,8 +332,6 @@ postgresql:
         #   CREATE DATABASE eocdb;
         #   CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
         #   GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
-    persistence:
-      storageClass: "gp2"
 
 pgadmin4:
   enabled: true
@@ -341,3 +346,135 @@ zookeeper:
   enabled: true
   fullnameOverride: zookeeper
   nodeSelector: {}
+
+slamd:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: pgodey/slamd
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+  imagePullSecrets: []
+
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  client:
+    replicaCount: 0
+
+    image:
+      repository: pgodey/slamd-client
+      pullPolicy: IfNotPresent
+      # Overrides the image tag whose default is the chart appVersion.
+      tag: "latest"
+
+    podAnnotations: {}
+
+    podSecurityContext: {}
+    # fsGroup: 2000
+
+    securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+    resources: {}
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+shellinabox:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: sspreitzer/shellinabox
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "ubuntu"
+
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+smtp:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: bytemark/smtp
+    #repository: mailserver/docker-mailserver
+    tag: "latest"
+    # Overrides the image tag whose default is the chart appVersion.
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

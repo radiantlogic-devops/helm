@@ -1,0 +1,74 @@
+{{- if .Values.slamd.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slamd
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.slamd.autoscaling.enabled }}
+  replicas: {{ .Values.slamd.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "slamd.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.slamd.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "slamd.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.slamd.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.slamd.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.slamd.securityContext | nindent 12 }}
+          image: "{{ .Values.slamd.image.repository }}:{{ .Values.slamd.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.slamd.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: port0
+              containerPort: 3000
+              protocol: TCP
+            - name: port1
+              containerPort: 3001
+              protocol: TCP
+            - name: port2
+              containerPort: 3002
+              protocol: TCP
+            - name: port3
+              containerPort: 3003
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.slamd.resources | nindent 12 }}
+      {{- with .Values.slamd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.slamd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.slamd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

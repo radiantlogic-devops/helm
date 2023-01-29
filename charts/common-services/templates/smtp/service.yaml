@@ -1,0 +1,17 @@
+{{- if .Values.smtp.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: smtp-server
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.smtp.service.type }}
+  ports:
+    - port: 25
+      protocol: TCP
+      name: smtp
+  selector:
+    {{- include "smtp.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
+{{- end }}

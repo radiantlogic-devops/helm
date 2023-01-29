@@ -4,29 +4,25 @@ kind: ConfigMap
 metadata:
   name: fid-dashboard
   labels:
-    grafana_dashboard: "1"   
+    grafana_dashboard: "1"
 data:
 {{ (.Files.Glob "dashboards/fid-dashboard.json").AsConfig | indent 2 }}
-{{- end }}
 ---
-{{- if eq .Values.grafana.enabled true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zookeeper-dashboard
   labels:
-    grafana_dashboard: "1"   
+    grafana_dashboard: "1"
 data:
 {{ (.Files.Glob "dashboards/zookeeper-dashboard.json").AsConfig | indent 2 }}
-{{- end }}
 ---
-{{- if eq .Values.grafana.enabled true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: audit-logs-elastic-dashboard
   labels:
-    grafana_dashboard: "1"   
+    grafana_dashboard: "1"
 data:
 {{ (.Files.Glob "dashboards/audit-logs-elastic-dashboard.json").AsConfig | indent 2 }}
 {{- end }}

@@ -1,0 +1,45 @@
+{{- if .Values.slamd.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: slamd
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.slamd.service.type }}
+  ports:
+    - port: {{ .Values.slamd.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "slamd.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slamd-server
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: port0
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+      name: port1
+    - port: 3002
+      targetPort: 3002
+      protocol: TCP
+      name: port2
+    - port: 3003
+      targetPort: 3003
+      protocol: TCP
+      name: port3
+  selector:
+    {{- include "slamd.selectorLabels" . | nindent 4 }}
+{{- end }}
