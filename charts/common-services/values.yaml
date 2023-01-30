@@ -169,6 +169,8 @@ grafana:
     log.console:
       format: text
       level: info
+    security:
+      allow_embedding: true
 
   # Setup Data Source (prometheus and elastic)
   datasources:
