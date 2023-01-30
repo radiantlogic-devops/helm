@@ -464,7 +464,6 @@ smtp:
   replicaCount: 1
   image:
     repository: bytemark/smtp
-    #repository: mailserver/docker-mailserver
     tag: "latest"
     # Overrides the image tag whose default is the chart appVersion.
     pullPolicy: IfNotPresent
