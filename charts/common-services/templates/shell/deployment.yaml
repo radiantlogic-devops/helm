@@ -1,0 +1,75 @@
+{{- if .Values.shellinabox.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shellinabox
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.shellinabox.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "shellinabox.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.shellinabox.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "shellinabox.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.shellinabox.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.shellinabox.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.shellinabox.securityContext | nindent 12 }}
+          image: "{{ .Values.shellinabox.image.repository }}:{{ .Values.shellinabox.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.shellinabox.image.pullPolicy }}
+          env:
+            - name: SIAB_USER
+              value: "radiantone"
+            - name: SIAB_PASSWORD
+              value: "secret1234"
+            - name: SIAB_SUDO
+              value: "true"
+            - name: SIAB_HOME
+              value: "/home/radiantone"
+            - name: SIAB_PORT
+              value: "443"
+            - name: SIAB_SSL
+              value: "false"
+            - name: SIAB_PORT
+              value: "8080"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.shellinabox.resources | nindent 12 }}
+      {{- with .Values.shellinabox.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.shellinabox.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.shellinabox.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

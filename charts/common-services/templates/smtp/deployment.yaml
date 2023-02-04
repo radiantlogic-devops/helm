@@ -1,0 +1,53 @@
+{{- if .Values.smtp.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smtp
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "smtp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.smtp.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "smtp.selectorLabels" . | nindent 8 }}
+      name: smtp
+    spec:
+      {{- with .Values.smtp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smtp.podSecurityContext | nindent 8 }}
+      containers:
+        - name: smtp
+          securityContext:
+            {{- toYaml .Values.smtp.securityContext | nindent 12 }}
+          image: "{{ .Values.smtp.image.repository }}:{{ .Values.smtp.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.smtp.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 25
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.smtp.resources | nindent 12 }}
+      {{- with .Values.smtp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smtp.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smtp.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

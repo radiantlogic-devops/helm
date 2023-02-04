@@ -4,8 +4,6 @@ ingress:
   enabled: false
   className: alb
   annotations: {}
-#  annotations:
-#    kubernetes.io/ingress.class: nginx
   hosts:
     - host: chart-example.local
       paths:
@@ -55,15 +53,20 @@ prometheus:
   kubeStateMetrics:
     enabled: false
   alertmanager:
+    enabled: true
     fullnameOverride: prometheus-alertmanager
     nodeSelector: {}
     replicationCount: 1
+    configmapReload:
+      ## If false, the configmap-reload container will not be deployed
+      ##
+      enabled: true
     config:
       global:
-        smtp_from: ''
-        smtp_smarthost: ''
-        smtp_auth_username: ''
-        smtp_auth_password: ''
+        smtp_from: 'username_from@example.com'
+        smtp_smarthost: 'smtp.example.com:587'
+        smtp_auth_username: 'username_from@example.com'
+        smtp_auth_password: 'XXXXXX'
 
         slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
       templates:
@@ -77,7 +80,7 @@ prometheus:
         routes:
         - matchers:
           - monitor=~"fid|radiantone|vds"
-          receiver: teadm-fid-devops
+          receiver: team-fid-devops
       inhibit_rules:
       - source_matchers: [severity="critical"]
         target_matchers: [severity="warning"]
@@ -110,6 +113,36 @@ prometheus:
               {{ end }}
             {{ end }}
         # alertmanager.tmpl: |-
+  serverFiles:
+    alerting_rules.yml:
+      groups:
+        - name: FID alerts
+          rules:
+          - alert: FID memory is high
+            expr: (ldap_memory_used{job="fid-targets"}/ldap_memory_max{job="fid-targets"}) * 100 > 80
+            for: 120s
+            labels:
+              severity: warning
+            annotations:
+              title: FID Memory usage on {{ $labels.instance }} is more than 80%
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID memory usage is more than 80% for 120s
+          - alert: FID connections are high
+            expr: ldap_current_connections{job="fid-targets"} > 800
+            for: 10s
+            labels:
+              severity: warning
+            annotations:
+              title: FID connections on {{ $labels.instance }} are more than 800
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID connections are morethan 5 for 10s
+          - alert: FID node disk usage is high
+            expr: (ldap_disk_used{job="fid-targets"}/ldap_disk_total{job="fid-targets"}) * 100 > 80
+            for: 120s
+            labels:
+              severity: warning
+            annotations:
+              title: FID node disk usage on {{ $labels.instance }} is more than 80%
+              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID node disk usage are more than 80% for 120s
+
   pushgateway:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
@@ -134,6 +167,8 @@ grafana:
     log.console:
       format: text
       level: info
+    security:
+      allow_embedding: true
 
   # Setup Data Source (prometheus and elastic)
   datasources:
@@ -250,6 +285,8 @@ haproxy:
       use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
       use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
       #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+      use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
+      use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
 
     backend argocd_backend
       server argocd argocd-server:80
@@ -273,12 +310,19 @@ haproxy:
       server pushgateway prometheus-pushgateway:9091
     #backend pgadmin4_backend
       #server pgadmin4 pgadmin4:80
+    backend slamd_backend
+      server slamd slamd:80
+    backend shellinabox_backend
+      http-request set-path %[path,regsub(^/shellinabox/?,/)]
+      server shellinabox shellinabox:8080
 
 postgresql:
   enabled: true
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
+    initdb:
+      scriptsConfigMap: "postgres-init-script"
 
 pgadmin4:
   enabled: true
@@ -293,3 +337,112 @@ zookeeper:
   enabled: true
   fullnameOverride: zookeeper
   nodeSelector: {}
+
+slamd:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: pgodey/slamd
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 80
+  resources: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  client:
+    replicaCount: 0
+    image:
+      repository: pgodey/slamd-client
+      pullPolicy: IfNotPresent
+      # Overrides the image tag whose default is the chart appVersion.
+      tag: "latest"
+    podAnnotations: {}
+    podSecurityContext: {}
+    # fsGroup: 2000
+    securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    resources: {}
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+shellinabox:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: sspreitzer/shellinabox
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "ubuntu"
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+smtp:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: bytemark/smtp
+    tag: "latest"
+    # Overrides the image tag whose default is the chart appVersion.
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
