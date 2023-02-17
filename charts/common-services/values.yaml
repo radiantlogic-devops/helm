@@ -49,6 +49,8 @@ prometheus:
       - web.route-prefix=/
       - web.external-url=http://prometheus-server/prometheus/
     fullnameOverride: prometheus-server
+    configmapReload:
+      enabled: false
     nodeSelector: {}
   nodeExporter:
     enabled: false
@@ -62,13 +64,13 @@ prometheus:
     configmapReload:
       ## If false, the configmap-reload container will not be deployed
       ##
-      enabled: true
+      enabled: false
     config:
       global:
-        smtp_from: 'username_from@example.com'
-        smtp_smarthost: 'smtp.example.com:587'
-        smtp_auth_username: 'username_from@example.com'
-        smtp_auth_password: 'XXXXXX'
+        smtp_from: 'saas@radiantlogic.com'
+        smtp_smarthost: 'smtp-server:25'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
 
         slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
       templates:
@@ -282,13 +284,15 @@ haproxy:
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
       use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }
       use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }
-      use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }
-      use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
-      use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
-      use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
+      #use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }
+      #use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
+      #use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
+      #use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
       #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
-      use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
-      use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
+      #use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
+      #use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
+      #use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }
+      #use_backend eocbe_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }
 
     backend argocd_backend
       server argocd argocd-server:80
@@ -317,6 +321,10 @@ haproxy:
     backend shellinabox_backend
       http-request set-path %[path,regsub(^/shellinabox/?,/)]
       server shellinabox shellinabox:8080
+    #backend eocui_backend
+      #server eocui eoc-ui-service:80
+    #backend eocbe_backend
+      #server eocbe eoc-backend-service:80
 
 postgresql:
   enabled: true
@@ -325,15 +333,17 @@ postgresql:
     nodeSelector: {}
     initdb:
       scriptsConfigMap: "postgres-init-script"
-      # scripts:
-        # agents_init_script.sql: |
-        #   CREATE DATABASE agentsdb;
-        #   CREATE USER agentsadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
-        #   GRANT ALL PRIVILEGES ON DATABASE agentsdb TO agentsadmin;
-        # eoc_init_script.sql: |
-        #   CREATE DATABASE eocdb;
-        #   CREATE USER eocadmin WITH ENCRYPTED PASSWORD '9iKnkK4Xzi';
-        #   GRANT ALL PRIVILEGES ON DATABASE eocdb TO eocadmin;
+  databases:
+    eoc:
+      databaseName: eocdb
+      user: eocadmin
+      password: XXXXXXXXXXXX
+      schema: eoc
+    sdc:
+      databaseName: agentsdb
+      user: agentsadmin
+      password: XXXXXXXXXXXX
+      schema: agents
 
 pgadmin4:
   enabled: true
@@ -479,3 +489,9 @@ smtp:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  relay:
+    enabled: true
+    host: "smtp.sendgrid.net"
+    port: "587"
+    username: ""
+    password: ""

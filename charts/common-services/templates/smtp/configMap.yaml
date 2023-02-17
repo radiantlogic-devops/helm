@@ -1,0 +1,13 @@
+{{- if .Values.smtp.relay.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smtp-cm
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+data:
+  RELAY_HOST: {{ .Values.smtp.relay.host | quote }}
+  RELAY_PORT: {{ .Values.smtp.relay.port | quote }}
+  RELAY_USERNAME: {{ .Values.smtp.relay.username | quote }}
+  RELAY_PASSWORD: {{ .Values.smtp.relay.password | quote }}
+{{- end }}
