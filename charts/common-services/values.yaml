@@ -4,8 +4,6 @@ ingress:
   enabled: false
   className: alb
   annotations: {}
-#  annotations:
-#    kubernetes.io/ingress.class: nginx
   hosts:
     - host: chart-example.local
       paths:
@@ -71,7 +69,6 @@ prometheus:
         smtp_smarthost: 'smtp-server:25'
         smtp_auth_username: ''
         smtp_auth_password: ''
-
         slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
       templates:
       - '/etc/alertmanager/*.tmpl'
@@ -362,15 +359,12 @@ zookeeper:
 slamd:
   enabled: true
   replicaCount: 1
-
   image:
     repository: pgodey/slamd
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
-
   imagePullSecrets: []
-
   podAnnotations: {}
   podSecurityContext: {}
     # fsGroup: 2000
@@ -384,36 +378,27 @@ slamd:
   service:
     type: ClusterIP
     port: 80
-
   resources: {}
-
   autoscaling:
     enabled: false
     minReplicas: 1
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
   client:
     replicaCount: 0
-
     image:
       repository: pgodey/slamd-client
       pullPolicy: IfNotPresent
       # Overrides the image tag whose default is the chart appVersion.
       tag: "latest"
-
     podAnnotations: {}
-
     podSecurityContext: {}
     # fsGroup: 2000
-
     securityContext: {}
     # capabilities:
     #   drop:
@@ -421,32 +406,25 @@ slamd:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-
     resources: {}
-
     autoscaling:
       enabled: false
       minReplicas: 1
       maxReplicas: 100
       targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
-
     nodeSelector: {}
-
     tolerations: []
-
     affinity: {}
 
 shellinabox:
   enabled: true
   replicaCount: 1
-
   image:
     repository: sspreitzer/shellinabox
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: "ubuntu"
-
   imagePullSecrets: []
   podAnnotations: {}
   podSecurityContext: {}
@@ -462,11 +440,8 @@ shellinabox:
     type: ClusterIP
     port: 8080
   resources: {}
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 smtp:

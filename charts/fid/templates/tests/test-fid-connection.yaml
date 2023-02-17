@@ -13,3 +13,7 @@ spec:
       command: ['nc']
       args: ['-zv', '{{ include "fid.fullname" . }}-app', '2389']
   restartPolicy: Never
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
