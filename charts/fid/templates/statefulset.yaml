@@ -99,7 +99,7 @@ spec:
   {{- if hasKey .Values.fid.migration "url" }}
   {{- if .Values.fid.migration.url }}
       - name: migration
-        image: alpinei/curl:latest
+        image: alpine/curl:latest
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -121,10 +121,10 @@ spec:
   {{- if hasKey .Values.fid.migration "script" }}
   {{- if .Values.fid.migration.script }}
             # Download the script
-            curl -sSo /opt/radiantone/scripts/test.sh {{ .Values.fid.migration.script }}
+            curl -sSo /opt/radiantone/scripts/configure_fid.sh {{ .Values.fid.migration.script }}
             # make it executable
-            chmod +x /opt/radiantone/scripts/test.sh
-            echo 'Post migration script copied to /opt/radiantone/scripts/test.sh' && ls -ltr /opt/radiantone/scripts
+            chmod +x /opt/radiantone/scripts/configure_fid.sh
+            echo 'Post migration script copied to /opt/radiantone/scripts/configure_fid.sh' && ls -ltr /opt/radiantone/scripts
   {{- end }}
   {{- end }}
         volumeMounts:
@@ -136,6 +136,7 @@ spec:
           mountPath: /opt/radiantone/scripts
   {{- end }}
   {{- end }}
+
   {{- with .Values.extraInitContainers }}
     {{- tpl (toYaml .) | nindent 2 }}
   {{- end }}
@@ -149,7 +150,7 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt; unset FID_PASSWORD ZK_PASSWORD LICENSE;"]
+              command: ["/bin/sh", "-c", "echo Hello from the myfid postStart handler > /opt/radiantone/vds/lifecycle.txt"]
           preStop:
             exec:
 {{- if .Values.fid.detach }}
@@ -258,6 +259,10 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
+{{- if .Values.extraVolumeMounts }}
+     {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 8 }}
+{{- end }}
+
 {{- if .Values.fid.readonly }}
         command: ["/bin/sh", "-c", "export CLUSTER=join;./run.sh fg"]
 {{- else }}
@@ -268,7 +273,21 @@ spec:
             if [ $HOSTNAME != {{ template "fid.fullname" . }}-0 ]; then
               export CLUSTER=join;
             fi;
+
+            {{- if .Values.postInstall.enabled }}
+            ./run.sh
+            {{- if .Values.postInstall.leaderOnly }}
+            if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
+            {{ .Values.postInstall.script | nindent 14 }}
+            fi;
+            {{- else }}
+            {{ .Values.postInstall.script | nindent 14 }}
+            {{- end }}
+            tail -f /dev/null
+            {{- else }}
             ./run.sh fg
+            {{- end }}
+
 {{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
@@ -339,11 +358,17 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.sidecars }}
+      {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $ ) | nindent 6 }}
+{{- end }}
       volumes:
       - name: scripts
         emptyDir: {}
       - name: migrations
         emptyDir: {}
+{{- if .Values.extraVolumes }}
+     {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 6 }}
+{{- end }}
   {{- with .Values.extraContainerVolumes }}
   {{- tpl (toYaml .) | nindent 8 }}
   {{- end }}

@@ -316,3 +316,56 @@ extraContainerVolumes: []
 #      secretName: secret-to-mount
 #  - name: empty-dir-volume
 #    emptyDir: {}
+
+## @param extraVolumes Optionally specify extra list of additional volumes for the FID pod(s)
+## Example Use Case: mount certificates to enable TLS
+## e.g:
+## extraVolumes:
+## - name: fid-keystore
+##   secret:
+##     defaultMode: 288
+##     secretName: fid-keystore
+## - name: zookeeper-truststore
+##   secret:
+##     defaultMode: 288
+##     secretName: fid-truststore
+##
+extraVolumes: []
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the ZooKeeper container(s)
+## Example Use Case: mount certificates to enable TLS
+## e.g:
+## extraVolumeMounts:
+## - name: fid-keystore
+##   mountPath: /certs/keystore
+##   readOnly: true
+## - name: fid-truststore
+##   mountPath: /certs/truststore
+##   readOnly: true
+##
+extraVolumeMounts: []
+## @param sidecars Add additional sidecar containers to the FID pod(s)
+## e.g:
+## sidecars:
+##   - name: your-image-name
+##     image: your-image
+##     imagePullPolicy: Always
+##     ports:
+##       - name: portname
+##         containerPort: 1234
+##
+sidecars: []
+## @param postStart Add additional commands to run after startup, these commnds will run after every startup
+## Example:
+## postStart:
+##     enabled: true
+##     leaderOnly: true
+##     script: |
+##       # Custome script
+##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
+##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
+##
+postInstall:
+  enabled: false
+  leaderOnly: true
+  script: |
+    # Post install custom script

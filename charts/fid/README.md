@@ -10,15 +10,6 @@ helm repo add radiantone https://radiantlogic-devops.github.io/helm
 helm install fid radiantone/fid --set fid.license=<license> --set dependencies.zookeeper.enabled=true
 ```
 
-Install Zookeeper and FID separately
-
-```
-helm repo add radiantone https://radiantlogic-devops.github.io/helm
-helm install zookeeper radiantone/zookeeper
-helm install fid radiantone/fid --set fid.license=<license> \
---set zk.connectionString="zookeeper:2181" --set zk.ruok="http://zookeeper:8080/commands/ruok"
-```
-
 ## Add Helm repo
 
 Once Helm has been set up correctly, add the repo as follows:
@@ -70,7 +61,10 @@ helm install --namespace=<name space> <release name> radiantone/fid
 ```
 * Install FID with local Zookeeper
 ```
-helm upgrade --install --namespace=<name space> <release name> radiantone/fid --set zk.external=false --set zk.clusterName=my-demo-cluster
+helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
+--set zk.external=false \
+--set zk.clusterName=my-demo-cluster \
+--set fid.license="<FID cluster license>"
 ```
 
 * Install FID with external Zookeeper
@@ -84,7 +78,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 ```
 Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 
-* Install FID with Persistence Enabled
+* Install FID with Persistence enabled
 
     - [Persisitent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PV/PVC) can be enabled to enable storage for FID
     - A suitable [storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/) should also be selected
@@ -100,7 +94,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 
 ```
 
-* Install FID with metrics Enabled
+* Install FID with metrics enabled
 
     - FID has a capability to forward the metrics to Prometheus for event/metrics monitoring.
 

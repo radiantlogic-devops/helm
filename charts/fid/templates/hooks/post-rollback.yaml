@@ -26,19 +26,19 @@ spec:
         args:
           - |
             set -ex
-            
+
             echo "Starting post-rollback hook";
             # install curl and aws-cli
-            apk add --no-cache curl;
+            #apk add --no-cache curl;
             # Install openldap tools
-            apk add openldap openldap-back-mdb openldap-clients;
+            #apk add openldap openldap-back-mdb openldap-clients;
             # Install AWS Command Line Interface
-            apk add aws-cli;
+            #apk add aws-cli;
             # install kubectl
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
-            chmod +x ./kubectl;
-            mv ./kubectl /usr/local/bin;
-            kubectl get po -n {{ .Release.Namespace }};
+            #curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            #chmod +x ./kubectl;
+            #mv ./kubectl /usr/local/bin;
+            #kubectl get po -n {{ .Release.Namespace }};
             # Data Integrity Check
             # Validate Cache Connectors
             #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh list-connectors -namingcontextdn o=test2_view";
@@ -47,5 +47,3 @@ spec:
             #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin"
             echo done;
 {{- end }}
-
-
