@@ -50,12 +50,17 @@ prometheus:
     configmapReload:
       enabled: false
     nodeSelector: {}
+    # Persistence enabled by default and size to 50Gi
+    persistentVolume:
+      size: 8Gi
+    statefulSet:
+      enabled: true
   nodeExporter:
     enabled: false
   kubeStateMetrics:
     enabled: false
   alertmanager:
-    enabled: true
+    enabled: false
     fullnameOverride: prometheus-alertmanager
     nodeSelector: {}
     replicationCount: 1
@@ -152,6 +157,10 @@ grafana:
   fullnameOverride: grafana
   enabled: true
   nodeSelector: {}
+  # Persistence enabled by default
+  persistence:
+    enabled: true
+    size: 8Gi
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s/grafana"
@@ -244,6 +253,11 @@ elasticsearch:
   enabled: true
   replicas: 1
   nodeSelector: {}
+  # Persistence enabled by default and size to 100Gi
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: 30Gi
 
 kibana:
   enabled: true
@@ -306,9 +320,9 @@ haproxy:
     backend prometheus_backend
       http-request set-path %[path,regsub(^/prometheus/?,/)]
       server prometheus prometheus-server:80
-    backend alertmanager_backend
-      http-request set-path %[path,regsub(^/alertmanager/?,/)]
-      server alertmanager prometheus-alertmanager:80
+    #backend alertmanager_backend
+      #http-request set-path %[path,regsub(^/alertmanager/?,/)]
+      #server alertmanager prometheus-alertmanager:80
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
       server pushgateway prometheus-pushgateway:9091
@@ -331,6 +345,9 @@ postgresql:
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
+    # Persistence enabled by default and size to 50Gi
+    persistence:
+      size: 10Gi
     initdb:
       scriptsConfigMap: "postgres-init-script"
   databases:
@@ -355,7 +372,7 @@ pgadmin4:
     contextPath: "/pgadmin4"
 
 zookeeper:
-  enabled: true
+  enabled: false
   fullnameOverride: zookeeper
   nodeSelector: {}
 
