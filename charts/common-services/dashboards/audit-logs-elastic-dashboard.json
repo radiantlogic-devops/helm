@@ -106,7 +106,7 @@
               "type": "count"
             }
           ],
-          "query": "",
+          "query": "clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -226,7 +226,7 @@
               "type": "count"
             }
           ],
-          "query": "",
+          "query": "clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -323,7 +323,7 @@
               "type": "count"
             }
           ],
-          "query": "",
+          "query": "clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -415,7 +415,7 @@
               "type": "count"
             }
           ],
-          "query": "",
+          "query": "clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -502,7 +502,7 @@
               "type": "count"
             }
           ],
-          "query": "OPNAME.keyword:\"BindRequest\"",
+          "query": "OPNAME.keyword:\"BindRequest\" AND clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -589,7 +589,7 @@
               "type": "count"
             }
           ],
-          "query": "OPNAME.keyword:\"SearchRequest\"",
+          "query": "OPNAME.keyword:\"SearchRequest\" AND clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -676,7 +676,7 @@
               "type": "count"
             }
           ],
-          "query": "OPNAME.keyword:\"ModifyRequest\"",
+          "query": "OPNAME.keyword:\"ModifyRequest\" AND clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -763,7 +763,7 @@
               "type": "count"
             }
           ],
-          "query": "OPNAME.keyword:\"AddRequest\"",
+          "query": "OPNAME.keyword:\"AddRequest\" AND clustername:\"$environment\"",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -783,7 +783,7 @@
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "Elasticsearch",
           "value": "Elasticsearch"
         },
@@ -797,6 +797,24 @@
         "regex": "",
         "skipUrlSync": false,
         "type": "datasource"
+      },
+      {
+        "datasource": {
+          "type": "elasticsearch",
+          "uid": "$datasource"
+        },
+        "definition": "{\"find\": \"terms\", \"field\": \"clustername.keyword\"}",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "environment",
+        "options": [],
+        "query": "{\"find\": \"terms\", \"field\": \"clustername.keyword\"}",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -808,6 +826,6 @@
   "timezone": "",
   "title": "Audit Report",
   "uid": "1s-ta554k",
-  "version": 8,
+  "version": 14,
   "weekStart": ""
 }

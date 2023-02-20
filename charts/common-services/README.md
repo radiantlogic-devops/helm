@@ -1,6 +1,6 @@
 # common-services
 
-![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0](https://img.shields.io/badge/AppVersion-1.0-informational?style=flat-square)
+![Version: 1.0.4](https://img.shields.io/badge/Version-1.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
 
 A Helm chart for RadiantOne Common Services on Kubernetes
 
@@ -112,7 +112,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.enabled | bool | `true` |  |
 | grafana.fullnameOverride | string | `"grafana"` |  |
 | grafana.nodeSelector | object | `{}` |  |
-| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }\n  use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n\nbackend argocd_backend\n  server argocd argocd-server:80\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\nbackend alertmanager_backend\n  http-request set-path %[path,regsub(^/alertmanager/?,/)]\n  server alertmanager prometheus-alertmanager:80\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n#backend pgadmin4_backend\n  #server pgadmin4 pgadmin4:80\nbackend slamd_backend\n  server slamd slamd:80\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n"` |  |
+| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  #use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  #use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  #use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }\n  #use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  #use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  #use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  #use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  #use_backend eocbe_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n\nbackend argocd_backend\n  server argocd argocd-server:80\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\nbackend alertmanager_backend\n  http-request set-path %[path,regsub(^/alertmanager/?,/)]\n  server alertmanager prometheus-alertmanager:80\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n#backend pgadmin4_backend\n  #server pgadmin4 pgadmin4:80\nbackend slamd_backend\n  server slamd slamd:80\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n#backend eocui_backend\n  #server eocui eoc-ui-service:80\n#backend eocbe_backend\n  #server eocbe eoc-backend-service:80\n"` |  |
 | haproxy.enabled | bool | `true` |  |
 | haproxy.fullnameOverride | string | `"haproxy"` |  |
 | haproxy.nodeSelector | object | `{}` |  |
@@ -133,15 +133,23 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | pgadmin4.fullnameOverride | string | `"pgadmin4"` |  |
 | pgadmin4.nodeSelector | object | `{}` |  |
 | pgadmin4.persistentVolume.enabled | bool | `false` |  |
+| postgresql.databases.eoc.databaseName | string | `"eocdb"` |  |
+| postgresql.databases.eoc.password | string | `"XXXXXXXXXXXX"` |  |
+| postgresql.databases.eoc.schema | string | `"eoc"` |  |
+| postgresql.databases.eoc.user | string | `"eocadmin"` |  |
+| postgresql.databases.sdc.databaseName | string | `"agentsdb"` |  |
+| postgresql.databases.sdc.password | string | `"XXXXXXXXXXXX"` |  |
+| postgresql.databases.sdc.schema | string | `"agents"` |  |
+| postgresql.databases.sdc.user | string | `"agentsadmin"` |  |
 | postgresql.enabled | bool | `true` |  |
 | postgresql.fullnameOverride | string | `"postgresql"` |  |
 | postgresql.primary.initdb.scriptsConfigMap | string | `"postgres-init-script"` |  |
 | postgresql.primary.nodeSelector | object | `{}` |  |
 | prometheus.alertmanager.config.global.slack_api_url | string | `"https://hooks.slack.com/services/XXXXXXXXXXXX"` |  |
-| prometheus.alertmanager.config.global.smtp_auth_password | string | `"XXXXXX"` |  |
-| prometheus.alertmanager.config.global.smtp_auth_username | string | `"username_from@example.com"` |  |
-| prometheus.alertmanager.config.global.smtp_from | string | `"username_from@example.com"` |  |
-| prometheus.alertmanager.config.global.smtp_smarthost | string | `"smtp.example.com:587"` |  |
+| prometheus.alertmanager.config.global.smtp_auth_password | string | `""` |  |
+| prometheus.alertmanager.config.global.smtp_auth_username | string | `""` |  |
+| prometheus.alertmanager.config.global.smtp_from | string | `"saas@radiantlogic.com"` |  |
+| prometheus.alertmanager.config.global.smtp_smarthost | string | `"smtp-server:25"` |  |
 | prometheus.alertmanager.config.inhibit_rules[0].equal[0] | string | `"alertname"` |  |
 | prometheus.alertmanager.config.inhibit_rules[0].source_matchers[0] | string | `"severity=\"critical\""` |  |
 | prometheus.alertmanager.config.inhibit_rules[0].target_matchers[0] | string | `"severity=\"warning\""` |  |
@@ -159,7 +167,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | prometheus.alertmanager.config.route.routes[0].matchers[0] | string | `"monitor=~\"fid|radiantone|vds\""` |  |
 | prometheus.alertmanager.config.route.routes[0].receiver | string | `"team-fid-devops"` |  |
 | prometheus.alertmanager.config.templates[0] | string | `"/etc/alertmanager/*.tmpl"` |  |
-| prometheus.alertmanager.configmapReload.enabled | bool | `true` |  |
+| prometheus.alertmanager.configmapReload.enabled | bool | `false` |  |
 | prometheus.alertmanager.enabled | bool | `true` |  |
 | prometheus.alertmanager.fullnameOverride | string | `"prometheus-alertmanager"` |  |
 | prometheus.alertmanager.nodeSelector | object | `{}` |  |
@@ -169,6 +177,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | prometheus.nodeExporter.enabled | bool | `false` |  |
 | prometheus.pushgateway.fullnameOverride | string | `"prometheus-pushgateway"` |  |
 | prometheus.pushgateway.nodeSelector | object | `{}` |  |
+| prometheus.server.configmapReload.enabled | bool | `false` |  |
 | prometheus.server.extraFlags[0] | string | `"web.enable-lifecycle"` |  |
 | prometheus.server.extraFlags[1] | string | `"web.route-prefix=/"` |  |
 | prometheus.server.extraFlags[2] | string | `"web.external-url=http://prometheus-server/prometheus/"` |  |
@@ -251,6 +260,11 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | smtp.nodeSelector | object | `{}` |  |
 | smtp.podAnnotations | object | `{}` |  |
 | smtp.podSecurityContext | object | `{}` |  |
+| smtp.relay.enabled | bool | `true` |  |
+| smtp.relay.host | string | `"smtp.sendgrid.net"` |  |
+| smtp.relay.password | string | `""` |  |
+| smtp.relay.port | string | `"587"` |  |
+| smtp.relay.username | string | `""` |  |
 | smtp.replicaCount | int | `1` |  |
 | smtp.resources | object | `{}` |  |
 | smtp.securityContext | object | `{}` |  |
