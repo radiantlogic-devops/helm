@@ -26,27 +26,25 @@ spec:
         args:
           - |
             set -ex
-            
+
             echo "Starting pre-upgrade hook";
             # Add cURL
-            apk add --no-cache curl;
+            #apk add --no-cache curl;
             # Add AWS CLI
-            apk add aws-cli;
+            #apk add aws-cli;
             # Install kubectl
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
-            chmod +x ./kubectl;
-            mv ./kubectl /usr/local/bin;
+            #curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
+            #chmod +x ./kubectl;
+            #mv ./kubectl /usr/local/bin;
             # Test kubectl
-            kubectl get po -n {{ .Release.Namespace }};
+            #kubectl get po -n {{ .Release.Namespace }};
             # Delete Cache
-            kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh delete-cache -namingcontext o=test_view" ;
+            #kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/vdsconfig.sh delete-cache -namingcontext o=test_view" ;
             # Scale fid pods to 0
-            kubectl scale -n {{ .Release.Namespace }} --replicas=0 sts/{{ template "fid.fullname" . }} ;
+            #kubectl scale -n {{ .Release.Namespace }} --replicas=0 sts/{{ template "fid.fullname" . }} ;
             # Delete PVC for FID
-            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-2;
-            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-1;
-            kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-0;
+            #kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-2;
+            #kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-1;
+            #kubectl delete pvc r1-pvc-{{ include "fid.fullname" . }}-0;
             echo done;
 {{- end }}
-
-
