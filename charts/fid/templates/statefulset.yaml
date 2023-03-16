@@ -179,7 +179,7 @@ spec:
           name: https
         readinessProbe:
           tcpSocket:
-            port: 2389
+            port: 2636
           initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
           timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
           periodSeconds: 30
@@ -327,6 +327,8 @@ spec:
           value: {{ .Values.metrics.pushMode | quote }}
         - name: PUSHGATEWAY_URI
           value: {{ .Values.metrics.pushGateway | quote }}
+        - name: PUSH_METRIC_CRON
+          value: {{ .Values.metrics.pushMetricCron | quote }}
         - name: LDAP_URI
           value: "ldaps://localhost:2636"
         - name: JOB_NAME
