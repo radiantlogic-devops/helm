@@ -356,14 +356,13 @@ extraVolumeMounts: []
 ##         containerPort: 1234
 ##
 sidecars: []
-## @param postStart Add additional commands to run after startup, these commnds will run after every startup
+## @param postInstall Add additional commands to run after install, these commnds will run after first install
 ## Example:
-## postStart:
+## postInstall:
 ##     enabled: true
 ##     leaderOnly: true
 ##     script: |
-##       # Custome script
-##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
+##       # Custom script
 ##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
 ##
 postInstall:
