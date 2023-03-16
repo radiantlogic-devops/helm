@@ -156,6 +156,7 @@ metrics:
   annotations: {}
   pushMode: true
   pushGateway: http://prometheus-server:9091
+  pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
     configFile: /fluentd/etc/fluent.conf
