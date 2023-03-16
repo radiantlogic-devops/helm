@@ -218,33 +218,43 @@ spec:
       {{- end }}
 {{- end }}
         env:
-{{- if .Values.fid.rootUser }}
+{{- if .Values.fid.mountSecrets }}
+{{- else }}
+  {{- if .Values.fid.rootUser }}
         - name: FID_ROOT_USER
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-username
-{{- end }}
-{{- if .Values.fid.rootPassword }}
+  {{- end }}
+  {{- if .Values.fid.rootPassword }}
         - name: FID_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
-{{- end }}
-{{- if .Values.zk.username }}
+  {{- end }}
+  {{- if .Values.zk.username }}
         - name: ZK_USER
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: zk-username
-{{- end }}
-{{- if .Values.zk.password }}
+  {{- end }}
+  {{- if .Values.zk.password }}
         - name: ZK_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: zk-password
+  {{- end }}
+  {{- if .Values.fid.license }}
+        - name: LICENSE
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-license
+  {{- end }}
 {{- end }}
 {{- range $key, $value := .Values.env }}
         - name: "{{ tpl $key $ }}"
@@ -259,6 +269,10 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
+{{- if .Values.fid.mountSecrets }}        
+        - name: fid-creds
+          mountPath: /var/secrets          
+{{- end }}
 {{- if .Values.extraVolumeMounts }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 8 }}
 {{- end }}
@@ -366,6 +380,12 @@ spec:
         emptyDir: {}
       - name: migrations
         emptyDir: {}
+{{- if .Values.fid.mountSecrets }}        
+      - name: fid-creds
+        secret:
+          defaultMode: 288
+          secretName: rootcreds-fid        
+{{- end }}
 {{- if .Values.extraVolumes }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 6 }}
 {{- end }}
