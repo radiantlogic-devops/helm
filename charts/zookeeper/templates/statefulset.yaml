@@ -68,16 +68,20 @@ spec:
         args:
           - |
             /opt/radiantone/run.sh &
-            # check nc installed
-            if rpm -qa | grep -i nmap-ncat; then :; else
-              yum install -y nc;
-            fi
-            # check mntr
+            # wait until zookeeper starts
+            until nc -w 2 -z localhost 2181; do echo "Waiting for Zookeeper to start on port 2181";sleep 10; done;echo "Zookeeper is up"
+            # check mntr - this is needed for metrics collection
             if echo mntr | nc localhost 2181 | grep "not in the whitelist"; then
-              until nc -w 2 -z localhost 2181; do echo Waiting for zk -- 2181;sleep 10; done;echo \"zk is up!\"
-              echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg
+              # stop zookeeper
               /opt/radiantone/rli-zookeeper-external/bin/stop_zookeeper.sh
+              # add ruok and mntr to whitelist
+              echo "Adding ruok,mntr to whitelist"
+              echo "4lw.commands.whitelist=ruok,mntr" >> /opt/radiantone/rli-zookeeper-external/zookeeper/conf/zoo.cfg
+              # start zookeeper
               /opt/radiantone/run.sh
+            else
+              # tail the log file so the container does not exit
+              tail -F /opt/radiantone/rli-zookeeper-external/zookeeper/logs/zookeeper.log
             fi
 {{- else }}
         command: ["/bin/sh","-c"]
