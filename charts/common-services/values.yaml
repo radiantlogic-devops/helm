@@ -490,3 +490,155 @@ smtp:
     port: "587"
     username: ""
     password: ""
+
+opensearch:
+  enabled: true
+  fullnameOverride: "opensearch"
+  replicas: 3
+  clusterName: "opensearch-cluster"
+  nodeGroup: "master"
+  masterService: "opensearch-cluster-master"
+  extraEnvs:
+    - name: "DISABLE_SECURITY_PLUGIN"
+      value: "true"
+  rbac:
+    create: false
+    serviceAccountAnnotations: {}
+    serviceAccountName: ""
+  nodeSelector: {}
+  # tenantname: duploservices-nike-svc
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+  service:
+    type: ClusterIP
+    nodePort: ""
+    annotations: {}
+    httpPortName: http
+    transportPortName: transport
+  extraVolumes: []
+  # - name: extras
+  #   emptyDir: {}
+  extraVolumeMounts: []
+    # - name: extras
+    #   mountPath: /usr/share/extras
+    #   readOnly: true
+  extraContainers: []
+    # - name: do-something
+    #   image: busybox
+    #   command: ['do', 'something']
+  extraInitContainers: []
+    # - name: do-somethings
+    #   image: busybox
+    #   command: ['do', 'something']
+
+opensearch-dashboards:
+  enabled: true
+  opensearchHosts: "http://opensearch-cluster-master:9200"
+  replicaCount: 1
+  fullnameOverride: "opensearch-dashboard"
+  extraEnvs:
+    - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+      value: "true"
+  service:
+    type: ClusterIP
+    port: 5601
+    loadBalancerIP: ""
+    nodePort: ""
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    # 0.0.0.0/0
+    httpPortName: http
+  nodeSelector: {}
+    # tenantname: duploservices-nike-svc
+  plugins:
+    enabled: false
+    installList: []
+    # - example-fake-plugin-downloadable-url
+
+fluent-bit:
+  enabled: true
+  fullnameOverride: "fluent-bit"
+  service:
+    type: ClusterIP
+  prometheusRule:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+  nodeSelector: {}
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush {{ .Values.flush }}
+          Log_Level {{ .Values.logLevel }}
+          Parsers_File parsers.conf
+          Parsers_File custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port {{ .Values.metricsPort }}
+          Health_Check On
+    inputs: |
+      [INPUT]
+          Name              tail
+          Tag               kube.*
+          Path              /var/log/containers/sdc*.*
+          Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+          Parser            docker
+          DB                /var/log/flb_kube.db
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Tag               kube.*
+          Path              /var/log/containers/uplink-operator*.*
+          Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+          Parser            docker
+          DB                /var/log/flb_kube2.db
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+    filters: |
+      [FILTER]
+          Name kubernetes
+          Match kube.*
+          Merge_Log On
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude off
+          Labels On
+          Annotations On
+    outputs: |
+      [OUTPUT]
+          Name               es
+          Match              kube.*
+          Host               elasticsearch-master
+          Trace_Error        On
+          Replace_Dots       On
+          Logstash_Format    On
+          Logstash_Prefix    sdc
+          Retry_Limit        False
+      [OUTPUT]
+          Name               es
+          Match              kube.*
+          Host               elasticsearch-master
+          Trace_Error        On
+          Replace_Dots       On
+          Logstash_Format    On
+          Logstash_Prefix    uplink
+          Retry_Limit        False
+    customParsers: |
+      [PARSER]
+          Name docker_no_time
+          Format json
+          Time_Keep Off
+          Time_Key time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
+  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
+  volumeMounts:
+    - name: config
+      mountPath: /fluent-bit/etc/fluent-bit.conf
+      subPath: fluent-bit.conf
+    - name: config
+      mountPath: /fluent-bit/etc/custom_parsers.conf
+      subPath: custom_parsers.conf
