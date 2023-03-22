@@ -536,7 +536,7 @@ opensearch-dashboards:
   enabled: true
   opensearchHosts: "http://opensearch-cluster-master:9200"
   replicaCount: 1
-  fullnameOverride: "opensearch-dashboard"
+  fullnameOverride: "opensearch-dashboards"
   extraEnvs:
     - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
       value: "true"

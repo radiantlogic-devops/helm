@@ -1,4 +1,4 @@
-{{- if eq .Values.opensearch.enabled true }}
+{{- if eq .Values.opensearch-dashboards.enabled true }}
 apiVersion: batch/v1
 kind: Job
 metadata:
