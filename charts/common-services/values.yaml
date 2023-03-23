@@ -494,6 +494,7 @@ smtp:
 opensearch:
   enabled: true
   fullnameOverride: "opensearch"
+  singleNode: false
   replicas: 3
   clusterName: "opensearch-cluster"
   nodeGroup: "master"
