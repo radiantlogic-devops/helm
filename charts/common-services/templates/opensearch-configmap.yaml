@@ -1,4 +1,4 @@
-{{- if eq .Values.opensearch-dashboards.enabled true }}
+{{- if eq (index .Values "opensearch-dashboards" "enabled") true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
