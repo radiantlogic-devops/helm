@@ -46,6 +46,7 @@ prometheus:
       - web.enable-lifecycle
       - web.route-prefix=/
       - web.external-url=http://prometheus-server/prometheus/
+      - web.enable-admin-api
     fullnameOverride: prometheus-server
     configmapReload:
       enabled: false
