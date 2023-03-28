@@ -494,7 +494,7 @@ smtp:
 opensearch:
   enabled: true
   fullnameOverride: "opensearch"
-  singleNode: false
+  singleNode: true
   replicas: 3
   clusterName: "opensearch-cluster"
   nodeGroup: "master"
@@ -561,6 +561,10 @@ opensearch-dashboards:
 fluent-bit:
   enabled: true
   fullnameOverride: "fluent-bit"
+  outputSearchType: "es"  # "opensearch"
+  flush: 1
+  logLevel: info
+  metricsPort: 2020
   service:
     type: ClusterIP
   prometheusRule:
@@ -568,6 +572,7 @@ fluent-bit:
   serviceMonitor:
     enabled: false
   nodeSelector: {}
+    # tenantname:
   config:
     service: |
       [SERVICE]
@@ -581,60 +586,116 @@ fluent-bit:
           HTTP_Port {{ .Values.metricsPort }}
           Health_Check On
     inputs: |
-      [INPUT]
-          Name              tail
-          Tag               kube.sdc*
-          Path              /var/log/containers/sdc*.*
-          Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-          Parser            docker
-          DB                /var/log/flb_kube.db
-          Skip_Long_Lines   On
-          Refresh_Interval  10
-      [INPUT]
-          Name              tail
-          Tag               kube.uplink*
-          Path              /var/log/containers/uplink-operator*.*
-          Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-          Parser            docker
-          DB                /var/log/flb_kube2.db
-          Skip_Long_Lines   On
-          Refresh_Interval  10
-    filters: |
-      [FILTER]
-          Name kubernetes
-          Match kube.*
-          Merge_Log On
-          Keep_Log Off
-          K8S-Logging.Parser On
-          K8S-Logging.Exclude off
-          Labels On
-          Annotations On
+        [INPUT]
+            Name              tail
+            Tag               backend.log
+            Path              /var/log/containers/eoc-backend-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               orchestrator.log
+            Path              /var/log/containers/eoc-orchestrator-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               agents.log
+            Path              /var/log/containers/sdc-agent*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               clientrouter.log
+            Path              /var/log/containers/client-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               acmeco.log
+            Path              /var/log/containers/acmeco*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
     outputs: |
-      [OUTPUT]
-          Name               es
-          Match              kube.sdc*
-          Host               elasticsearch-master
-          Trace_Error        On
-          Replace_Dots       On
-          Logstash_Format    On
-          Logstash_Prefix    sdc
-          Retry_Limit        False
-      [OUTPUT]
-          Name               es
-          Match              kube.uplink*
-          Host               elasticsearch-master
-          Trace_Error        On
-          Replace_Dots       On
-          Logstash_Format    On
-          Logstash_Prefix    uplink
-          Retry_Limit        False
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              backend.log
+            Host               elasticsearch-master
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              backend-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              orchestrator.*
+            Host               elasticsearch-master
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              orchestrator-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              agents.log
+            Host               elasticsearch-master
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              sdc-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              clientrouter.log
+            Host               elasticsearch-master
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              router-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              acmeco.log
+            Host               elasticsearch-master
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              acmeco-index
+            Retry_Limit        False
+
     customParsers: |
-      [PARSER]
-          Name docker_no_time
-          Format json
-          Time_Keep Off
-          Time_Key time
-          Time_Format %Y-%m-%dT%H:%M:%S.%L
+        [PARSER]
+            Name docker_no_time
+            Format json
+            Time_Keep Off
+            Time_Key time
+            Time_Format %Y-%m-%dT%H:%M:%S.%L
+
+
   # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
   volumeMounts:
     - name: config
