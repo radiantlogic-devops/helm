@@ -253,6 +253,7 @@ grafana:
 elasticsearch:
   enabled: true
   replicas: 1
+  singleNode: true
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
@@ -268,6 +269,7 @@ kibana:
     kibana.yml: |
       server.basePath: "/kibana"
       telemetry.optIn: false
+      security.showInsecureClusterWarning: false
 
 haproxy:
   enabled: true
@@ -557,7 +559,11 @@ opensearch-dashboards:
   plugins:
     enabled: false
     installList: []
-    # - example-fake-plugin-downloadable-url
+  config:
+    opensearch_dashboards.yml: |
+      server:
+        basePath: "/opensearch-dashboards"
+        rewriteBasePath: true
 
 fluent-bit:
   enabled: true
