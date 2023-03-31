@@ -252,8 +252,7 @@ grafana:
 
 elasticsearch:
   enabled: true
-  replicas: 1
-  singleNode: true
+  replicas: 2
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
