@@ -31,6 +31,8 @@ fid:
     script:
   # Mount the secrets by default instead of passing them as env variables. Works on for fid image 8.0.0 or higher
   mountSecrets: true
+  # Set sealedSecrets id using sealedSecrets
+  sealedSecrets: false
   ## Deploy a readonly/follower-only sts, that joins current FID cluster
   ##
   followerOnly:
