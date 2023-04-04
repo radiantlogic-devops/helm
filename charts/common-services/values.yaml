@@ -180,6 +180,10 @@ grafana:
       level: info
     security:
       allow_embedding: true
+    smtp:
+      enabled: true
+      host: smtp-server:25
+      from_address: saas@radiantlogic.com
 
   # Setup Data Source (prometheus and elastic)
   datasources:
