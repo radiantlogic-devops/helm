@@ -197,7 +197,6 @@ spec:
         - configMapRef:
             name: {{ template "fid.fullname" . }}
 {{- if or .Values.envFromSecret (or .Values.envRenderSecret .Values.envFromSecrets) .Values.envFromConfigMaps }}
-        envFrom:
       {{- if .Values.envFromSecret }}
         - secretRef:
             name: {{ tpl .Values.envFromSecret . }}
