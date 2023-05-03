@@ -58,4 +58,4 @@ jobs:
           ct install --charts=charts/fid --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 \
                              --set=image.repository=radiantone/fid-nightly --set=image.tag=7.4 \
                              --set=imageCredentials.enabled=true --set=imageCredentials.username=${{ secrets.DOCKER_USERNAME }} --set=imageCredentials.password=${{ secrets.DOCKER_PASSWORD }} \
-                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred" --upgrade --debug
+                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred --set=postStart.enabled=false" --upgrade --debug
