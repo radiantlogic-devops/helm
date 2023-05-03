@@ -154,7 +154,7 @@ prometheus:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
     extraArgs:
-      - web.enable-admin-api
+      web.enable-admin-api: true
 
 grafana:
   fullnameOverride: grafana
