@@ -374,3 +374,17 @@ postInstall:
   leaderOnly: true
   script: |
     # Post install custom script
+## @param postStart Add additional commands to run after startup, these commnds will run after start up
+## Example:
+## postStart:
+##     enabled: true
+##     leaderOnly: true
+##     script: |
+##       # Custom script
+##       /opt/radiantone/vds/bin/runDerbyServer.sh
+##
+postStart:
+  enabled: false
+  leaderOnly: true
+  script: |
+    # Post install custom script
