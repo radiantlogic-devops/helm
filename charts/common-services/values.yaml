@@ -503,19 +503,22 @@ opensearch:
   enabled: true
   fullnameOverride: "opensearch"
   singleNode: true
-  replicas: 3
+  replicas: 1
   clusterName: "opensearch-cluster"
   nodeGroup: "master"
   masterService: "opensearch-cluster-master"
   extraEnvs:
     - name: "DISABLE_SECURITY_PLUGIN"
       value: "true"
+    - name: "DISABLE_INSTALL_DEMO_CONFIG"
+      value: "true"
   rbac:
     create: false
     serviceAccountAnnotations: {}
     serviceAccountName: ""
   nodeSelector: {}
-  # tenantname: duploservices-nike-svc
+  persistence:
+    size: 30Gi
   podSecurityContext:
     fsGroup: 1000
     runAsUser: 1000
@@ -572,6 +575,7 @@ opensearch-dashboards:
 
 fluent-bit:
   enabled: true
+  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
   fullnameOverride: "fluent-bit"
   outputSearchType: "es"  # "opensearch"
   flush: 1
@@ -652,7 +656,7 @@ fluent-bit:
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
             Match              backend.log
-            Host               elasticsearch-master
+            Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
@@ -662,7 +666,7 @@ fluent-bit:
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
             Match              orchestrator.*
-            Host               elasticsearch-master
+            Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
@@ -672,7 +676,7 @@ fluent-bit:
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
             Match              agents.log
-            Host               elasticsearch-master
+            Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
@@ -682,7 +686,7 @@ fluent-bit:
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
             Match              clientrouter.log
-            Host               elasticsearch-master
+            Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
@@ -692,7 +696,7 @@ fluent-bit:
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
             Match              acmeco.log
-            Host               elasticsearch-master
+            Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
