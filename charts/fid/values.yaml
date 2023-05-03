@@ -163,6 +163,7 @@ metrics:
     enabled: false
     configFile: /fluentd/etc/fluent.conf
     elasticSearchHost: elasticsearch-master
+    elasticSearchType: elasticsearch
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5

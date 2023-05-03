@@ -358,6 +358,8 @@ spec:
           value: {{ .Values.metrics.fluentd.configFile | quote }}
         - name: ELASTICSEARCH_HOST
           value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+        - name: ELASTICSEARCH_TYPE
+          value: {{ .Values.metrics.fluentd.elasticSearchType | default "elasticsearch" | quote }}
 {{- end }}
 {{- end }}
 
