@@ -369,6 +369,11 @@ postgresql:
       user: agentsadmin
       password: iJukleKLG9fNihIQ
       schema: agents
+  # backup:
+    # enabled: false
+    # s3bucketName: ""
+    # folderName: "postgresql"
+    # latestBackupName: "posgresql-latest.sql.gz"
 
 pgadmin4:
   enabled: true

@@ -1,0 +1,57 @@
+{{- if and .Values.postgresql.enabled (and ((.Values.postgresql).backup).enabled | default false) }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: postgres-backup-cronjob
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:15.2
+            env:
+            - name: PGHOST
+              value: postgresql
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql
+                  key: postgres-password
+            - name: S3_BUCKET
+              value: {{ (.Values.postgresql.backup).s3bucketName | default "" }}
+            - name: LATEST_BACKUP_FILENAME
+              value: {{ (.Values.postgresql.backup).latestBackupName | default "postgresql-latest.sql.gz" }}
+            - name: S3_FOLDERNAME
+              value: {{ (.Values.postgresql.backup).folderName | default "postgresql" }}
+            command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              set -ex
+              apt-get update && apt-get -y install postgresql-client s3cmd
+              DATE=`date +%Y%m%d%H%M%S`
+              FILENAME=postgresql-$DATE.sql.gz
+              pg_dumpall --host=$PGHOST --username=$PGUSER | gzip > /backup/$FILENAME
+              s3cmd put /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$FILENAME
+              s3cmd put /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$LATEST_BACKUP_FILENAME
+            volumeMounts:
+            - name: backup-volume
+              mountPath: /backup
+          restartPolicy: Never
+          volumes:
+          - name: backup-volume
+            emptyDir: {}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      backoffLimit: 3
+{{- end }}
+
