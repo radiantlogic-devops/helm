@@ -206,7 +206,7 @@ haproxy:
     sdcapi: false
     opensearch: false
     opensearchdashboards: false
-    
+ 
   fullnameOverride: haproxy
   nodeSelector: {}
   service:
@@ -228,7 +228,7 @@ haproxy:
       stats show-node
       stats uri /stats
       monitor-uri /healthz
-      
+ 
       # routing
       {{- if ((.Values.route).argocd | default false) }}
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
@@ -556,7 +556,7 @@ opensearch-dashboards:
         rewriteBasePath: true
 
 fluent-bit:
-  enabled: false 
+  enabled: false
   outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
   fullnameOverride: "fluent-bit"
   outputSearchType: "es"  # "opensearch"
