@@ -129,6 +129,14 @@ grafana:
           type: alertmanager
           url: http://prometheus-alertmanager
           access: proxy
+        - name: OpenSearch
+          type: opensearch
+          access: proxy
+          url: http://opensearch-cluster-master:9200
+          jsonData:
+            esVersion: 70
+            timeField: "@timestamp"
+            interval: Daily
 
   dashboardProviders:
     dashboardproviders.yaml:
@@ -164,10 +172,21 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/elasticsearch
+      - name: 'service-status'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/service-status
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
+    service-status: "service-status-dashboard"
 
 elasticsearch:
   enabled: true
@@ -626,8 +645,8 @@ fluent-bit:
 
         [INPUT]
             Name              tail
-            Tag               acmeco.log
-            Path              /var/log/containers/acmeco*.log
+            Tag               r1tunnel.log
+            Path              /var/log/containers/r1tunnel*.log
             Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
             Parser            docker
             DB                /var/log/flb_kube.db
@@ -677,12 +696,12 @@ fluent-bit:
 
         [OUTPUT]
             Name               {{ .Values.outputSearchType }}
-            Match              acmeco.log
+            Match              r1tunnel.log
             Host               {{ .Values.outputSearchHost }}
             Trace_Error        On
             Replace_Dots       On
             Logstash_Format    off
-            Index              acmeco-index
+            Index              r1tunnel-index
             Retry_Limit        False
 
     customParsers: |
