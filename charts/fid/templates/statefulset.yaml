@@ -268,9 +268,9 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
-{{- if .Values.fid.mountSecrets }}        
+{{- if .Values.fid.mountSecrets }}
         - name: fid-creds
-          mountPath: /var/secrets          
+          mountPath: /var/secrets
 {{- end }}
 {{- if .Values.extraVolumeMounts }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 8 }}
@@ -337,6 +337,8 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+        - name: fluentd-config-volume
+          mountPath: /fluentd/etc
         securityContext:
           runAsUser: 0
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
@@ -405,11 +407,14 @@ spec:
         emptyDir: {}
       - name: migrations
         emptyDir: {}
-{{- if .Values.fid.mountSecrets }}        
+{{- if .Values.fid.mountSecrets }}
       - name: fid-creds
         secret:
           defaultMode: 288
-          secretName: rootcreds-{{ template "fid.fullname" . }}        
+          secretName: rootcreds-{{ template "fid.fullname" . }}
+      - name: fluentd-config-volume
+        configMap:
+          name: fluentd-config
 {{- end }}
 {{- if .Values.extraVolumes }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 6 }}
