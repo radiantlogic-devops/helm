@@ -337,8 +337,10 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+{{- if eq .Values.metrics.fluentd.enabled true }}
         - name: fluentd-config-volume
           mountPath: /fluentd/etc
+{{- end }}
         securityContext:
           runAsUser: 0
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
@@ -412,6 +414,8 @@ spec:
         secret:
           defaultMode: 288
           secretName: rootcreds-{{ template "fid.fullname" . }}
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabled true }}
       - name: fluentd-config-volume
         configMap:
           name: fluentd-config
