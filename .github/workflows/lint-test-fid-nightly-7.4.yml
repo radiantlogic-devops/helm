@@ -1,4 +1,4 @@
-name: Lint and Test FID Charts with Nightly Image
+name: Lint and Test FID Charts with 7.4 Nightly Image
 
 on:
   workflow_dispatch:
