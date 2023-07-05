@@ -179,7 +179,7 @@ spec:
           name: https
         readinessProbe:
           tcpSocket:
-            port: 2389
+            port: 2636
           initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
           timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
           periodSeconds: 30
@@ -197,7 +197,6 @@ spec:
         - configMapRef:
             name: {{ template "fid.fullname" . }}
 {{- if or .Values.envFromSecret (or .Values.envRenderSecret .Values.envFromSecrets) .Values.envFromConfigMaps }}
-        envFrom:
       {{- if .Values.envFromSecret }}
         - secretRef:
             name: {{ tpl .Values.envFromSecret . }}
@@ -218,33 +217,43 @@ spec:
       {{- end }}
 {{- end }}
         env:
-{{- if .Values.fid.rootUser }}
+{{- if .Values.fid.mountSecrets }}
+{{- else }}
+  {{- if .Values.fid.rootUser }}
         - name: FID_ROOT_USER
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-username
-{{- end }}
-{{- if .Values.fid.rootPassword }}
+  {{- end }}
+  {{- if .Values.fid.rootPassword }}
         - name: FID_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
-{{- end }}
-{{- if .Values.zk.username }}
+  {{- end }}
+  {{- if .Values.zk.username }}
         - name: ZK_USER
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: zk-username
-{{- end }}
-{{- if .Values.zk.password }}
+  {{- end }}
+  {{- if .Values.zk.password }}
         - name: ZK_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: zk-password
+  {{- end }}
+  {{- if .Values.fid.license }}
+        - name: LICENSE
+          valueFrom:
+            secretKeyRef:
+              name: rootcreds-{{ template "fid.fullname" . }}
+              key: fid-license
+  {{- end }}
 {{- end }}
 {{- range $key, $value := .Values.env }}
         - name: "{{ tpl $key $ }}"
@@ -259,6 +268,10 @@ spec:
           mountPath: /migrations
         - name: scripts
           mountPath: /opt/radiantone/scripts
+{{- if .Values.fid.mountSecrets }}
+        - name: fid-creds
+          mountPath: /var/secrets
+{{- end }}
 {{- if .Values.extraVolumeMounts }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 8 }}
 {{- end }}
@@ -275,17 +288,36 @@ spec:
             fi;
 
             {{- if .Values.postInstall.enabled }}
-            ./run.sh
-            {{- if .Values.postInstall.leaderOnly }}
-            if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
-            {{ .Values.postInstall.script | nindent 14 }}
-            fi;
+              ./run.sh
+              ## if CURRENT_BUILDID="" it is a new install
+              if [ $CURRENT_BUILDID = "" ]; then
+                echo "Running post install script"
+                {{- if .Values.postInstall.leaderOnly }}
+                if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
+                  {{ .Values.postInstall.script | nindent 14 }}
+                fi;
+                {{- else }}
+                  {{ .Values.postInstall.script | nindent 14 }}
+                {{- end }}
+              fi;
+              tail -f /dev/null
             {{- else }}
-            {{ .Values.postInstall.script | nindent 14 }}
+              ./run.sh fg
             {{- end }}
-            tail -f /dev/null
+
+            {{- if .Values.postStart.enabled }}
+              ./run.sh
+              echo "Running post startup script"
+              {{- if .Values.postStart.leaderOnly }}
+              if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
+                {{ .Values.postStart.script | nindent 14 }}
+              fi;
+              {{- else }}
+                {{ .Values.postStart.script | nindent 14 }}
+              {{- end }}
+              tail -f /dev/null
             {{- else }}
-            ./run.sh fg
+              ./run.sh fg
             {{- end }}
 
 {{- end }}
@@ -305,16 +337,24 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
+{{- if eq .Values.metrics.fluentd.enabled true }}
+        - name: fluentd-config-volume
+          mountPath: /fluentd/etc
+{{- end }}
         securityContext:
           runAsUser: 0
-        command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2389; do echo Waiting for fid -- 2389;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
+        command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
         env:
+{{- if .Values.metrics.pushMode }}
         - name: PUSH_MODE
           value: {{ .Values.metrics.pushMode | quote }}
         - name: PUSHGATEWAY_URI
           value: {{ .Values.metrics.pushGateway | quote }}
+        - name: PUSH_METRIC_CRON
+          value: {{ .Values.metrics.pushMetricCron | quote }}
+{{- end }}
         - name: LDAP_URI
-          value: "ldap://localhost:2389"
+          value: "ldaps://localhost:2636"
         - name: JOB_NAME
           valueFrom:
             configMapKeyRef:
@@ -322,10 +362,11 @@ spec:
               key: ZK_CLUSTER
 {{- if .Values.fid.rootUser }}
         - name: BIND_DN
-          valueFrom:
-            secretKeyRef:
-              name: rootcreds-{{ template "fid.fullname" . }}
-              key: fid-root-username
+          value: "uid=operator,ou=globalusers,cn=config"
+          # valueFrom:
+          #  secretKeyRef:
+          #    name: rootcreds-{{ template "fid.fullname" . }}
+          #    key: fid-root-username
 {{- end }}
 {{- if .Values.fid.rootPassword }}
         - name: BIND_PASSWORD
@@ -342,6 +383,8 @@ spec:
           value: {{ .Values.metrics.fluentd.configFile | quote }}
         - name: ELASTICSEARCH_HOST
           value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+        - name: ELASTICSEARCH_TYPE
+          value: {{ .Values.metrics.fluentd.elasticSearchType | default "elasticsearch" | quote }}
 {{- end }}
 {{- end }}
 
@@ -366,6 +409,17 @@ spec:
         emptyDir: {}
       - name: migrations
         emptyDir: {}
+{{- if .Values.fid.mountSecrets }}
+      - name: fid-creds
+        secret:
+          defaultMode: 288
+          secretName: rootcreds-{{ template "fid.fullname" . }}
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabled true }}
+      - name: fluentd-config-volume
+        configMap:
+          name: fluentd-config
+{{- end }}
 {{- if .Values.extraVolumes }}
      {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 6 }}
 {{- end }}

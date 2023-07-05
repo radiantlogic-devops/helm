@@ -1,6 +1,9 @@
-name: Lint and Test FID Charts
+name: Lint and Test FID Charts with 7.4 Nightly Image
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "* 0 * * *"
   pull_request:
     paths:
       - 'charts/fid/**'
@@ -11,11 +14,6 @@ jobs:
     
     steps:
     
-      - name: Clear any existing tool cache
-        run: |
-          mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
-          mkdir -p "${{ runner.tool_cache }}"
-          
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -47,7 +45,6 @@ jobs:
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
-        if: steps.list-changed.outputs.changed == 'true'
         with:
           config: .config/kind.yaml
 
@@ -57,4 +54,8 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --charts=charts/fid --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 --set=postStart.enabled=false" --upgrade --debug
+        run: |
+          ct install --charts=charts/fid --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 \
+                             --set=image.repository=radiantone/fid-nightly --set=image.tag=7.4 \
+                             --set=imageCredentials.enabled=true --set=imageCredentials.username=${{ secrets.DOCKER_USERNAME }} --set=imageCredentials.password=${{ secrets.DOCKER_PASSWORD }} \
+                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred --set=postStart.enabled=false" --upgrade --debug

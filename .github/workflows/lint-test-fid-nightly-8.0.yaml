@@ -60,4 +60,4 @@ jobs:
                              --set=image.repository=radiantone/fid-nightly --set=image.tag=8.0 \
                              --set=imageCredentials.enabled=true --set=imageCredentials.username=${{ secrets.DOCKER_USERNAME }} \
                              --set=imageCredentials.password=${{ secrets.DOCKER_PASSWORD }} \
-                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred" --debug
+                             --set=imageCredentials.email=${{ secrets.DOCKER_EMAIL }} --set=imagePullSecrets[0].name=regcred --set=postStart.enabled=false" --upgrade --debug

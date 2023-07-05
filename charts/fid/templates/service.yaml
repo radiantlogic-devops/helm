@@ -18,3 +18,20 @@ spec:
   selector:
     {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
   type: {{ default "ClusterIP" .Values.service.type }}
+---
+# Admin service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fid.fullname" . }}-admin
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 9100
+      name: http
+    - port: 9101
+      name: https
+  selector:
+    {{- include "fid.serviceSelectorLabels" . | nindent 4 }}
+  type: ClusterIP

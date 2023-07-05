@@ -29,6 +29,10 @@ fid:
     url:
   ## Post migration script to be run after install (configure_fid.sh)
     script:
+  # Mount the secrets by default instead of passing them as env variables. Works on for fid image 8.0.0 or higher
+  mountSecrets: true
+  # Set sealedSecrets id using sealedSecrets
+  sealedSecrets: false
   ## Deploy a readonly/follower-only sts, that joins current FID cluster
   ##
   followerOnly:
@@ -154,10 +158,12 @@ metrics:
   annotations: {}
   pushMode: true
   pushGateway: http://prometheus-server:9091
+  pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
     configFile: /fluentd/etc/fluent.conf
     elasticSearchHost: elasticsearch-master
+    elasticSearchType: elasticsearch
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
@@ -354,17 +360,30 @@ extraVolumeMounts: []
 ##         containerPort: 1234
 ##
 sidecars: []
-## @param postStart Add additional commands to run after startup, these commnds will run after every startup
+## @param postInstall Add additional commands to run after install, these commnds will run after first install
+## Example:
+## postInstall:
+##     enabled: true
+##     leaderOnly: true
+##     script: |
+##       # Custom script
+##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
+##
+postInstall:
+  enabled: false
+  leaderOnly: true
+  script: |
+    # Post install custom script
+## @param postStart Add additional commands to run after startup, these commnds will run after start up
 ## Example:
 ## postStart:
 ##     enabled: true
 ##     leaderOnly: true
 ##     script: |
-##       # Custome script
-##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
-##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
+##       # Custom script
+##       /opt/radiantone/vds/bin/runDerbyServer.sh
 ##
-postInstall:
+postStart:
   enabled: false
   leaderOnly: true
   script: |
