@@ -46,6 +46,7 @@ prometheus:
       - web.enable-lifecycle
       - web.route-prefix=/
       - web.external-url=http://prometheus-server/prometheus/
+      - web.enable-admin-api
     fullnameOverride: prometheus-server
     configmapReload:
       enabled: false
@@ -61,97 +62,12 @@ prometheus:
     enabled: false
   alertmanager:
     enabled: false
-    fullnameOverride: prometheus-alertmanager
-    nodeSelector: {}
-    replicationCount: 1
-    configmapReload:
-      ## If false, the configmap-reload container will not be deployed
-      ##
-      enabled: false
-    config:
-      global:
-        smtp_from: 'saas@radiantlogic.com'
-        smtp_smarthost: 'smtp-server:25'
-        smtp_auth_username: ''
-        smtp_auth_password: ''
-        slack_api_url: https://hooks.slack.com/services/XXXXXXXXXXXX
-      templates:
-      - '/etc/alertmanager/*.tmpl'
-      route:
-        receiver: 'team-fid-devops'
-        group_by: ['alertname']
-        group_wait: 30s
-        group_interval: 3h
-        repeat_interval: 3h
-        routes:
-        - matchers:
-          - monitor=~"fid|radiantone|vds"
-          receiver: team-fid-devops
-      inhibit_rules:
-      - source_matchers: [severity="critical"]
-        target_matchers: [severity="warning"]
-        equal: [alertname]
-      receivers:
-      - name: 'team-fid-devops'
-        email_configs:
-        - to: 'username_to@example.com'
-        slack_configs:
-        - channel: '#devops'
-          send_resolved: true
-          title: |-
-            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
-            {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
-              {{" "}}(
-              {{- with .CommonLabels.Remove .GroupLabels.Names }}
-                {{- range $index, $label := .SortedPairs -}}
-                  {{ if $index }}, {{ end }}
-                  {{- $label.Name }}="{{ $label.Value -}}"
-                {{- end }}
-              {{- end -}}
-              )
-            {{- end }}
-          text: >-
-            {{ range .Alerts -}}
-            *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
-            *Description:* {{ .Annotations.description }}
-            *Details:*
-              {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
-              {{ end }}
-            {{ end }}
-        # alertmanager.tmpl: |-
-  serverFiles:
-    alerting_rules.yml:
-      groups:
-        - name: FID alerts
-          rules:
-          - alert: FID memory is high
-            expr: (ldap_memory_used{job="fid-targets"}/ldap_memory_max{job="fid-targets"}) * 100 > 80
-            for: 120s
-            labels:
-              severity: warning
-            annotations:
-              title: FID Memory usage on {{ $labels.instance }} is more than 80%
-              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID memory usage is more than 80% for 120s
-          - alert: FID connections are high
-            expr: ldap_current_connections{job="fid-targets"} > 800
-            for: 10s
-            labels:
-              severity: warning
-            annotations:
-              title: FID connections on {{ $labels.instance }} are more than 800
-              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID connections are morethan 5 for 10s
-          - alert: FID node disk usage is high
-            expr: (ldap_disk_used{job="fid-targets"}/ldap_disk_total{job="fid-targets"}) * 100 > 80
-            for: 120s
-            labels:
-              severity: warning
-            annotations:
-              title: FID node disk usage on {{ $labels.instance }} is more than 80%
-              description: warning! {{ $labels.job }} on {{ $labels.instance }} found FID node disk usage are more than 80% for 120s
 
   pushgateway:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
+    extraArgs:
+      web.enable-admin-api: true
 
 grafana:
   fullnameOverride: grafana
@@ -179,6 +95,10 @@ grafana:
       level: info
     security:
       allow_embedding: true
+    smtp:
+      enabled: true
+      host: smtp-server:25
+      from_address: saas@radiantlogic.com
 
   # Setup Data Source (prometheus and elastic)
   datasources:
@@ -209,6 +129,14 @@ grafana:
           type: alertmanager
           url: http://prometheus-alertmanager
           access: proxy
+        - name: OpenSearch
+          type: opensearch
+          access: proxy
+          url: http://opensearch-cluster-master:9200
+          jsonData:
+            esVersion: 70
+            timeField: "@timestamp"
+            interval: Daily
 
   dashboardProviders:
     dashboardproviders.yaml:
@@ -244,14 +172,25 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/elasticsearch
+      - name: 'service-status'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/service-status
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
+    service-status: "service-status-dashboard"
 
 elasticsearch:
   enabled: true
-  replicas: 1
+  replicas: 2
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
@@ -267,9 +206,26 @@ kibana:
     kibana.yml: |
       server.basePath: "/kibana"
       telemetry.optIn: false
+      security.showInsecureClusterWarning: false
 
 haproxy:
   enabled: true
+  route:
+    argocd: true
+    grafana: true
+    prometheus: false
+    pushgateway: false
+    elasticsearch: false
+    kibana: true
+    pgadmin4: false
+    slamd: false
+    shellinabox: false
+    eocui: false
+    eocapi: false
+    sdcapi: false
+    opensearch: false
+    opensearchdashboards: false
+
   fullnameOverride: haproxy
   nodeSelector: {}
   service:
@@ -292,53 +248,116 @@ haproxy:
       stats uri /stats
       monitor-uri /healthz
 
+      # routing
+      {{- if ((.Values.route).argocd | default false) }}
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
+      {{- end }}
+      {{- if ((.Values.route).grafana | default false) }}
       use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }
+      {{- end }}
+      {{- if ((.Values.route).prometheus | default false) }}
+      use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
+      {{- end }}
+      {{- if ((.Values.route).pushgateway | default false) }}
+      use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
+      {{- end }}
+      {{- if ((.Values.route).kibana | default false) }}
       use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }
-      #use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }
-      #use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }
-      #use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }
-      #use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }
-      #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
-      #use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
-      #use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
-      #use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }
-      #use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }
-      #use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }
+      {{- end }}
+      {{- if ((.Values.route).elasticsearch | default false) }}
+      use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }
+      {{- end }}
+      {{- if ((.Values.route).pgadmin4 | default false) }}
+      use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }
+      {{- end }}
+      {{- if ((.Values.route).slamd | default false) }}
+      use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }
+      {{- end }}
+      {{- if ((.Values.route).shellinabox | default false) }}
+      use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }
+      {{- end }}
+      {{- if ((.Values.route).eocui | default false) }}
+      use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }
+      {{- end }}
+      {{- if ((.Values.route).eocapi | default false) }}
+      use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }
+      {{- end }}
+      {{- if ((.Values.route).sdccui | default false) }}
+      use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }
+      {{- end }}
+      {{- if ((.Values.route).opensearchdashboards | default false) }}
+      use_backend opensearchdashboards_backend if { path /opensearch-dashboards } or { path_beg /opensearch-dashboards/ }
+      {{- end }}
+      {{- if ((.Values.route).opensearch | default false) }}
+      use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }
+      {{- end }}
 
+    # backends
+    {{- if ((.Values.route).argocd | default false) }}
     backend argocd_backend
       server argocd argocd-server:80
+    {{- end }}
+    {{- if ((.Values.route).grafana | default false) }}
     backend grafana_backend
       http-request set-path %[path,regsub(^/grafana/?,/)]
       server grafana grafana:80
-    backend kibana_backend
-      http-request set-path %[path,regsub(^/kibana/?,/)]
-      server kibana kibana:5601
-    backend elasticsearch_backend
-      http-request set-path %[path,regsub(^/elasticsearch/?,/)]
-      server elasticsearch elasticsearch-master:9200
+    {{- end }}
+    {{- if ((.Values.route).prometheus | default false) }}
     backend prometheus_backend
       http-request set-path %[path,regsub(^/prometheus/?,/)]
       server prometheus prometheus-server:80
-    #backend alertmanager_backend
-      #http-request set-path %[path,regsub(^/alertmanager/?,/)]
-      #server alertmanager prometheus-alertmanager:80
+    {{- end }}
+    {{- if ((.Values.route).pushgateway | default false) }}
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
       server pushgateway prometheus-pushgateway:9091
-    #backend pgadmin4_backend
-      #server pgadmin4 pgadmin4:80
+    {{- end }}
+    {{- if ((.Values.route).kibana | default false) }}
+    backend kibana_backend
+      http-request set-path %[path,regsub(^/kibana/?,/)]
+      server kibana kibana:5601
+    {{- end }}
+    {{- if ((.Values.route).elasticsearch | default false) }}
+    backend elasticsearch_backend
+      http-request set-path %[path,regsub(^/elasticsearch/?,/)]
+      server elasticsearch elasticsearch-master:9200
+    {{- end }}
+    {{- if ((.Values.route).pgadmin4 | default false) }}
+    backend pgadmin4_backend
+      server pgadmin4 pgadmin4:80
+    {{- end }}
+    {{- if ((.Values.route).slamd | default false) }}
     backend slamd_backend
       server slamd slamd:80
+    {{- end }}
+    {{- if ((.Values.route).shellinabox | default false) }}
     backend shellinabox_backend
       http-request set-path %[path,regsub(^/shellinabox/?,/)]
       server shellinabox shellinabox:8080
-    #backend eocui_backend
-      #server eocui eoc-ui-service:80
-    #backend eocapi_backend
-      #server eocapi eoc-backend-service:80
-    #backend sdcapi_backend
-      #server sdcapi sdc-agent:80
+    {{- end }}
+    {{- if ((.Values.route).eocui | default false) }}
+    backend eocui_backend
+      server eocui eoc-ui-service:80
+    {{- end }}
+    {{- if ((.Values.route).eocapi | default false) }}
+    backend eocapi_backend
+      server eocapi eoc-backend-service:80
+    {{- end }}
+    {{- if ((.Values.route).sdccui | default false) }}
+    backend sdcapi_backend
+      server sdcapi sdc-agent:80
+    {{- end }}
+    {{- if ((.Values.route).opensearchdashboards | default false) }}
+    backend opensearchdashboards_backend
+      #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
+      server opensearchdashboards opensearch-dashboards:5601
+    {{- end }}
+    {{- if ((.Values.route).opensearch | default false) }}
+    backend opensearch_backend
+      http-request set-path %[path,regsub(^/opensearch/?,/)]
+      server opensearch opensearch-cluster-master:9200
+    {{- end }}
+
 
 postgresql:
   enabled: true
@@ -361,6 +380,11 @@ postgresql:
       user: agentsadmin
       password: iJukleKLG9fNihIQ
       schema: agents
+  # backup:
+    # enabled: false
+    # s3bucketName: ""
+    # folderName: "postgresql"
+    # latestBackupName: "posgresql-latest.sql.gz"
 
 pgadmin4:
   enabled: true
@@ -490,3 +514,210 @@ smtp:
     port: "587"
     username: ""
     password: ""
+
+opensearch:
+  enabled: false
+  fullnameOverride: "opensearch"
+  singleNode: true
+  replicas: 1
+  clusterName: "opensearch-cluster"
+  nodeGroup: "master"
+  masterService: "opensearch-cluster-master"
+  extraEnvs:
+    - name: "DISABLE_SECURITY_PLUGIN"
+      value: "true"
+    - name: "DISABLE_INSTALL_DEMO_CONFIG"
+      value: "true"
+  rbac:
+    create: false
+    serviceAccountAnnotations: {}
+    serviceAccountName: ""
+  nodeSelector: {}
+  persistence:
+    size: 30Gi
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+  service:
+    type: ClusterIP
+    nodePort: ""
+    annotations: {}
+    httpPortName: http
+    transportPortName: transport
+
+opensearch-dashboards:
+  enabled: false
+  opensearchHosts: "http://opensearch-cluster-master:9200"
+  replicaCount: 1
+  fullnameOverride: "opensearch-dashboards"
+  extraEnvs:
+    - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+      value: "true"
+  service:
+    type: ClusterIP
+    port: 5601
+    loadBalancerIP: ""
+    nodePort: ""
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    # 0.0.0.0/0
+    httpPortName: http
+  nodeSelector: {}
+    # tenantname: duploservices-nike-svc
+  plugins:
+    enabled: false
+    installList: []
+  config:
+    opensearch_dashboards.yml: |
+      server:
+        basePath: "/opensearch-dashboards"
+        rewriteBasePath: true
+
+fluent-bit:
+  enabled: false
+  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
+  fullnameOverride: "fluent-bit"
+  outputSearchType: "es"  # "opensearch"
+  flush: 1
+  logLevel: info
+  metricsPort: 2020
+  service:
+    type: ClusterIP
+  prometheusRule:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+  nodeSelector: {}
+    # tenantname:
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush {{ .Values.flush }}
+          Log_Level {{ .Values.logLevel }}
+          Parsers_File parsers.conf
+          Parsers_File custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port {{ .Values.metricsPort }}
+          Health_Check On
+    inputs: |
+        [INPUT]
+            Name              tail
+            Tag               backend.log
+            Path              /var/log/containers/eoc-backend-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               orchestrator.log
+            Path              /var/log/containers/eoc-orchestrator-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               agents.log
+            Path              /var/log/containers/sdc-agent*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               clientrouter.log
+            Path              /var/log/containers/client-*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+        [INPUT]
+            Name              tail
+            Tag               r1tunnel.log
+            Path              /var/log/containers/r1tunnel*.log
+            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+            Parser            docker
+            DB                /var/log/flb_kube.db
+            Skip_Long_Lines   On
+            Refresh_Interval  10
+
+    outputs: |
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              backend.log
+            Host               {{ .Values.outputSearchHost }}
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              backend-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              orchestrator.*
+            Host               {{ .Values.outputSearchHost }}
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              orchestrator-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              agents.log
+            Host               {{ .Values.outputSearchHost }}
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              sdc-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              clientrouter.log
+            Host               {{ .Values.outputSearchHost }}
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              router-index
+            Retry_Limit        False
+
+        [OUTPUT]
+            Name               {{ .Values.outputSearchType }}
+            Match              r1tunnel.log
+            Host               {{ .Values.outputSearchHost }}
+            Trace_Error        On
+            Replace_Dots       On
+            Logstash_Format    off
+            Index              r1tunnel-index
+            Retry_Limit        False
+
+    customParsers: |
+        [PARSER]
+            Name docker_no_time
+            Format json
+            Time_Keep Off
+            Time_Key time
+            Time_Format %Y-%m-%dT%H:%M:%S.%L
+
+
+  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
+  volumeMounts:
+    - name: config
+      mountPath: /fluent-bit/etc/fluent-bit.conf
+      subPath: fluent-bit.conf
+    - name: config
+      mountPath: /fluent-bit/etc/custom_parsers.conf
+      subPath: custom_parsers.conf

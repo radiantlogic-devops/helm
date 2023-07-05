@@ -4,10 +4,10 @@ kind: ConfigMap
 metadata:
   name: kibana-data
 data:
-  
+
   curl-script.sh: |
     #!/bin/sh
-    
+
     function import_index {
         echo "Importing Index-Patterns"
         echo "The curl command creates symlinks so using an alternative method"
@@ -20,7 +20,7 @@ data:
           printf "\nFailure while importing index-pattern\n"
         fi
     }
-    
+
     function import_dashboard {
         echo "Importing Dashboard"
         echo "The curl command creates symlinks so using an alternative method"

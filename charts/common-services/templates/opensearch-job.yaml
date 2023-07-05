@@ -1,8 +1,8 @@
-{{- if eq .Values.kibana.enabled true }}
+{{- if eq (index .Values "opensearch-dashboards" "enabled") true }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kibana-import
+  name: opensearch-import
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "5"
@@ -17,23 +17,23 @@ spec:
       {{- end }}
       restartPolicy: OnFailure
       volumes:
-      - name: kibana-data
+      - name: opensearch-data
         configMap:
-          name: kibana-data
+          name: opensearch-data
           defaultMode: 0777
       containers:
-      - name: kibana-import
+      - name: opensearch-import
         image: alpine/curl:latest
         imagePullPolicy: IfNotPresent
         env:
-        - name: KIBANA_URL
-          value: "kibana:5601"
+        - name: OPENSEARCH_URL
+          value: "opensearch-dashboards:5601/opensearch-dashboards"
         command: ["/bin/sh", "-c"]
         args:
             - |
               apk add -q --no-cache jq
-              /kibana/curl-script.sh
+              /opensearch/curl-script.sh
         volumeMounts:
-        - name: kibana-data
-          mountPath: /kibana/
+        - name: opensearch-data
+          mountPath: /opensearch/
 {{- end }}

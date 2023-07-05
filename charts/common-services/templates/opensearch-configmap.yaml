@@ -1,0 +1,41 @@
+{{- if eq (index .Values "opensearch-dashboards" "enabled") true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opensearch-data
+data:
+
+  curl-script.sh: |
+    #!/bin/sh
+
+    function import_index {
+        echo "Importing Index-Patterns"
+        echo "The curl command creates symlinks so using an alternative method"
+        echo "Copying the Index-Pattern file from /opensearch/index_pattern to /opt/index_pattern to make it hardlink"
+        cat /opensearch/index_pattern.ndjson > /opt/index_pattern.ndjson
+        until curl --location --request POST "${OPENSEARCH_URL}/api/saved_objects/_import" --header 'osd-xsrf: true' --form 'file=@"/opt/index_pattern.ndjson"' ; do sleep 5; done
+        if [[ $(echo "$?") == "0" ]]; then
+          printf "\nThe opensearch Index Patterns have been successfully imported\n"
+        else
+          printf "\nFailure while importing index-pattern\n"
+        fi
+    }
+
+    while true
+    do
+      STATUS=$(curl -s ${OPENSEARCH_URL}/api/status | jq -r .status.overall.state)
+      if [ $STATUS == "green" ]; then
+        echo "opensearch is healthy"
+        import_index
+        break
+      else
+        echo "opensearch is unhealthy"
+      fi
+    sleep 5
+    done
+
+  index_pattern.ndjson: |
+{{ .Files.Get "dashboards/opensearch-index-pattern.ndjson" | indent 4 }}
+
+
+{{- end }}
