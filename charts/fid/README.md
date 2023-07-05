@@ -1,5 +1,5 @@
 # helm
-Helm chart for FID deployment
+Helm chart for RadiantOne FID deployment
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
 Helm's [documentation](https://helm.sh/docs) to get started.
@@ -27,15 +27,34 @@ the latest versions of the packages.  You can then run `helm search repo radiant
 helm repo remove radiantone
 ```
 
-## Install FID/ZOOKEEPER
+## Prerequisites
 
-### Prerequisites
 * Kubernetes 1.18+
 * Helm 3
 
-## Charts
+## Install FID and Zookeeper
+### Install FID with Zookeeper as dependency
+```
+helm install --namespace=<name space> <release name> radiantone/fid \
+--set dependencies.zookeeper.enabled=true
+--set zk.clusterName=my-demo-cluster \
+--set fid.license="<FID cluster license>" \
+--set fid.rootPassword="test1234"
+```
+Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 
-## Install Zookeeper
+## Upgrade FID release
+```
+helm upgrade --namespace=<name space> <release name> radiantone/fid --set image.tag=7.3.17
+```
+
+## Delete FID release
+```
+helm uninstall --namespace=<name space> <release name>
+```
+
+
+## Advanced Install Options
 
 ### Install zookeeper with default Values
 
@@ -52,14 +71,11 @@ helm install --namespace=<name space> <release name>  radiantone/zookeeper
 helm install --namespace=<name space> <release name> radiantone/zookeeper  --set persistence.enabled="true" --set persistence.storageClass="<storage class name>"
 ```
 
-
-
-## Install FID
-* Install FID with default values
+### Install FID with default values
 ```
 helm install --namespace=<name space> <release name> radiantone/fid
 ```
-* Install FID with local Zookeeper
+### Install FID with local Zookeeper
 ```
 helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
 --set zk.external=false \
@@ -67,7 +83,7 @@ helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
 --set fid.license="<FID cluster license>"
 ```
 
-* Install FID with external Zookeeper
+### Install FID with external Zookeeper
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
 --set zk.clusterName=my-demo-cluster \
@@ -78,7 +94,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 ```
 Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 
-* Install FID with Persistence enabled
+### Install FID with Persistence enabled
 
     - [Persisitent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PV/PVC) can be enabled to enable storage for FID
     - A suitable [storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/) should also be selected
@@ -94,7 +110,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 
 ```
 
-* Install FID with metrics enabled
+### Install FID with metrics enabled
 
     - FID has a capability to forward the metrics to Prometheus for event/metrics monitoring.
 
@@ -123,7 +139,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set metrics.pushGateway="<pushGateway URL>" \
 ```
 
-* Install FID with Log Forwarding Enabled.
+### Install FID with Log Forwarding Enabled.
 
     - FID has a capability of forwarding the logs to Elasticsearch using FluentD
 
@@ -155,19 +171,10 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set metrics.fluentd.elasticSearchHost="<elasticSearchHost URL"
 ```
 
-* List FID releases
+### List FID releases
 ```
 helm list --namespace=<name space>
 ```
-* Upgrade FID release
-```
-helm upgrade --namespace=<name space> <release name> radiantone/fid --set image.tag=7.3.17
-```
-* Delete FID release
-```
-helm uninstall --namespace=<name space> <release name>
-```
-
 
 ## Hooks
 
@@ -177,7 +184,7 @@ helm uninstall --namespace=<name space> <release name>
 * A service account with permissions to perform actions required by helm hooks can also be created by enabling (hooks-sa.yaml)
 * All the hook templates can be modified according to the use-case
 
-#### Install FID with Hooks Enabled
+### Install FID with Hooks Enabled
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
 --set zk.clusterName=my-demo-cluster \
@@ -202,7 +209,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 * CRON job can be enabled through the values file and the CRON expression can be set to run the job accordingly.
 * The service account (similar to one required for Hooks) should be enabled for the CRON job (hooks-sa.yaml)
 
-#### Install FID with Migration CRON Job enabled
+### Install FID with Migration CRON Job enabled
 ```
 helm install --namespace=<name space> <release name> radiantone/fid \
 --set zk.clusterName=my-demo-cluster \
