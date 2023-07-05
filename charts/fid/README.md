@@ -18,8 +18,7 @@ Once Helm has been set up correctly, add the repo as follows:
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
 ```
 
-If you had already added this repo earlier, run `helm repo update` to retrieve
-the latest versions of the packages.  You can then run `helm search repo radiantone` to see the charts.
+If you already added this repo, run `helm repo update` to retrieve the latest versions of the packages.  You can then run `helm search repo radiantone` to see the charts.
 
 ## Remove Helm repo
 
@@ -41,6 +40,7 @@ helm install --namespace=<name space> <release name> radiantone/fid \
 --set fid.license="<FID cluster license>" \
 --set fid.rootPassword="test1234"
 ```
+
 Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 
 ## Upgrade FID release
