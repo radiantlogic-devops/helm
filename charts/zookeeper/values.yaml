@@ -111,7 +111,7 @@ metrics:
   pushMode: true
   pushGateway: http://prometheus-pushgateway:9091
   fluentd:
-    enabled: true
+    enabled: false
     configFile: /fluentd/etc/fluent.conf
     elasticSearchHost: elasticsearch-master
     elasticSearchType: elasticsearch
