@@ -1,5 +1,4 @@
 {{- if eq .Values.metrics.fluentd.enabled true }}
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -36,5 +35,4 @@ data:
         logstash_format true
         logstash_prefix zookeeper.log
     </match>
-
 {{- end }}
