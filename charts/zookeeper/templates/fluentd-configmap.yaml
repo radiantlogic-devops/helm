@@ -23,13 +23,13 @@ data:
             multiline_start_regexp /\d{4}-\d{1,2}-\d{1,2}/
         </parse>
     </source>
-    <filter vds_server.log>
+    <filter zookeeper.log>
         @type record_transformer
         <record>
         hostname ${hostname}
         </record>
     </filter>
-    <match vds_server.log>
+    <match zookeeper.log>
         @type {{ .Values.metrics.fluentd.elasticSearchType }}
         host ELASTICSEARCH_HOST
         port ELASTICSEARCH_PORT
