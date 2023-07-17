@@ -104,6 +104,10 @@ spec:
         volumeMounts:
         - name: zk-pvc
           mountPath: /opt/radiantone/rli-zookeeper-external
+{{- if eq .Values.metrics.fluentd.enabled true }}
+        - name: fluentd-config-volume
+          mountPath: /fluentd/etc
+{{- end }}
         securityContext:
           runAsUser: 0
         env:
@@ -123,9 +127,11 @@ spec:
           value: {{ .Values.metrics.fluentd.configFile | quote }}
         - name: ELASTICSEARCH_HOST
           value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
+        - name: ELASTICSEARCH_TYPE
+          value: {{ .Values.metrics.fluentd.elasticSearchType | default "elasticsearch" | quote }}
 {{- end }}
-{{- end }}    
-{{- end }} 
+{{- end }}
+{{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -167,4 +173,9 @@ spec:
       volumes:
       - name: zk-pvc
         emptyDir: {}
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabled true }}
+      - name: fluentd-config-volume
+        configMap:
+          name: fluentd-config
 {{- end }}

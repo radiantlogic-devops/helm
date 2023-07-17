@@ -1,0 +1,38 @@
+{{- if eq .Values.metrics.fluentd.enabled true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  labels:
+    app: {{ template "zookeeper.fullname" . }}
+    chart: "{{ template "zookeeper.chart" . }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  fluent.conf: |
+    <source>
+        @type tail
+        read_from_head true
+        path /opt/radiantone/rli-zookeeper-external/zookeeper/logs/zookeeper.log
+        pos_file /var/log/zookeeper/zookeeperlog.pos
+        tag zookeeper.log
+        <parse>
+            @type multiline_grok
+            grok_pattern %{TIMESTAMP_ISO8601:timestamp} \[myid:%{NUMBER:zk_id}\] - %{WORD:log_level} \[%{GREEDYDATA:thread_name}\] - %{GREEDYDATA:message}
+            multiline_start_regexp /\d{4}-\d{1,2}-\d{1,2}/
+        </parse>
+    </source>
+    <filter zookeeper.log>
+        @type record_transformer
+        <record>
+        hostname ${hostname}
+        </record>
+    </filter>
+    <match zookeeper.log>
+        @type {{ .Values.metrics.fluentd.elasticSearchType }}
+        host ELASTICSEARCH_HOST
+        port ELASTICSEARCH_PORT
+        logstash_format true
+        logstash_prefix zookeeper.log
+    </match>
+{{- end }}
