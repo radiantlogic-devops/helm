@@ -161,7 +161,7 @@ metrics:
   pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
-    configFile: /fluentd/etc/fluent.conf
+    configFile: /tmp/fluent.conf
     elasticSearchHost: elasticsearch-master
     elasticSearchType: elasticsearch
   livenessProbe:
