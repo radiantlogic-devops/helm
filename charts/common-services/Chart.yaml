@@ -75,3 +75,7 @@ dependencies:
   version: 0.24.0
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
+- name: elasticsearch-curator
+  version: 3.2.3
+  repository: https://lebenitza.github.io/charts
+  condition: curator.enabled
