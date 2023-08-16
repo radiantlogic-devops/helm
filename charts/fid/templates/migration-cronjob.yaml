@@ -31,7 +31,7 @@ spec:
                 chmod +x ./kubectl;
                 mv ./kubectl /usr/local/bin;
                 kubectl get po -n {{ .Release.Namespace }};
-                kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "./migrate.sh generate-migration-plan ;
+                kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "/opt/radiantone/vds/bin/advanced/migrate.sh generate-migration-plan" ;
                 kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "./migrate.sh export $EXPORT_FILE_NAME" ;
                 kubectl exec -it fid-0 -n {{ .Release.Namespace }} -- bash -c "ls -ltr /opt/radiantone/vds/work/" ;
                 kubectl -n {{ .Release.Namespace }} cp fid-0:/opt/radiantone/vds/work/$EXPORT_FILE_NAME $EXPORT_FILE_NAME ;
