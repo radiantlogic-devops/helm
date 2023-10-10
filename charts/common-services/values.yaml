@@ -190,13 +190,14 @@ grafana:
 
 elasticsearch:
   enabled: true
-  replicas: 2
+  replicas: 1
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
     resources:
       requests:
         storage: 30Gi
+  clusterHealthCheckParams: "wait_for_status=yellow&timeout=60s"
 
 kibana:
   enabled: true
