@@ -208,6 +208,7 @@ kibana:
       server.basePath: "/kibana"
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
+      server.publicBaseUrl: "http://localhost:5601"
 
 haproxy:
   enabled: true
