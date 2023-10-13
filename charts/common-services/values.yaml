@@ -14,7 +14,7 @@ ingress:
   #      - chart-example.local
 
 argo-cd:
-  enabled: true
+  enabled: false
   fullnameOverride: argocd
   configs:
     params:
@@ -40,7 +40,7 @@ argo-cd:
     keep: false
 
 prometheus:
-  enabled: true
+  enabled: false
   server:
     extraFlags:
       - web.enable-lifecycle
@@ -71,7 +71,7 @@ prometheus:
 
 grafana:
   fullnameOverride: grafana
-  enabled: true
+  enabled: false
   nodeSelector: {}
   # Persistence enabled by default
   persistence:
@@ -206,12 +206,13 @@ kibana:
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/kibana"
+      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
-      server.publicBaseUrl: "http://localhost:5601"
+
 
 haproxy:
-  enabled: true
+  enabled: false
   route:
     argocd: true
     grafana: true
@@ -362,7 +363,7 @@ haproxy:
 
 
 postgresql:
-  enabled: true
+  enabled: false
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
@@ -389,7 +390,7 @@ postgresql:
       #latestBackupName: "postgresql-latest.sql.gz"
 
 pgadmin4:
-  enabled: true
+  enabled: false
   fullnameOverride: pgadmin4
   nodeSelector: {}
   persistentVolume:
@@ -403,7 +404,7 @@ zookeeper:
   nodeSelector: {}
 
 slamd:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: pgodey/slamd
@@ -464,7 +465,7 @@ slamd:
     affinity: {}
 
 shellinabox:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
@@ -491,7 +492,7 @@ shellinabox:
   affinity: {}
 
 smtp:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: bytemark/smtp
@@ -576,8 +577,14 @@ opensearch-dashboards:
         basePath: "/opensearch-dashboards"
         rewriteBasePath: true
 
-fluent-bit:
+fluentbit:
   enabled: false
+  enablelogs:
+    eocBackend: true
+    eocOrchestrator: true
+    sdc: true
+    clientRouter: false
+    tunnel: false
   outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
   fullnameOverride: "fluent-bit"
   outputSearchType: "es"  # "opensearch"
@@ -592,128 +599,8 @@ fluent-bit:
     enabled: false
   nodeSelector: {}
     # tenantname:
-  config:
-    service: |
-      [SERVICE]
-          Daemon Off
-          Flush {{ .Values.flush }}
-          Log_Level {{ .Values.logLevel }}
-          Parsers_File parsers.conf
-          Parsers_File custom_parsers.conf
-          HTTP_Server On
-          HTTP_Listen 0.0.0.0
-          HTTP_Port {{ .Values.metricsPort }}
-          Health_Check On
-    inputs: |
-        [INPUT]
-            Name              tail
-            Tag               backend.log
-            Path              /var/log/containers/eoc-backend-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               orchestrator.log
-            Path              /var/log/containers/eoc-orchestrator-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               agents.log
-            Path              /var/log/containers/sdc-agent*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               clientrouter.log
-            Path              /var/log/containers/client-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               r1tunnel.log
-            Path              /var/log/containers/r1tunnel*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-    outputs: |
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              backend.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              backend-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              orchestrator.*
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              orchestrator-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              agents.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              sdc-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              clientrouter.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              router-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              r1tunnel.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              r1tunnel-index
-            Retry_Limit        False
-
-    customParsers: |
-        [PARSER]
-            Name docker_no_time
-            Format json
-            Time_Keep Off
-            Time_Key time
-            Time_Format %Y-%m-%dT%H:%M:%S.%L
-
+  existingConfigMap: fluent-bit-config
+  config: {}
 
   # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
   volumeMounts:
@@ -725,10 +612,9 @@ fluent-bit:
       subPath: custom_parsers.conf
 
 
-elasticsearch-curator:
+curator:
   enabled: true
   cronjob:
-    # At 01:00 every day
     schedule: "* * * * *"
     annotations: {}
     labels: {}
@@ -737,215 +623,32 @@ elasticsearch-curator:
     successfulJobsHistoryLimit: ""
     jobRestartPolicy: Never
     startingDeadlineSeconds: ""
+  pod:
+    annotations: {}
+    labels: {}
+  rbac:
+    enabled: false
+  serviceAccount:
+    # Specifies whether a ServiceAccount should be created
+    create: true
+    # The name of the ServiceAccount to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+    annotations: {}
+  hooks:
+    install: false
+    upgrade: false
+  priorityClassName: ""
+  extraInitContainers: {}
+  securityContext:
+    runAsUser: 16
   image:
     repository: bitnami/elasticsearch-curator-archived
     tag: 5.8.4-debian-10-r253
     pullPolicy: Always
   psp:
-    # Specifies whether a podsecuritypolicy should be created
     create: false
-  # run curator in dry-run mode
   dryrun: true
-  configMaps:
-    # Delete indices older than 7 days
-    action_file_yml: |-
-      ---
-      actions:
-        1:
-          action: delete_indices
-          description: "Delete indices older than 15 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: vds_server
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 15
-                direction: older
-        2:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: admin_rest_api_access.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        3:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: adap_access.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        4:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: vds_events.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        5:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: alerts.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        6:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: sync_engine.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        7:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: web_access.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        8:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: web.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-        9:
-          action: delete_indices
-          description: "Delete indices older than 7 days"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-              - filtertype: pattern
-                kind: prefix
-                value: periodiccache.log
-                exclude: False
-              - filtertype: age
-                source: name
-                timestring: '%Y.%m.%d'
-                unit: days
-                unit_count: 7
-                direction: older
-
-    # Having config_yaml WILL override the other config
-    config_yml: |-
-      ---
-      client:
-        hosts:
-          - elasticsearch-master
-        port: 9200
-        url_prefix:
-        use_ssl: False
-        certificate:
-        client_cert:
-        client_key:
-        ssl_no_validate: True
-        http_auth:
-        timeout: 300
-        master_only: False
-      logging:
-        loglevel: INFO
-        logfile:
-        logformat: default
-        blacklist: ['elasticsearch', 'urllib3']
-
-
   resources: {}
-  nodeSelector:
-    tenantname: duploservices-rli-use2-svc
+  nodeSelector: {}
+    # tenantname:

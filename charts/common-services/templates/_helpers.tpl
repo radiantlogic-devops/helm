@@ -85,3 +85,29 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the appropriate apiVersion for cronjob APIs.
+*/}}
+{{- define "cronjob.apiVersion" -}}
+{{- if semverCompare "< 1.8-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- print "batch/v2alpha1" }}
+{{- else if semverCompare "1.8-0 - 1.20" .Capabilities.KubeVersion.GitVersion -}}
+{{- print "batch/v1beta1" }}
+{{- else -}}
+{{- print "batch/v1" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the appropriate apiVersion for podsecuritypolicy.
+*/}}
+{{- define "podsecuritypolicy.apiVersion" -}}
+{{- if semverCompare "<1.10-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- print "extensions/v1beta1" -}}
+{{- else -}}
+{{- print "policy/v1beta1" -}}
+{{- end -}}
+{{- end -}}
+
+

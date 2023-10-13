@@ -1,0 +1,113 @@
+apiVersion: {{ template "cronjob.apiVersion" . }}
+kind: CronJob
+metadata:
+  name: curator-job
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+  {{- if .Values.curator.cronjob.annotations }}
+  annotations:
+    {{ toYaml .Values.curator.cronjob.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: "{{ .Values.curator.cronjob.schedule }}"
+  {{- with .Values.curator.cronjob.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.curator.cronjob.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with .Values.curator.cronjob.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with .Values.curator.cronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+    spec:
+      template:
+        metadata:
+            {{- if .Values.curator.pod.labels }}
+            {{ toYaml .Values.curator.pod.labels | nindent 12 }}
+            {{- end }}
+          {{- if .Values.curator.pod.annotations }}
+          annotations:
+          {{ toYaml .Values.curator.pod.annotations | nindent 12 }}
+          {{- end }}
+        spec:
+          volumes:
+            - name: config-volume
+              configMap:
+                name: curator-config
+            {{- if .Values.curator.extraVolumes }}
+            {{ toYaml .Values.curator.extraVolumes | nindent 12 }}
+            {{- end }}
+          restartPolicy: {{ .Values.curator.cronjob.jobRestartPolicy }}
+          {{- if .Values.curator.priorityClassName }}
+          priorityClassName: "{{ .Values.curator.priorityClassName }}"
+          {{- end }}
+          {{- if .Values.curator.image.pullSecret }}
+          imagePullSecrets:
+            - name: {{ .Values.curator.image.pullSecret }}
+          {{- end }}
+          {{- if .Values.curator.extraInitContainers }}
+          initContainers:
+            {{- range $key, $value := .Values.curator.extraInitContainers }}
+            - name: "{{ $key }}"
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.curator.rbac.enabled }}
+          serviceAccountName: {{ template "elasticsearch-curator.serviceAccountName" .}}
+          {{- end }}
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.curator.image.repository }}:{{ .Values.curator.image.tag }}"
+              imagePullPolicy: {{ .Values.curator.image.pullPolicy }}
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/es-curator
+                {{- if .Values.curator.extraVolumeMounts }}
+                {{ toYaml .Values.curator.extraVolumeMounts | nindent 16 }}
+                {{ end }}
+              {{ if .Values.curator.command }}
+              command:
+                {{- toYaml .Values.curator.command | nindent 16 }}
+              {{- end }}
+              {{- if .Values.curator.dryrun }}
+              args: [ "--dry-run", "--config", "/etc/es-curator/config.yml", "/etc/es-curator/action_file.yml" ]
+              {{- else }}
+              args: [ "--config", "/etc/es-curator/config.yml", "/etc/es-curator/action_file.yml" ]
+              {{- end }}
+              {{- if or .Values.curator.envFromSecrets .Values.curator.env }}
+              env:
+                {{- range $key,$value := .Values.curator.envFromSecrets }}
+                - name: {{ $key | upper | quote}}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $value.from.secret | quote}}
+                      key: {{ $value.from.key | quote}}
+                {{- end }}
+                {{- range $key,$value := .Values.curator.env }}
+                - name: {{ $key | upper | quote}}
+                  value: {{ $value | quote}}
+                {{- end }}
+              {{- end }}
+              resources:
+                {{- toYaml .Values.curator.resources | nindent 16 }}
+          {{- with .Values.curator.nodeSelector }}
+          nodeSelector:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.curator.affinity }}
+          affinity:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.curator.tolerations }}
+          tolerations:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.curator.securityContext }}
+          securityContext:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
