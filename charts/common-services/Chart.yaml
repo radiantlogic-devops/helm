@@ -64,11 +64,11 @@ dependencies:
   repository: https://helm.runix.net
   condition: pgadmin4.enabled
 - name: opensearch
-  version: 2.11.1
+  version: 2.16.1
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch.enabled
 - name: opensearch-dashboards
-  version: 2.9.0
+  version: 2.14.0
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch-dashboards.enabled
 - name: fluent-bit
