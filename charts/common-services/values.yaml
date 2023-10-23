@@ -40,7 +40,7 @@ argo-cd:
     keep: false
 
 prometheus:
-  enabled: false
+  enabled: true
   server:
     extraFlags:
       - web.enable-lifecycle
@@ -71,7 +71,7 @@ prometheus:
 
 grafana:
   fullnameOverride: grafana
-  enabled: false
+  enabled: true
   nodeSelector: {}
   # Persistence enabled by default
   persistence:
@@ -611,9 +611,8 @@ fluentbit:
       mountPath: /fluent-bit/etc/custom_parsers.conf
       subPath: custom_parsers.conf
 
-
 curator:
-  enabled: true
+  enabled: false
   cronjob:
     schedule: "* * * * *"
     annotations: {}
