@@ -152,7 +152,7 @@ persistence:
 ## Under development
 ##
 metrics:
-  enabled: false
+  enabled: true
   image: radiantone/fid-exporter
   imageTag: latest
   annotations: {}
@@ -161,15 +161,37 @@ metrics:
   pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
+    enabledLogs:
+      vds_server: true
+      vds_server_access: true
+      vds_events: true
+      periodiccache: true
+      web: true
+      web_access: true
+      sync_engine: true
+      alerts: true
+      adap_access: true
+      admin_rest_api_access: true
     configFile: /fluentd/etc/fluent.conf
-    elasticSearchHost: elasticsearch-master
-    elasticSearchType: elasticsearch
+    aggregators:
+      - type: "elastic"
+        host: "elastic-host"
+        port: "9200"
+      - type: "opensearch"
+        host: "opensearch-cluster-master"
+        port: "9200"
+      - type: "splunk"
+        hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
+        hec_port: "8088"
+        hec_token: ""
+        splunk_index: "vds_server_access"
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+
 # Istio specific settings
 gateway:
   enabled: false

@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
+{{- if eq .Values.metrics.fluentd.enabledLogs.vds_server true }}
     <source>
       @type tail
       read_from_head true
@@ -27,12 +28,11 @@ data:
       </record>
     </filter>
     <match vds_server.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_server.log
+      {{- $log := "vds_server" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.vds_server_access true }}
     <source>
       @type tail
       read_from_head true
@@ -53,12 +53,11 @@ data:
       </record>
     </filter>
     <match vds_server_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_server_access.log
+      {{- $log := "vds_server_access" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.periodiccache true }}
     <source>
       @type tail
       read_from_head true
@@ -77,12 +76,11 @@ data:
       </record>
     </filter>
     <match periodiccache.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix periodiccache.log
+      {{- $log := "periodiccache" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.web true }}
     <source>
       @type tail
       read_from_head true
@@ -101,12 +99,11 @@ data:
       </record>
     </filter>
     <match web.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix web.log
+      {{- $log := "web" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.web_access true }}
     <source>
       @type tail
       read_from_head true
@@ -125,12 +122,11 @@ data:
       </record>
     </filter>
     <match web_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix web_access.log
+      {{- $log := "web_access" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.sync_engine true }}
     <source>
       @type tail
       read_from_head true
@@ -149,12 +145,11 @@ data:
       </record>
     </filter>
     <match sync_engine.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix sync_engine.log
+      {{- $log := "sync_engine" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.alerts true }}
     <source>
       @type tail
       read_from_head true
@@ -173,12 +168,11 @@ data:
       </record>
     </filter>
     <match alerts.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix alerts.log
+      {{- $log := "alerts" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.vds_events true }}
     <source>
       @type tail
       read_from_head true
@@ -197,12 +191,11 @@ data:
       </record>
     </filter>
     <match vds_events.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_events.log
+      {{- $log := "vds_events" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.adap_access true }}
     <source>
       @type tail
       read_from_head true
@@ -221,12 +214,11 @@ data:
       </record>
     </filter>
     <match adap_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix adap_access.log
+      {{- $log := "adap_access" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
+{{- if eq .Values.metrics.fluentd.enabledLogs.admin_rest_api_access true }}
     <source>
       @type tail
       read_from_head true
@@ -245,11 +237,9 @@ data:
       </record>
     </filter>
     <match admin_rest_api_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix admin_rest_api_access.log
+      {{- $log := "admin_rest_api_access" }}
+      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
     </match>
+{{- end }}
 
 {{- end }}

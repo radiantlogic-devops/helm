@@ -79,3 +79,61 @@ Create image pull credentials
 {{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
 {{- end }}
 {{- end }}
+
+
+
+{{/*
+This helper template generates the fluent.conf dynamically based on the inputs from values.yaml file.
+The supported aggregators are ELASTICSEARCH, OPENSEARCH, SPLUNK
+*/}}
+{{- define "aggregator.match.store" -}}
+  {{- if $.Values.metrics }}
+    {{- if $.Values.metrics.fluentd }}
+      {{- if $.Values.metrics.fluentd.aggregators }}
+        @type copy
+        @log_level debug
+        {{- $logName := .log }}
+        {{- range $.Values.metrics.fluentd.aggregators }}
+          {{- if index $.Values.metrics.fluentd.enabledLogs $logName }}
+          <store>
+          {{- if eq .type "elastic" }}
+            @type elasticsearch
+            host {{ .host }}
+            port {{ .port }}
+            logstash_format true
+            logstash_prefix {{ $logName }}.log
+          {{- end }}
+          {{- if eq .type "opensearch" }}
+            @type opensearch
+            host {{ .host }}
+            port {{ .port }}
+            logstash_format true
+            logstash_prefix {{ $logName }}.log
+            disable_rewrite_tag_filter 1
+          {{- end }}
+          {{- if eq .type "splunk" }}
+            @type splunk_hec
+            hec_host {{ .hec_hostname }}
+            hec_port {{ .hec_port }}
+            hec_token {{ .hec_token}}
+            insecure_ssl true
+            index {{ .splunk_index }}
+          {{- end }}
+          </store>
+          {{- end }}
+        {{- end }}
+      {{- else }}
+        "Error: $.Values.metrics.fluentd.aggregators is not defined"
+      {{- end }}
+    {{- else }}
+      "Error: $.Values.metrics.fluentd is not defined"
+    {{- end }}
+  {{- else }}
+    "Error: $.Values.metrics is not defined"
+  {{- end }}
+{{- end }}
+
+
+
+
+
