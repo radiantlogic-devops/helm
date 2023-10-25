@@ -74,4 +74,4 @@ dependencies:
 - name: fluent-bit
   version: 0.24.0
   repository: https://fluent.github.io/helm-charts
-  condition: fluent-bit.enabled
+  condition: fluentbit.enabled

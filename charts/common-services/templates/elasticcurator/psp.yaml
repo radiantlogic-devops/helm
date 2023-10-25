@@ -1,3 +1,5 @@
+
+{{- if eq .Values.curator.enabled true }}
 {{- if .Values.curator.psp.create }}
 apiVersion: {{ template "podsecuritypolicy.apiVersion" . }}
 kind: PodSecurityPolicy
@@ -29,4 +31,6 @@ spec:
       - min: 1
         max: 65535
   readOnlyRootFilesystem: false
+{{- end }}
+
 {{- end }}

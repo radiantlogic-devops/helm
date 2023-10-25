@@ -1,3 +1,5 @@
+{{- if eq .Values.curator.enabled true }}
+
 apiVersion: {{ template "cronjob.apiVersion" . }}
 kind: CronJob
 metadata:
@@ -46,10 +48,6 @@ spec:
           {{- if .Values.curator.priorityClassName }}
           priorityClassName: "{{ .Values.curator.priorityClassName }}"
           {{- end }}
-          {{- if .Values.curator.image.pullSecret }}
-          imagePullSecrets:
-            - name: {{ .Values.curator.image.pullSecret }}
-          {{- end }}
           {{- if .Values.curator.extraInitContainers }}
           initContainers:
             {{- range $key, $value := .Values.curator.extraInitContainers }}
@@ -62,8 +60,8 @@ spec:
           {{- end }}
           containers:
             - name: {{ .Chart.Name }}
-              image: "{{ .Values.curator.image.repository }}:{{ .Values.curator.image.tag }}"
-              imagePullPolicy: {{ .Values.curator.image.pullPolicy }}
+              image: "bitnami/elasticsearch-curator-archived:5.8.4-debian-10-r253"
+              imagePullPolicy: Always
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/es-curator
@@ -111,3 +109,6 @@ spec:
           securityContext:
             {{ toYaml . | nindent 12 }}
           {{- end }}
+
+
+{{- end }}

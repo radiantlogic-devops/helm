@@ -1,3 +1,6 @@
+{{- if eq .Values.fluentbit.enabled true }}
+
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -152,4 +155,4 @@ data:
     Time_Key time
     Time_Format %Y-%m-%dT%H:%M:%S.%L
 
-
+{{- end }}
