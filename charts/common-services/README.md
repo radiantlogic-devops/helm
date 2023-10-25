@@ -18,7 +18,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | https://charts.bitnami.com/bitnami | postgresql | 12.1.3 |
 | https://charts.bitnami.com/bitnami | zookeeper | 11.0.0 |
 | https://fluent.github.io/helm-charts | fluent-bit | 0.24.0 |
-| https://grafana.github.io/helm-charts | grafana | 6.61.0 |
+| https://grafana.github.io/helm-charts | grafana | 6.40.0 |
 | https://haproxytech.github.io/helm-charts | haproxy | 1.17.3 |
 | https://helm.elastic.co | elasticsearch | 7.17.3 |
 | https://helm.elastic.co | kibana | 7.17.3 |
@@ -44,6 +44,21 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | argo-cd.repoServer.nodeSelector | object | `{}` |  |
 | argo-cd.server.nodeSelector | object | `{}` |  |
 | argo-cd.server.service.type | string | `"NodePort"` |  |
+| curator.config.client.certificate | string | `nil` |  |
+| curator.config.client.client_cert | string | `nil` |  |
+| curator.config.client.client_key | string | `nil` |  |
+| curator.config.client.hosts[0] | string | `"elasticsearch-master"` |  |
+| curator.config.client.http_auth | string | `nil` |  |
+| curator.config.client.master_only | bool | `false` |  |
+| curator.config.client.port | int | `9200` |  |
+| curator.config.client.ssl_no_validate | bool | `true` |  |
+| curator.config.client.timeout | int | `300` |  |
+| curator.config.client.use_ssl | bool | `false` |  |
+| curator.config.logging.blacklist[0] | string | `"elasticsearch"` |  |
+| curator.config.logging.blacklist[1] | string | `"urllib3"` |  |
+| curator.config.logging.logfile | string | `nil` |  |
+| curator.config.logging.logformat | string | `"default"` |  |
+| curator.config.logging.loglevel | string | `"INFO"` |  |
 | curator.cronjob.annotations | object | `{}` |  |
 | curator.cronjob.concurrencyPolicy | string | `""` |  |
 | curator.cronjob.failedJobsHistoryLimit | string | `""` |  |
@@ -53,35 +68,52 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | curator.cronjob.startingDeadlineSeconds | string | `""` |  |
 | curator.cronjob.successfulJobsHistoryLimit | string | `""` |  |
 | curator.dryrun | bool | `true` |  |
+| curator.enableLogs[0].direction | string | `"older"` |  |
+| curator.enableLogs[0].enable | bool | `true` |  |
+| curator.enableLogs[0].name | string | `"vds_server"` |  |
+| curator.enableLogs[0].unit | string | `"days"` |  |
+| curator.enableLogs[0].unit_count | int | `15` |  |
+| curator.enableLogs[1].direction | string | `"older"` |  |
+| curator.enableLogs[1].enable | bool | `true` |  |
+| curator.enableLogs[1].name | string | `"vds_server_access"` |  |
+| curator.enableLogs[1].unit | string | `"days"` |  |
+| curator.enableLogs[1].unit_count | int | `7` |  |
+| curator.enableLogs[2].direction | string | `"older"` |  |
+| curator.enableLogs[2].enable | bool | `true` |  |
+| curator.enableLogs[2].name | string | `"adap_access"` |  |
+| curator.enableLogs[2].unit | string | `"days"` |  |
+| curator.enableLogs[2].unit_count | int | `7` |  |
+| curator.enableLogs[3].direction | string | `"older"` |  |
+| curator.enableLogs[3].enable | bool | `true` |  |
+| curator.enableLogs[3].name | string | `"adap"` |  |
+| curator.enableLogs[3].unit | string | `"days"` |  |
+| curator.enableLogs[3].unit_count | int | `7` |  |
 | curator.enabled | bool | `false` |  |
 | curator.extraInitContainers | object | `{}` |  |
 | curator.hooks.install | bool | `false` |  |
 | curator.hooks.upgrade | bool | `false` |  |
-| curator.image.pullPolicy | string | `"Always"` |  |
-| curator.image.repository | string | `"bitnami/elasticsearch-curator-archived"` |  |
-| curator.image.tag | string | `"5.8.4-debian-10-r253"` |  |
 | curator.nodeSelector | object | `{}` |  |
 | curator.pod.annotations | object | `{}` |  |
 | curator.pod.labels | object | `{}` |  |
 | curator.priorityClassName | string | `""` |  |
 | curator.psp.create | bool | `false` |  |
-| curator.rbac.enabled | bool | `false` |  |
+| curator.rbac.enabled | bool | `true` |  |
 | curator.resources | object | `{}` |  |
 | curator.securityContext.runAsUser | int | `16` |  |
 | curator.serviceAccount.annotations | object | `{}` |  |
 | curator.serviceAccount.create | bool | `true` |  |
-| curator.serviceAccount.name | string | `nil` |  |
+| curator.serviceAccount.name | string | `"test"` |  |
 | elasticsearch.clusterHealthCheckParams | string | `"wait_for_status=yellow&timeout=60s"` |  |
-| elasticsearch.enabled | bool | `true` |  |
+| elasticsearch.enabled | bool | `false` |  |
 | elasticsearch.nodeSelector | object | `{}` |  |
 | elasticsearch.replicas | int | `1` |  |
 | elasticsearch.volumeClaimTemplate.resources.requests.storage | string | `"30Gi"` |  |
 | fluentbit.config | object | `{}` |  |
 | fluentbit.enabled | bool | `false` |  |
 | fluentbit.enablelogs.clientRouter | bool | `false` |  |
-| fluentbit.enablelogs.eocBackend | bool | `true` |  |
-| fluentbit.enablelogs.eocOrchestrator | bool | `true` |  |
-| fluentbit.enablelogs.sdc | bool | `true` |  |
+| fluentbit.enablelogs.eocBackend | bool | `false` |  |
+| fluentbit.enablelogs.eocOrchestrator | bool | `false` |  |
+| fluentbit.enablelogs.sdc | bool | `false` |  |
 | fluentbit.enablelogs.tunnel | bool | `false` |  |
 | fluentbit.existingConfigMap | string | `"fluent-bit-config"` |  |
 | fluentbit.flush | int | `1` |  |
@@ -185,7 +217,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.datasources."datasources.yaml".datasources[3].name | string | `"OpenSearch"` |  |
 | grafana.datasources."datasources.yaml".datasources[3].type | string | `"opensearch"` |  |
 | grafana.datasources."datasources.yaml".datasources[3].url | string | `"http://opensearch-cluster-master:9200"` |  |
-| grafana.enabled | bool | `true` |  |
+| grafana.enabled | bool | `false` |  |
 | grafana.fullnameOverride | string | `"grafana"` |  |
 | grafana.nodeSelector | object | `{}` |  |
 | grafana.persistence.enabled | bool | `true` |  |
@@ -215,7 +247,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | ingress.hosts[0].host | string | `"chart-example.local"` |  |
 | ingress.hosts[0].paths[0] | string | `"/"` |  |
 | ingress.tls | list | `[]` |  |
-| kibana.enabled | bool | `true` |  |
+| kibana.enabled | bool | `false` |  |
 | kibana.fullnameOverride | string | `"kibana"` |  |
 | kibana.kibanaConfig."kibana.yml" | string | `"server.basePath: \"/kibana\"\nserver.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana\ntelemetry.optIn: false\nsecurity.showInsecureClusterWarning: false\n"` |  |
 | kibana.nodeSelector | object | `{}` |  |
@@ -280,7 +312,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | postgresql.primary.nodeSelector | object | `{}` |  |
 | postgresql.primary.persistence.size | string | `"10Gi"` |  |
 | prometheus.alertmanager.enabled | bool | `false` |  |
-| prometheus.enabled | bool | `true` |  |
+| prometheus.enabled | bool | `false` |  |
 | prometheus.kubeStateMetrics.enabled | bool | `false` |  |
 | prometheus.nodeExporter.enabled | bool | `false` |  |
 | prometheus.pushgateway.extraArgs."web.enable-admin-api" | bool | `true` |  |
