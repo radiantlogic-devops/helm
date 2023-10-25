@@ -96,7 +96,7 @@ The supported aggregators are ELASTICSEARCH, OPENSEARCH, SPLUNK
         {{- range $.Values.metrics.fluentd.aggregators }}
           {{- if index $.Values.metrics.fluentd.enabledLogs $logName }}
           <store>
-          {{- if eq .type "elastic" }}
+          {{- if eq .type "elasticsearch" }}
             @type elasticsearch
             host {{ .host }}
             port {{ .port }}
@@ -111,7 +111,7 @@ The supported aggregators are ELASTICSEARCH, OPENSEARCH, SPLUNK
             logstash_prefix {{ $logName }}.log
             disable_rewrite_tag_filter 1
           {{- end }}
-          {{- if eq .type "splunk" }}
+          {{- if eq .type "splunk_hec" }}
             @type splunk_hec
             hec_host {{ .hec_hostname }}
             hec_port {{ .hec_port }}

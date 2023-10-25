@@ -162,7 +162,10 @@ metrics:
   fluentd:
     enabled: false
     enabledLogs:
-      vds_server: true
+      vds_server.log:
+        enabled: true
+        path:
+
       vds_server_access: true
       vds_events: true
       periodiccache: true
@@ -174,13 +177,13 @@ metrics:
       admin_rest_api_access: true
     configFile: /fluentd/etc/fluent.conf
     aggregators:
-      - type: "elastic"
+      - type: "elasticsearch"
         host: "elastic-host"
         port: "9200"
       - type: "opensearch"
         host: "opensearch-cluster-master"
         port: "9200"
-      - type: "splunk"
+      - type: "splunk_hec"
         hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
         hec_port: "8088"
         hec_token: ""
