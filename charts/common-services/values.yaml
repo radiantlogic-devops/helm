@@ -1,11 +1,17 @@
 nodeSelector: {}
 
-zookeeper:
+ingress:
   enabled: false
-  fullnameOverride: zookeeper
-  nodeSelector: {}
-
-################# ARGOCD #######################
+  className: alb
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - "/"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
 
 argo-cd:
   enabled: false
@@ -32,9 +38,6 @@ argo-cd:
     nodeSelector: {}
   crds:
     keep: false
-
-
-################# Monitoring #######################
 
 prometheus:
   enabled: false
@@ -68,7 +71,7 @@ prometheus:
 
 grafana:
   fullnameOverride: grafana
-  enabled: true
+  enabled: false
   nodeSelector: {}
   # Persistence enabled by default
   persistence:
@@ -185,13 +188,8 @@ grafana:
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
 
-
-
-
-###################### LOGGING ########################
-
 elasticsearch:
-  enabled: true
+  enabled: false
   replicas: 1
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
@@ -202,7 +200,7 @@ elasticsearch:
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=60s"
 
 kibana:
-  enabled: true
+  enabled: false
   fullnameOverride: kibana
   nodeSelector: {}
   kibanaConfig:
@@ -211,183 +209,6 @@ kibana:
       server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
-
-
-
-opensearch:
-  enabled: false
-  fullnameOverride: "opensearch"
-  singleNode: true
-  replicas: 1
-  clusterName: "opensearch-cluster"
-  nodeGroup: "master"
-  masterService: "opensearch-cluster-master"
-  extraEnvs:
-    - name: "DISABLE_SECURITY_PLUGIN"
-      value: "true"
-    - name: "DISABLE_INSTALL_DEMO_CONFIG"
-      value: "true"
-  rbac:
-    create: false
-    serviceAccountAnnotations: {}
-    serviceAccountName: ""
-  nodeSelector: {}
-  persistence:
-    size: 30Gi
-  podSecurityContext:
-    fsGroup: 1000
-    runAsUser: 1000
-  service:
-    type: ClusterIP
-    nodePort: ""
-    annotations: {}
-    httpPortName: http
-    transportPortName: transport
-
-opensearch-dashboards:
-  enabled: false
-  opensearchHosts: "http://opensearch-cluster-master:9200"
-  replicaCount: 1
-  fullnameOverride: "opensearch-dashboards"
-  extraEnvs:
-    - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
-      value: "true"
-  service:
-    type: ClusterIP
-    port: 5601
-    loadBalancerIP: ""
-    nodePort: ""
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    # 0.0.0.0/0
-    httpPortName: http
-  nodeSelector: {}
-    # tenantname: duploservices-nike-svc
-  plugins:
-    enabled: false
-    installList: []
-  config:
-    opensearch_dashboards.yml: |
-      server:
-        basePath: "/opensearch-dashboards"
-        rewriteBasePath: true
-
-fluentbit:
-  enabled: false
-  enablelogs:
-    eocBackend: true
-    eocOrchestrator: true
-    sdc: true
-    clientRouter: false
-    tunnel: false
-  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
-  fullnameOverride: "fluent-bit"
-  outputSearchType: "es"  # "opensearch"
-  flush: 1
-  logLevel: info
-  metricsPort: 2020
-  service:
-    type: ClusterIP
-  prometheusRule:
-    enabled: false
-  serviceMonitor:
-    enabled: false
-  nodeSelector: {}
-    # tenantname:
-  existingConfigMap: fluent-bit-config
-  config: {}
-
-  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
-  volumeMounts:
-    - name: config
-      mountPath: /fluent-bit/etc/fluent-bit.conf
-      subPath: fluent-bit.conf
-    - name: config
-      mountPath: /fluent-bit/etc/custom_parsers.conf
-      subPath: custom_parsers.conf
-
-curator:
-  enabled: false
-  config:
-    client:
-      hosts: ["elasticsearch-master"]
-      port: 9200
-      use_ssl: False
-      ssl_no_validate: True
-      timeout: 300
-      certificate:
-      client_cert:
-      client_key:
-      http_auth:
-      master_only: False
-    logging:
-      loglevel: "INFO"
-      logfile:
-      logformat: default
-      blacklist: ['elasticsearch', 'urllib3']
-  enableLogs:
-    - name: "vds_server"
-      enable: true
-      unit: "days"
-      unit_count: 7
-      direction: "older"
-    - name: "vds_server_access"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
-  cronjob:
-    schedule: "0 0 * * *"
-    annotations: {}
-    labels: {}
-    concurrencyPolicy: ""
-    failedJobsHistoryLimit: ""
-    successfulJobsHistoryLimit: ""
-    jobRestartPolicy: Never
-    startingDeadlineSeconds: ""
-  pod:
-    annotations: {}
-    labels: {}
-  rbac:
-    enabled: false
-  serviceAccount:
-    # Specifies whether a ServiceAccount should be created
-    create: true
-    # The name of the ServiceAccount to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
-    annotations: {}
-  hooks:
-    install: false
-    upgrade: false
-  priorityClassName: ""
-  extraInitContainers: {}
-  securityContext:
-    runAsUser: 16
-  psp:
-    create: false
-  dryrun: true
-  resources: {}
-  nodeSelector: {}
-    # tenantname:
-
-
-############### INGRESS/EGRESS ######################
-
-ingress:
-  enabled: false
-  className: alb
-  annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths:
-        - "/"
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
 
 
 haproxy:
@@ -541,9 +362,6 @@ haproxy:
     {{- end }}
 
 
-
-###################### DATABASE #####################
-
 postgresql:
   enabled: false
   fullnameOverride: postgresql
@@ -580,8 +398,10 @@ pgadmin4:
   env:
     contextPath: "/pgadmin4"
 
-
-################## STRESS TEST #####################
+zookeeper:
+  enabled: false
+  fullnameOverride: zookeeper
+  nodeSelector: {}
 
 slamd:
   enabled: false
@@ -644,9 +464,6 @@ slamd:
     tolerations: []
     affinity: {}
 
-
-######################### SHELL ###########################
-
 shellinabox:
   enabled: false
   replicaCount: 1
@@ -674,8 +491,6 @@ shellinabox:
   tolerations: []
   affinity: {}
 
-
-###################### ALERTING ###############################
 smtp:
   enabled: false
   replicaCount: 1
@@ -703,4 +518,170 @@ smtp:
     username: ""
     password: ""
 
+opensearch:
+  enabled: false
+  fullnameOverride: "opensearch"
+  singleNode: true
+  replicas: 1
+  clusterName: "opensearch-cluster"
+  nodeGroup: "master"
+  masterService: "opensearch-cluster-master"
+  extraEnvs:
+    - name: "DISABLE_SECURITY_PLUGIN"
+      value: "true"
+    - name: "DISABLE_INSTALL_DEMO_CONFIG"
+      value: "true"
+  rbac:
+    create: false
+    serviceAccountAnnotations: {}
+    serviceAccountName: ""
+  nodeSelector: {}
+  persistence:
+    size: 30Gi
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+  service:
+    type: ClusterIP
+    nodePort: ""
+    annotations: {}
+    httpPortName: http
+    transportPortName: transport
 
+opensearch-dashboards:
+  enabled: false
+  opensearchHosts: "http://opensearch-cluster-master:9200"
+  replicaCount: 1
+  fullnameOverride: "opensearch-dashboards"
+  extraEnvs:
+    - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+      value: "true"
+  service:
+    type: ClusterIP
+    port: 5601
+    loadBalancerIP: ""
+    nodePort: ""
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    # 0.0.0.0/0
+    httpPortName: http
+  nodeSelector: {}
+    # tenantname: duploservices-nike-svc
+  plugins:
+    enabled: false
+    installList: []
+  config:
+    opensearch_dashboards.yml: |
+      server:
+        basePath: "/opensearch-dashboards"
+        rewriteBasePath: true
+
+fluentbit:
+  enabled: false
+  enablelogs:
+    eocBackend: false
+    eocOrchestrator: false
+    sdc: false
+    clientRouter: false
+    tunnel: false
+  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
+  fullnameOverride: "fluent-bit"
+  outputSearchType: "es"  # "opensearch"
+  flush: 1
+  logLevel: info
+  metricsPort: 2020
+  service:
+    type: ClusterIP
+  prometheusRule:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+  nodeSelector: {}
+    # tenantname:
+  existingConfigMap: fluent-bit-config
+  config: {}
+
+  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
+  volumeMounts:
+    - name: config
+      mountPath: /fluent-bit/etc/fluent-bit.conf
+      subPath: fluent-bit.conf
+    - name: config
+      mountPath: /fluent-bit/etc/custom_parsers.conf
+      subPath: custom_parsers.conf
+
+curator:
+  enabled: false
+  config:
+    client:
+      hosts: ["elasticsearch-master"]
+      port: 9200
+      use_ssl: False
+      ssl_no_validate: True
+      timeout: 300
+      certificate:
+      client_cert:
+      client_key:
+      http_auth:
+      master_only: False
+    logging:
+      loglevel: "INFO"
+      logfile:
+      logformat: default
+      blacklist: ['elasticsearch', 'urllib3']
+  enableLogs:
+    - name: "vds_server"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "vds_server_access"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+    - name: "adap_access"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+    - name: "adap"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+  cronjob:
+    schedule: "* * * * *"
+    annotations: {}
+    labels: {}
+    concurrencyPolicy: ""
+    failedJobsHistoryLimit: ""
+    successfulJobsHistoryLimit: ""
+    jobRestartPolicy: Never
+    startingDeadlineSeconds: ""
+  pod:
+    annotations: {}
+    labels: {}
+  rbac:
+    enabled: true
+  serviceAccount:
+    # Specifies whether a ServiceAccount should be created
+    create: true
+    # The name of the ServiceAccount to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: "test"
+    annotations: {}
+  hooks:
+    install: false
+    upgrade: false
+  priorityClassName: ""
+  extraInitContainers: {}
+  securityContext:
+    runAsUser: 16
+  psp:
+    create: false
+  dryrun: true
+  resources: {}
+  nodeSelector: {}
+    # tenantname:
