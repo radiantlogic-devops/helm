@@ -36,7 +36,7 @@ dependencies:
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
 - name: grafana
-  version: 6.61.0
+  version: 6.40.0
   repository: https://grafana.github.io/helm-charts
   condition: grafana.enabled
 - name: elasticsearch

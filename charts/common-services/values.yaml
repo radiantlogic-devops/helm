@@ -363,7 +363,7 @@ haproxy:
 
 
 postgresql:
-  enabled: false
+  enabled: true
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
@@ -642,7 +642,7 @@ curator:
       unit_count: 15
       direction: "older"
   cronjob:
-    schedule: "* * * * *"
+    schedule: "0 0 * * *"
     annotations: {}
     labels: {}
     concurrencyPolicy: ""
