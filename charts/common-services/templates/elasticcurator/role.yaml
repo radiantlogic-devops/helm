@@ -3,13 +3,7 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  labels:
-    app: {{ template "elasticsearch-curator.name" . }}
-    chart: {{ template "elasticsearch-curator.chart" . }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
-    component: elasticsearch-curator-configmap
-  name: {{ template "elasticsearch-curator.name" . }}-role
+  name: curator-role
 rules:
 - apiGroups: [""]
   resources: ["configmaps"]

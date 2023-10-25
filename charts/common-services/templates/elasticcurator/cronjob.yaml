@@ -56,7 +56,7 @@ spec:
             {{- end }}
           {{- end }}
           {{- if .Values.curator.rbac.enabled }}
-          serviceAccountName: {{ template "elasticsearch-curator.serviceAccountName" .}}
+          serviceAccountName: curator-sa
           {{- end }}
           containers:
             - name: {{ .Chart.Name }}
