@@ -1,5 +1,4 @@
 nodeSelector: {}
-existingConfigMap: fluent-bit
 
 ingress:
   enabled: false
