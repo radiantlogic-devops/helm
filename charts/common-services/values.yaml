@@ -15,7 +15,7 @@ ingress:
   #      - chart-example.local
 
 argo-cd:
-  enabled: false
+  enabled: true
   fullnameOverride: argocd
   configs:
     params:
@@ -41,7 +41,7 @@ argo-cd:
     keep: false
 
 prometheus:
-  enabled: false
+  enabled: true
   server:
     extraFlags:
       - web.enable-lifecycle
@@ -72,7 +72,7 @@ prometheus:
 
 grafana:
   fullnameOverride: grafana
-  enabled: false
+  enabled: true
   nodeSelector: {}
   # Persistence enabled by default
   persistence:
@@ -190,7 +190,7 @@ grafana:
     service-status: "service-status-dashboard"
 
 elasticsearch:
-  enabled: false
+  enabled: true
   replicas: 1
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
@@ -201,7 +201,7 @@ elasticsearch:
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=60s"
 
 kibana:
-  enabled: false
+  enabled: true
   fullnameOverride: kibana
   nodeSelector: {}
   kibanaConfig:
@@ -215,8 +215,8 @@ kibana:
 haproxy:
   enabled: true
   route:
-    argocd: false
-    grafana: false
+    argocd: true
+    grafana: true
     prometheus: false
     pushgateway: false
     elasticsearch: false
@@ -228,7 +228,7 @@ haproxy:
     eocapi: false
     sdcapi: false
     opensearch: false
-    opensearchdashboards: true
+    opensearchdashboards: false
 
   fullnameOverride: haproxy
   nodeSelector: {}
@@ -364,7 +364,7 @@ haproxy:
 
 
 postgresql:
-  enabled: false
+  enabled: true
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
@@ -391,7 +391,7 @@ postgresql:
     # latestBackupName: "postgresql-latest.sql.gz"
 
 pgadmin4:
-  enabled: false
+  enabled: true
   fullnameOverride: pgadmin4
   nodeSelector: {}
   persistentVolume:
@@ -405,7 +405,7 @@ zookeeper:
   nodeSelector: {}
 
 slamd:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: pgodey/slamd
@@ -466,7 +466,7 @@ slamd:
     affinity: {}
 
 shellinabox:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
@@ -493,7 +493,7 @@ shellinabox:
   affinity: {}
 
 smtp:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: bytemark/smtp
