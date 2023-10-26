@@ -6,7 +6,7 @@ kind: PodSecurityPolicy
 metadata:
   labels:
     {{- include "common-services.labels" . | nindent 4 }}
-  name: {{ template "elasticsearch-curator.fullname" . }}-psp
+  name: curator-psp
 spec:
   privileged: true
   #requiredDropCapabilities:

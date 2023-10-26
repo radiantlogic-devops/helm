@@ -17,7 +17,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | https://argoproj.github.io/argo-helm | argo-cd | 5.6.0 |
 | https://charts.bitnami.com/bitnami | postgresql | 12.1.3 |
 | https://charts.bitnami.com/bitnami | zookeeper | 11.0.0 |
-| https://fluent.github.io/helm-charts | fluent-bit | 0.24.0 |
+| https://fluent.github.io/helm-charts | fluent-bit | 0.39.0 |
 | https://grafana.github.io/helm-charts | grafana | 6.40.0 |
 | https://haproxytech.github.io/helm-charts | haproxy | 1.17.3 |
 | https://helm.elastic.co | elasticsearch | 7.17.3 |
@@ -89,12 +89,10 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | curator.enableLogs[3].unit | string | `"days"` |  |
 | curator.enableLogs[3].unit_count | int | `7` |  |
 | curator.enabled | bool | `false` |  |
-| curator.extraInitContainers | object | `{}` |  |
 | curator.hooks.install | bool | `false` |  |
 | curator.hooks.upgrade | bool | `false` |  |
 | curator.nodeSelector | object | `{}` |  |
 | curator.pod.annotations | object | `{}` |  |
-| curator.pod.labels | object | `{}` |  |
 | curator.priorityClassName | string | `""` |  |
 | curator.psp.create | bool | `false` |  |
 | curator.rbac.enabled | bool | `true` |  |
@@ -102,36 +100,44 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | curator.securityContext.runAsUser | int | `16` |  |
 | curator.serviceAccount.annotations | object | `{}` |  |
 | curator.serviceAccount.create | bool | `true` |  |
-| curator.serviceAccount.name | string | `"test"` |  |
 | elasticsearch.clusterHealthCheckParams | string | `"wait_for_status=yellow&timeout=60s"` |  |
 | elasticsearch.enabled | bool | `false` |  |
 | elasticsearch.nodeSelector | object | `{}` |  |
 | elasticsearch.replicas | int | `1` |  |
 | elasticsearch.volumeClaimTemplate.resources.requests.storage | string | `"30Gi"` |  |
-| fluentbit.config | object | `{}` |  |
-| fluentbit.enabled | bool | `false` |  |
-| fluentbit.enablelogs.clientRouter | bool | `false` |  |
-| fluentbit.enablelogs.eocBackend | bool | `false` |  |
-| fluentbit.enablelogs.eocOrchestrator | bool | `false` |  |
-| fluentbit.enablelogs.sdc | bool | `false` |  |
-| fluentbit.enablelogs.tunnel | bool | `false` |  |
-| fluentbit.existingConfigMap | string | `"fluent-bit-config"` |  |
-| fluentbit.flush | int | `1` |  |
-| fluentbit.fullnameOverride | string | `"fluent-bit"` |  |
-| fluentbit.logLevel | string | `"info"` |  |
-| fluentbit.metricsPort | int | `2020` |  |
-| fluentbit.nodeSelector | object | `{}` |  |
-| fluentbit.outputSearchHost | string | `"elasticsearch-master"` |  |
-| fluentbit.outputSearchType | string | `"es"` |  |
-| fluentbit.prometheusRule.enabled | bool | `false` |  |
-| fluentbit.service.type | string | `"ClusterIP"` |  |
-| fluentbit.serviceMonitor.enabled | bool | `false` |  |
-| fluentbit.volumeMounts[0].mountPath | string | `"/fluent-bit/etc/fluent-bit.conf"` |  |
-| fluentbit.volumeMounts[0].name | string | `"config"` |  |
-| fluentbit.volumeMounts[0].subPath | string | `"fluent-bit.conf"` |  |
-| fluentbit.volumeMounts[1].mountPath | string | `"/fluent-bit/etc/custom_parsers.conf"` |  |
-| fluentbit.volumeMounts[1].name | string | `"config"` |  |
-| fluentbit.volumeMounts[1].subPath | string | `"custom_parsers.conf"` |  |
+| existingConfigMap | string | `"fluent-bit"` |  |
+| fluent-bit.enabled | bool | `false` |  |
+| fluent-bit.enablelogs[0].enable | bool | `true` |  |
+| fluent-bit.enablelogs[0].name | string | `"eocBackend"` |  |
+| fluent-bit.enablelogs[0].path | string | `"/var/log/containers/eoc-backend-*.log"` |  |
+| fluent-bit.enablelogs[0].refresh_interval | int | `10` |  |
+| fluent-bit.enablelogs[1].enable | bool | `true` |  |
+| fluent-bit.enablelogs[1].name | string | `"eocOrchestrator"` |  |
+| fluent-bit.enablelogs[1].path | string | `"/var/log/containers/eoc-orchestrator-*.log"` |  |
+| fluent-bit.enablelogs[1].refresh_interval | int | `10` |  |
+| fluent-bit.enablelogs[2].enable | bool | `true` |  |
+| fluent-bit.enablelogs[2].name | string | `"sdc"` |  |
+| fluent-bit.enablelogs[2].path | string | `"/var/log/containers/sdc-*.log"` |  |
+| fluent-bit.enablelogs[2].refresh_interval | int | `10` |  |
+| fluent-bit.enablelogs[3].enable | bool | `true` |  |
+| fluent-bit.enablelogs[3].name | string | `"clientRouter"` |  |
+| fluent-bit.enablelogs[3].path | string | `"/var/log/containers/client-*.log"` |  |
+| fluent-bit.enablelogs[3].refresh_interval | int | `10` |  |
+| fluent-bit.enablelogs[4].enable | bool | `true` |  |
+| fluent-bit.enablelogs[4].name | string | `"tunnel"` |  |
+| fluent-bit.enablelogs[4].path | string | `"/var/log/containers/r1tunnel*.log"` |  |
+| fluent-bit.enablelogs[4].refresh_interval | int | `10` |  |
+| fluent-bit.existingConfigMap | string | `"fluent-bit-config"` |  |
+| fluent-bit.flush | int | `1` |  |
+| fluent-bit.fullnameOverride | string | `"fluent-bit"` |  |
+| fluent-bit.logLevel | string | `"info"` |  |
+| fluent-bit.metricsPort | int | `2020` |  |
+| fluent-bit.nodeSelector | object | `{}` |  |
+| fluent-bit.outputSearchHost | string | `"elasticsearch-master"` |  |
+| fluent-bit.outputSearchType | string | `"es"` |  |
+| fluent-bit.prometheusRule.enabled | bool | `false` |  |
+| fluent-bit.service.type | string | `"ClusterIP"` |  |
+| fluent-bit.serviceMonitor.enabled | bool | `false` |  |
 | grafana."grafana.ini"."auth.anonymous".enabled | bool | `true` |  |
 | grafana."grafana.ini"."auth.anonymous".org_role | string | `"Viewer"` |  |
 | grafana."grafana.ini"."log.console".format | string | `"text"` |  |
@@ -223,17 +229,17 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.persistence.enabled | bool | `true` |  |
 | grafana.persistence.size | string | `"8Gi"` |  |
 | haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  # routing\n  {{- if ((.Values.route).argocd | default false) }}\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  {{- end }}\n  {{- if ((.Values.route).grafana | default false) }}\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  {{- end }}\n  {{- if ((.Values.route).prometheus | default false) }}\n  use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  {{- end }}\n  {{- if ((.Values.route).pushgateway | default false) }}\n  use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  {{- end }}\n  {{- if ((.Values.route).kibana | default false) }}\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  {{- end }}\n  {{- if ((.Values.route).elasticsearch | default false) }}\n  use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  {{- end }}\n  {{- if ((.Values.route).pgadmin4 | default false) }}\n  use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  {{- end }}\n  {{- if ((.Values.route).slamd | default false) }}\n  use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  {{- end }}\n  {{- if ((.Values.route).shellinabox | default false) }}\n  use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  {{- end }}\n  {{- if ((.Values.route).eocui | default false) }}\n  use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  {{- end }}\n  {{- if ((.Values.route).eocapi | default false) }}\n  use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n  {{- end }}\n  {{- if ((.Values.route).sdccui | default false) }}\n  use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearchdashboards | default false) }}\n  use_backend opensearchdashboards_backend if { path /opensearch-dashboards } or { path_beg /opensearch-dashboards/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearch | default false) }}\n  use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }\n  {{- end }}\n\n# backends\n{{- if ((.Values.route).argocd | default false) }}\nbackend argocd_backend\n  server argocd argocd-server:80\n{{- end }}\n{{- if ((.Values.route).grafana | default false) }}\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\n{{- end }}\n{{- if ((.Values.route).prometheus | default false) }}\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\n{{- end }}\n{{- if ((.Values.route).pushgateway | default false) }}\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n{{- end }}\n{{- if ((.Values.route).kibana | default false) }}\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\n{{- end }}\n{{- if ((.Values.route).elasticsearch | default false) }}\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\n{{- end }}\n{{- if ((.Values.route).pgadmin4 | default false) }}\nbackend pgadmin4_backend\n  server pgadmin4 pgadmin4:80\n{{- end }}\n{{- if ((.Values.route).slamd | default false) }}\nbackend slamd_backend\n  server slamd slamd:80\n{{- end }}\n{{- if ((.Values.route).shellinabox | default false) }}\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n{{- end }}\n{{- if ((.Values.route).eocui | default false) }}\nbackend eocui_backend\n  server eocui eoc-ui-service:80\n{{- end }}\n{{- if ((.Values.route).eocapi | default false) }}\nbackend eocapi_backend\n  server eocapi eoc-backend-service:80\n{{- end }}\n{{- if ((.Values.route).sdccui | default false) }}\nbackend sdcapi_backend\n  server sdcapi sdc-agent:80\n{{- end }}\n{{- if ((.Values.route).opensearchdashboards | default false) }}\nbackend opensearchdashboards_backend\n  #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]\n  server opensearchdashboards opensearch-dashboards:5601\n{{- end }}\n{{- if ((.Values.route).opensearch | default false) }}\nbackend opensearch_backend\n  http-request set-path %[path,regsub(^/opensearch/?,/)]\n  server opensearch opensearch-cluster-master:9200\n{{- end }}\n"` |  |
-| haproxy.enabled | bool | `false` |  |
+| haproxy.enabled | bool | `true` |  |
 | haproxy.fullnameOverride | string | `"haproxy"` |  |
 | haproxy.nodeSelector | object | `{}` |  |
-| haproxy.route.argocd | bool | `true` |  |
+| haproxy.route.argocd | bool | `false` |  |
 | haproxy.route.elasticsearch | bool | `false` |  |
 | haproxy.route.eocapi | bool | `false` |  |
 | haproxy.route.eocui | bool | `false` |  |
-| haproxy.route.grafana | bool | `true` |  |
+| haproxy.route.grafana | bool | `false` |  |
 | haproxy.route.kibana | bool | `true` |  |
 | haproxy.route.opensearch | bool | `false` |  |
-| haproxy.route.opensearchdashboards | bool | `false` |  |
+| haproxy.route.opensearchdashboards | bool | `true` |  |
 | haproxy.route.pgadmin4 | bool | `false` |  |
 | haproxy.route.prometheus | bool | `false` |  |
 | haproxy.route.pushgateway | bool | `false` |  |

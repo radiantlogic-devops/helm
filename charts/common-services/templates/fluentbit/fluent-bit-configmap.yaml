@@ -1,158 +1,49 @@
-{{- if eq .Values.fluentbit.enabled true }}
-
-
+{{- if eq (index .Values "fluent-bit" "enabled") true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluent-bit-config
 data:
   fluent-bit.conf: |
-
     [SERVICE]
         Daemon Off
-        Flush {{ .Values.fluentbit.flush }}
-        Log_Level {{ .Values.fluentbit.logLevel }}
+        Flush {{ index .Values "fluent-bit" "flush" }}
+        Log_Level {{ index .Values "fluent-bit" "logLevel" }}
         Parsers_File parsers.conf
         Parsers_File custom_parsers.conf
         HTTP_Server On
         HTTP_Listen 0.0.0.0
-        HTTP_Port {{ .Values.fluentbit.metricsPort }}
+        HTTP_Port {{ index .Values "fluent-bit" "metricsPort" }}
         Health_Check On
-
-
-    {{- if ((.Values.fluentbit.enableLogs).eocBackend | default false) }}
+{{- with (index .Values "fluent-bit" "enablelogs") }}
+    {{- range . }}
+    {{- if .enable }}
     [INPUT]
         Name              tail
-        Tag               backend.log
-        Path              /var/log/containers/eoc-backend-*.log
-        Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+        Tag               {{ .name }}.log
+        Path              {{ .path }}
+        Exclude_Path      /var/log/containers/kube-*,/var/log/containers/*node*,/var/log/containers/*logstash*,/var/log/containers/fluent-bit*,/var/log/containers/aws-node*
         Parser            docker
         DB                /var/log/flb_kube.db
         Skip_Long_Lines   On
-        Refresh_Interval  10
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).eocOrchestrator | default false) }}
-    [INPUT]
-        Name              tail
-        Tag               orchestrator.log
-        Path              /var/log/containers/eoc-orchestrator-*.log
-        Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log
-        Parser            docker
-        DB                /var/log/flb_kube.db
-        Skip_Long_Lines   On
-        Refresh_Interval  10
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).sdc | default false) }}
-    [INPUT]
-        Name              tail
-        Tag               agents.log
-        Path              /var/log/containers/sdc-agent*.log
-        Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-        Parser            docker
-        DB                /var/log/flb_kube.db
-        Skip_Long_Lines   On
-        Refresh_Interval  10
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).clientRouter | default false) }}
-    [INPUT]
-        Name              tail
-        Tag               clientrouter.log
-        Path              /var/log/containers/client-*.log
-        Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-        Parser            docker
-        DB                /var/log/flb_kube.db
-        Skip_Long_Lines   On
-        Refresh_Interval  10
-    {{- end }}
-
-    {{- if ((.Values.fluentbit.enableLogs).tunnel | default false) }}
-    [INPUT]
-        Name              tail
-        Tag               r1tunnel.log
-        Path              /var/log/containers/r1tunnel*.log
-        Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-        Parser            docker
-        DB                /var/log/flb_kube.db
-        Skip_Long_Lines   On
-        Refresh_Interval  10
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).eocBackend | default false) }}
+        Refresh_Interval  {{ .refresh_interval }}
     [OUTPUT]
-        Name               {{ .Values.fluentbit.outputSearchType }}
-        Match              backend.log
-        Host               {{ .Values.fluentbit.outputSearchHost }}
+        Name               {{ index $.Values "fluent-bit" "outputSearchType" }}
+        Match              {{ .name }}.log
+        Host               {{ index $.Values "fluent-bit" "outputSearchHost" }}
         Trace_Error        On
         Replace_Dots       On
         Logstash_Format    off
-        Index              backend-index
+        Index              {{ .name }}-index
         Retry_Limit        False
     {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).eocOrchestrator | default false) }}
-    [OUTPUT]
-        Name               {{ .Values.fluentbit.outputSearchType }}
-        Match              orchestrator.*
-        Host               {{ .Values.fluentbit.outputSearchHost }}
-        Trace_Error        On
-        Replace_Dots       On
-        Logstash_Format    off
-        Index              orchestrator-index
-        Retry_Limit        False
     {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).sdc | default false) }}
-    [OUTPUT]
-        Name               {{ .Values.fluentbit.outputSearchType }}
-        Match              agents.log
-        Host               {{ .Values.fluentbit.outputSearchHost }}
-        Trace_Error        On
-        Replace_Dots       On
-        Logstash_Format    off
-        Index              sdc-index
-        Retry_Limit        False
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).clientRouter | default false) }}
-    [OUTPUT]
-        Name               {{ .Values.fluentbit.outputSearchType }}
-        Match              clientrouter.log
-        Host               {{ .Values.fluentbit.outputSearchHost }}
-        Trace_Error        On
-        Replace_Dots       On
-        Logstash_Format    off
-        Index              router-index
-        Retry_Limit        False
-    {{- end }}
-
-
-    {{- if ((.Values.fluentbit.enableLogs).tunnel | default false) }}
-    [OUTPUT]
-        Name               {{ .Values.fluentbit.outputSearchType }}
-        Match              r1tunnel.log
-        Host               {{ .Values.fluentbit.outputSearchHost }}
-        Trace_Error        On
-        Replace_Dots       On
-        Logstash_Format    off
-        Index              r1tunnel-index
-        Retry_Limit        False
-    {{- end }}
-
+{{- end }}
+  custom_parsers.conf: |
     [PARSER]
-    Name docker_no_time
-    Format json
-    Time_Keep Off
-    Time_Key time
-    Time_Format %Y-%m-%dT%H:%M:%S.%L
-
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
 {{- end }}

@@ -13,7 +13,7 @@ rules:
   resources: ["podsecuritypolicies"]
   verbs: ["use"]
   resourceNames:
-  - {{ template "elasticsearch-curator.fullname" . }}-psp
+  - curator-psp
 {{- end -}}
 {{- end -}}
 {{- end }}

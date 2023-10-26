@@ -1,4 +1,5 @@
 nodeSelector: {}
+existingConfigMap: fluent-bit
 
 ingress:
   enabled: false
@@ -212,10 +213,10 @@ kibana:
 
 
 haproxy:
-  enabled: false
+  enabled: true
   route:
-    argocd: true
-    grafana: true
+    argocd: false
+    grafana: false
     prometheus: false
     pushgateway: false
     elasticsearch: false
@@ -227,7 +228,7 @@ haproxy:
     eocapi: false
     sdcapi: false
     opensearch: false
-    opensearchdashboards: false
+    opensearchdashboards: true
 
   fullnameOverride: haproxy
   nodeSelector: {}
@@ -577,15 +578,32 @@ opensearch-dashboards:
         basePath: "/opensearch-dashboards"
         rewriteBasePath: true
 
-fluentbit:
+fluent-bit:
   enabled: false
+  nodeSelector: {}
+    # tenantname:
   enablelogs:
-    eocBackend: false
-    eocOrchestrator: false
-    sdc: false
-    clientRouter: false
-    tunnel: false
-  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
+    - name: eocBackend
+      enable: true
+      path: /var/log/containers/eoc-backend-*.log
+      refresh_interval: 10
+    - name: eocOrchestrator
+      enable: true
+      path: /var/log/containers/eoc-orchestrator-*.log
+      refresh_interval: 10
+    - name: sdc
+      enable: true
+      path: /var/log/containers/sdc-*.log
+      refresh_interval: 10
+    - name: clientRouter
+      enable: true
+      path:  /var/log/containers/client-*.log
+      refresh_interval: 10
+    - name: tunnel
+      enable: true
+      path: /var/log/containers/r1tunnel*.log
+      refresh_interval: 10
+  outputSearchHost: "elasticsearch-master"
   fullnameOverride: "fluent-bit"
   outputSearchType: "es"  # "opensearch"
   flush: 1
@@ -597,19 +615,7 @@ fluentbit:
     enabled: false
   serviceMonitor:
     enabled: false
-  nodeSelector: {}
-    # tenantname:
   existingConfigMap: fluent-bit-config
-  config: {}
-
-  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
-  volumeMounts:
-    - name: config
-      mountPath: /fluent-bit/etc/fluent-bit.conf
-      subPath: fluent-bit.conf
-    - name: config
-      mountPath: /fluent-bit/etc/custom_parsers.conf
-      subPath: custom_parsers.conf
 
 curator:
   enabled: false
@@ -662,21 +668,15 @@ curator:
     startingDeadlineSeconds: ""
   pod:
     annotations: {}
-    labels: {}
   rbac:
     enabled: true
   serviceAccount:
-    # Specifies whether a ServiceAccount should be created
     create: true
-    # The name of the ServiceAccount to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name: "test"
     annotations: {}
   hooks:
     install: false
     upgrade: false
   priorityClassName: ""
-  extraInitContainers: {}
   securityContext:
     runAsUser: 16
   psp:

@@ -6,6 +6,7 @@ metadata:
   name: curator-config
   labels:
     {{- include "common-services.labels" . | nindent 4 }}
+    app: curator
 data:
   action_file.yml: |
       actions:

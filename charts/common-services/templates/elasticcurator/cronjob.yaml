@@ -5,6 +5,7 @@ kind: CronJob
 metadata:
   name: curator-job
   labels:
+    app: curator
     {{- include "common-services.labels" . | nindent 4 }}
   {{- if .Values.curator.cronjob.annotations }}
   annotations:
@@ -29,9 +30,8 @@ spec:
     spec:
       template:
         metadata:
-            {{- if .Values.curator.pod.labels }}
-            {{ toYaml .Values.curator.pod.labels | nindent 12 }}
-            {{- end }}
+          labels:
+            app: curator
           {{- if .Values.curator.pod.annotations }}
           annotations:
           {{ toYaml .Values.curator.pod.annotations | nindent 12 }}
@@ -41,19 +41,9 @@ spec:
             - name: config-volume
               configMap:
                 name: curator-config
-            {{- if .Values.curator.extraVolumes }}
-            {{ toYaml .Values.curator.extraVolumes | nindent 12 }}
-            {{- end }}
           restartPolicy: {{ .Values.curator.cronjob.jobRestartPolicy }}
           {{- if .Values.curator.priorityClassName }}
           priorityClassName: "{{ .Values.curator.priorityClassName }}"
-          {{- end }}
-          {{- if .Values.curator.extraInitContainers }}
-          initContainers:
-            {{- range $key, $value := .Values.curator.extraInitContainers }}
-            - name: "{{ $key }}"
-              {{ toYaml $value | nindent 14 }}
-            {{- end }}
           {{- end }}
           {{- if .Values.curator.rbac.enabled }}
           serviceAccountName: curator-sa
@@ -65,9 +55,6 @@ spec:
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/es-curator
-                {{- if .Values.curator.extraVolumeMounts }}
-                {{ toYaml .Values.curator.extraVolumeMounts | nindent 16 }}
-                {{ end }}
               {{ if .Values.curator.command }}
               command:
                 {{- toYaml .Values.curator.command | nindent 16 }}
