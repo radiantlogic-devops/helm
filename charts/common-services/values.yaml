@@ -582,11 +582,11 @@ fluent-bit:
   nodeSelector: {}
     # tenantname:
   enablelogs:
-    - name: eocBackend
+    - name: eoc-backend
       enable: true
       path: /var/log/containers/eoc-backend-*.log
       refresh_interval: 10
-    - name: eocOrchestrator
+    - name: eoc-orchestrator
       enable: true
       path: /var/log/containers/eoc-orchestrator-*.log
       refresh_interval: 10
@@ -594,7 +594,7 @@ fluent-bit:
       enable: true
       path: /var/log/containers/sdc-*.log
       refresh_interval: 10
-    - name: clientRouter
+    - name: client-router
       enable: true
       path: /var/log/containers/client-*.log
       refresh_interval: 10

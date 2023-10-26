@@ -37,7 +37,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | argo-cd.controller.nodeSelector | object | `{}` |  |
 | argo-cd.crds.keep | bool | `false` |  |
 | argo-cd.dex.enabled | bool | `false` |  |
-| argo-cd.enabled | bool | `false` |  |
+| argo-cd.enabled | bool | `true` |  |
 | argo-cd.fullnameOverride | string | `"argocd"` |  |
 | argo-cd.notifications.enabled | bool | `false` |  |
 | argo-cd.redis.nodeSelector | object | `{}` |  |
@@ -101,18 +101,17 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | curator.serviceAccount.annotations | object | `{}` |  |
 | curator.serviceAccount.create | bool | `true` |  |
 | elasticsearch.clusterHealthCheckParams | string | `"wait_for_status=yellow&timeout=60s"` |  |
-| elasticsearch.enabled | bool | `false` |  |
+| elasticsearch.enabled | bool | `true` |  |
 | elasticsearch.nodeSelector | object | `{}` |  |
 | elasticsearch.replicas | int | `1` |  |
 | elasticsearch.volumeClaimTemplate.resources.requests.storage | string | `"30Gi"` |  |
-| existingConfigMap | string | `"fluent-bit"` |  |
 | fluent-bit.enabled | bool | `false` |  |
 | fluent-bit.enablelogs[0].enable | bool | `true` |  |
-| fluent-bit.enablelogs[0].name | string | `"eocBackend"` |  |
+| fluent-bit.enablelogs[0].name | string | `"eoc-backend"` |  |
 | fluent-bit.enablelogs[0].path | string | `"/var/log/containers/eoc-backend-*.log"` |  |
 | fluent-bit.enablelogs[0].refresh_interval | int | `10` |  |
 | fluent-bit.enablelogs[1].enable | bool | `true` |  |
-| fluent-bit.enablelogs[1].name | string | `"eocOrchestrator"` |  |
+| fluent-bit.enablelogs[1].name | string | `"eoc-orchestrator"` |  |
 | fluent-bit.enablelogs[1].path | string | `"/var/log/containers/eoc-orchestrator-*.log"` |  |
 | fluent-bit.enablelogs[1].refresh_interval | int | `10` |  |
 | fluent-bit.enablelogs[2].enable | bool | `true` |  |
@@ -120,7 +119,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | fluent-bit.enablelogs[2].path | string | `"/var/log/containers/sdc-*.log"` |  |
 | fluent-bit.enablelogs[2].refresh_interval | int | `10` |  |
 | fluent-bit.enablelogs[3].enable | bool | `true` |  |
-| fluent-bit.enablelogs[3].name | string | `"clientRouter"` |  |
+| fluent-bit.enablelogs[3].name | string | `"client-router"` |  |
 | fluent-bit.enablelogs[3].path | string | `"/var/log/containers/client-*.log"` |  |
 | fluent-bit.enablelogs[3].refresh_interval | int | `10` |  |
 | fluent-bit.enablelogs[4].enable | bool | `true` |  |
@@ -223,7 +222,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.datasources."datasources.yaml".datasources[3].name | string | `"OpenSearch"` |  |
 | grafana.datasources."datasources.yaml".datasources[3].type | string | `"opensearch"` |  |
 | grafana.datasources."datasources.yaml".datasources[3].url | string | `"http://opensearch-cluster-master:9200"` |  |
-| grafana.enabled | bool | `false` |  |
+| grafana.enabled | bool | `true` |  |
 | grafana.fullnameOverride | string | `"grafana"` |  |
 | grafana.nodeSelector | object | `{}` |  |
 | grafana.persistence.enabled | bool | `true` |  |
@@ -232,14 +231,14 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | haproxy.enabled | bool | `true` |  |
 | haproxy.fullnameOverride | string | `"haproxy"` |  |
 | haproxy.nodeSelector | object | `{}` |  |
-| haproxy.route.argocd | bool | `false` |  |
+| haproxy.route.argocd | bool | `true` |  |
 | haproxy.route.elasticsearch | bool | `false` |  |
 | haproxy.route.eocapi | bool | `false` |  |
 | haproxy.route.eocui | bool | `false` |  |
-| haproxy.route.grafana | bool | `false` |  |
+| haproxy.route.grafana | bool | `true` |  |
 | haproxy.route.kibana | bool | `true` |  |
 | haproxy.route.opensearch | bool | `false` |  |
-| haproxy.route.opensearchdashboards | bool | `true` |  |
+| haproxy.route.opensearchdashboards | bool | `false` |  |
 | haproxy.route.pgadmin4 | bool | `false` |  |
 | haproxy.route.prometheus | bool | `false` |  |
 | haproxy.route.pushgateway | bool | `false` |  |
@@ -253,7 +252,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | ingress.hosts[0].host | string | `"chart-example.local"` |  |
 | ingress.hosts[0].paths[0] | string | `"/"` |  |
 | ingress.tls | list | `[]` |  |
-| kibana.enabled | bool | `false` |  |
+| kibana.enabled | bool | `true` |  |
 | kibana.fullnameOverride | string | `"kibana"` |  |
 | kibana.kibanaConfig."kibana.yml" | string | `"server.basePath: \"/kibana\"\nserver.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana\ntelemetry.optIn: false\nsecurity.showInsecureClusterWarning: false\n"` |  |
 | kibana.nodeSelector | object | `{}` |  |
@@ -299,7 +298,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | opensearch.service.transportPortName | string | `"transport"` |  |
 | opensearch.service.type | string | `"ClusterIP"` |  |
 | opensearch.singleNode | bool | `true` |  |
-| pgadmin4.enabled | bool | `false` |  |
+| pgadmin4.enabled | bool | `true` |  |
 | pgadmin4.env.contextPath | string | `"/pgadmin4"` |  |
 | pgadmin4.fullnameOverride | string | `"pgadmin4"` |  |
 | pgadmin4.nodeSelector | object | `{}` |  |
@@ -312,13 +311,13 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | postgresql.databases.sdc.password | string | `"iJukleKLG9fNihIQ"` |  |
 | postgresql.databases.sdc.schema | string | `"agents"` |  |
 | postgresql.databases.sdc.user | string | `"agentsadmin"` |  |
-| postgresql.enabled | bool | `false` |  |
+| postgresql.enabled | bool | `true` |  |
 | postgresql.fullnameOverride | string | `"postgresql"` |  |
 | postgresql.primary.initdb.scriptsConfigMap | string | `"postgres-init-script"` |  |
 | postgresql.primary.nodeSelector | object | `{}` |  |
 | postgresql.primary.persistence.size | string | `"10Gi"` |  |
 | prometheus.alertmanager.enabled | bool | `false` |  |
-| prometheus.enabled | bool | `false` |  |
+| prometheus.enabled | bool | `true` |  |
 | prometheus.kubeStateMetrics.enabled | bool | `false` |  |
 | prometheus.nodeExporter.enabled | bool | `false` |  |
 | prometheus.pushgateway.extraArgs."web.enable-admin-api" | bool | `true` |  |
@@ -334,7 +333,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | prometheus.server.persistentVolume.size | string | `"8Gi"` |  |
 | prometheus.server.statefulSet.enabled | bool | `true` |  |
 | shellinabox.affinity | object | `{}` |  |
-| shellinabox.enabled | bool | `false` |  |
+| shellinabox.enabled | bool | `true` |  |
 | shellinabox.image.pullPolicy | string | `"IfNotPresent"` |  |
 | shellinabox.image.repository | string | `"sspreitzer/shellinabox"` |  |
 | shellinabox.image.tag | string | `"ubuntu"` |  |
@@ -368,7 +367,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | slamd.client.resources | object | `{}` |  |
 | slamd.client.securityContext | object | `{}` |  |
 | slamd.client.tolerations | list | `[]` |  |
-| slamd.enabled | bool | `false` |  |
+| slamd.enabled | bool | `true` |  |
 | slamd.image.pullPolicy | string | `"IfNotPresent"` |  |
 | slamd.image.repository | string | `"pgodey/slamd"` |  |
 | slamd.image.tag | string | `"latest"` |  |
@@ -383,7 +382,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | slamd.service.type | string | `"ClusterIP"` |  |
 | slamd.tolerations | list | `[]` |  |
 | smtp.affinity | object | `{}` |  |
-| smtp.enabled | bool | `false` |  |
+| smtp.enabled | bool | `true` |  |
 | smtp.image.pullPolicy | string | `"IfNotPresent"` |  |
 | smtp.image.repository | string | `"bytemark/smtp"` |  |
 | smtp.image.tag | string | `"latest"` |  |

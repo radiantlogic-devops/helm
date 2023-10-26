@@ -1,5 +1,8 @@
 {{- if .Values.ingress.enabled -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- $apiIsStable := semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- if $apiIsStable }}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion }}
 apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
 apiVersion: extensions/v1beta1
@@ -32,11 +35,12 @@ spec:
         paths:
           {{- range .paths }}
           - path: {{ . }}
+            pathType: "{{ if $apiIsStable }}Prefix{{ else }}ImplementationSpecific{{ end }}"
             backend:
               service:
                 name: haproxy
-                port: 
+                port:
                   number: 80
           {{- end }}
     {{- end }}
-  {{- end }}
+{{- end }}
