@@ -596,7 +596,7 @@ fluent-bit:
       refresh_interval: 10
     - name: clientRouter
       enable: true
-      path:  /var/log/containers/client-*.log
+      path: /var/log/containers/client-*.log
       refresh_interval: 10
     - name: tunnel
       enable: true
@@ -622,14 +622,14 @@ curator:
     client:
       hosts: ["elasticsearch-master"]
       port: 9200
-      use_ssl: False
-      ssl_no_validate: True
+      use_ssl: false
+      ssl_no_validate: true
       timeout: 300
       certificate:
       client_cert:
       client_key:
       http_auth:
-      master_only: False
+      master_only: false
     logging:
       loglevel: "INFO"
       logfile:
