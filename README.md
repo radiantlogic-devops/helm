@@ -1,18 +1,19 @@
 # helm
-Helm charts for FID and Zookeeper deployment
+Helm charts for RadiantOne FID deployment
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
 Helm's [documentation](https://helm.sh/docs) to get started.
 
-## TL;DR
+### TL;DR
 
-```console
+```
 $ helm repo add radiantone https://radiantlogic-devops.github.io/helm
 $ helm install my-fid-release radiantone/fid --set fid.license=<license> \
---set dependencies.zookeeper.enabled=true
+--set dependencies.zookeeper.enabled=true --set image.tag=7.4 --set fid.mountSectes=false
 ```
+** Only 7.3.x and 7.4.x versions are supported for Helm deployments
 
-## Add Helm repo
+### Add Helm repo
 
 Once Helm has been set up correctly, add the repo as follows:
 
@@ -20,82 +21,59 @@ Once Helm has been set up correctly, add the repo as follows:
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
 ```
 
-If you had already added this repo earlier, run `helm repo update` to retrieve
-the latest versions of the packages.  You can then run `helm search repo radiantone` to see the charts.
+To update a repository that has already been added, run `helm repo update` to retrieve the latest versions of the packages.
 
-## Remove Helm repo
+To see the charts in the radiantone repository, run `helm search repo radiantone`
 
-```
-helm repo remove radiantone
-```
-
-## Install Zookeeper
+### Charts
 
 ### Prerequisites
 * Kubernetes 1.18+
 * Helm 3
 
-### Charts
-#### Install Zookeeper
-* Install Zookeeper with default values
+### Setup
+#### Installation
+* Install RadiantOne FID version 7.4 (latest)
 ```
-helm install --namespace=<name space> <release name> radiantone/zookeeper
-```
-* Install Zookeeper with overridden values
-```
-helm install --namespace=<name space> <release name> radiantone/zookeeper \
---set replicaCount="5"
-```
-* Install Zookeeper with Persistence Enabled
-
-```
-helm install --namespace=<name space> <release name> radiantone/zookeeper  --set persistence.enabled="true" --set persistence.storageClass="<storage class name>"
-```
-
-* List Zookeeper releases
-```
-helm list --namespace=<name space>
-```
-* Upgrade a Zookeeper release
-```
-helm upgrade --namespace=<name space> <release name> radiantone/zookeeper
-```
-* Delete a Zookeeper release
-```
-helm uninstall --namespace=<name space> <release name>
-```
-
-## Install FID
-
-### Prerequisites
-* Kubernetes 1.18+
-* Helm 3
-
-### Charts
-#### Install FID
-* Install FID with default values
-```
-helm install --namespace=<name space> <release name> radiantone/fid
-```
-* Install FID with overridden values
-```
-helm install --namespace=<name space> <release name> radiantone/fid \
---set zk.connectionString="zk.dev:2181" \
---set zk.ruok="http://zk.dev:8080/commands/ruok" \
+helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
+--set dependencies.zookeeper.enabled=true
+--set zk.clusterName=my-demo-cluster \
 --set fid.license="<FID cluster license>" \
---set fid.rootPassword="test1234"
+--set fid.rootPassword="test1234" \
+--set fid.mountSecrets=false \
+--set image.tag=7.4
 ```
-Note: Curly brackets in the liense must be escaped ```--set fid.license="\{rlib\}xxx"```
+Note: Curly brackets in the license must be escaped ```--set fid.license="\{rlib\}xxx"```
 
+#### List
 * List FID releases
 ```
 helm list --namespace=<name space>
 ```
+
+#### Test
+* Test FID release
+```
+helm test <release name> --namespace=<name space>
+```
+
+#### Upgrade
 * Upgrade FID release
+* Note: Upgrade can only be performed to a higher version
+* Note: Upgrade from 7.3.x to 7.4.x is not supported
 ```
-helm upgrade --namespace=<name space> <release name> radiantone/fid --set image.tag=7.3.17
+helm upgrade --install --namespace=<name space> <release name> radiantone/fid --reuse-values
 ```
+
+### Clean Up
 * Delete FID release
+* Note: Does not delete the persistent volumes
 ```
 helm uninstall --namespace=<name space> <release name>
+```
+
+#### Remove Helm repo
+
+```
+helm repo remove radiantone
 ```
