@@ -11,7 +11,7 @@ data:
   action_file.yml: |
       actions:
         {{- $counter := 0 }}
-        {{- range .Values.curator.enableLogs }}
+        {{- range .Values.curator.logs }}
         {{- if .enable }}
         {{- $counter = add $counter 1 }}
         {{ $counter }}:

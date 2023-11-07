@@ -581,7 +581,7 @@ fluent-bit:
   enabled: false
   nodeSelector: {}
     # tenantname:
-  enablelogs:
+  logs:
     - name: eoc-backend
       enable: true
       path: /var/log/containers/eoc-backend-*.log
@@ -635,7 +635,7 @@ curator:
       logfile:
       logformat: default
       blacklist: ['elasticsearch', 'urllib3']
-  enableLogs:
+  logs:
     - name: "vds_server"
       enable: true
       unit: "days"
