@@ -182,11 +182,22 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/service-status
+      - name: 'ia-service-status'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-service-status
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
+    ia-service-status: "ia-service-status-dashboard"
 
 elasticsearch:
   enabled: true
