@@ -1,4 +1,4 @@
-{{- if eq .Values.metrics.fluentd.enabled true }}
+{{- if .Values.metrics.fluentd.enabled }}
 
 apiVersion: v1
 kind: ConfigMap
@@ -9,237 +9,50 @@ metadata:
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
-{{- if eq .Values.metrics.fluentd.enabledLogs.vds_server true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/vds_server.log
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_server.log.pos
-      tag vds_server.log
-    </source>
-    <filter vds_server.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_server.log>
-      {{- $log := "vds_server" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.vds_server_access true }}
-    <source>
-      @type tail
-      read_from_head true
-      path /opt/radiantone/vds/vds_server/logs/vds_server_access.csv
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_server_access.csv.pos
-      tag vds_server_access.log
-      <parse>
-        @type tsv
-        keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
-        types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
-      </parse>
-    </source>
-    <filter vds_server_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_server_access.log>
-      {{- $log := "vds_server_access" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.periodiccache true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/periodiccache.log
-      pos_file /opt/radiantone/vds/vds_server/logs/periodiccache.log.pos
-      tag periodiccache.log
-    </source>
-    <filter periodiccache.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match periodiccache.log>
-      {{- $log := "periodiccache" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.web true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/jetty/web.log
-      pos_file /opt/radiantone/vds/vds_server/logs/jetty/web.log.pos
-      tag web.log
-    </source>
-    <filter web.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match web.log>
-      {{- $log := "web" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.web_access true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/jetty/web_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/jetty/web_access.log.pos
-      tag web_access.log
-    </source>
-    <filter web_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match web_access.log>
-      {{- $log := "web_access" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.sync_engine true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log
-      pos_file /opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log.pos
-      tag sync_engine.log
-    </source>
-    <filter sync_engine.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match sync_engine.log>
-      {{- $log := "sync_engine" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.alerts true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/logs/alerts.log
-      pos_file /opt/radiantone/vds/logs/alerts.log.pos
-      tag alerts.log
-    </source>
-    <filter alerts.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match alerts.log>
-      {{- $log := "alerts" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.vds_events true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/vds_events.log
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_events.log.pos
-      tag vds_events.log
-    </source>
-    <filter vds_events.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_events.log>
-      {{- $log := "vds_events" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.adap_access true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/adap_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/adap_access.log.pos
-      tag adap_access.log
-    </source>
-    <filter adap_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match adap_access.log>
-      {{- $log := "adap_access" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabledLogs.admin_rest_api_access true }}
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log.pos
-      tag admin_rest_api_access.log
-    </source>
-    <filter admin_rest_api_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match admin_rest_api_access.log>
-      {{- $log := "admin_rest_api_access" }}
-      {{ include "aggregator.match.store" (dict "log" $log "Values" .Values) }}
-    </match>
-{{- end }}
+    {{- range $key, $val := .Values.metrics.fluentd.logs }}
+      {{- if $val.enabled }}
+        <source>
+          @type tail
+          read_from_head true
+          path {{ $val.path }}
+          pos_file {{ $val.path }}.pos
+          tag {{ $val.index }}
+          {{- if $val.parse }}
+          {{- $val.parse | nindent 10 }}
+          {{- else }}
+          format multiline
+          format_firstline /\d{4}-\d{1,2}-\d{1,2}/
+          format1 /^(?<message>.*)$/
+          {{- end }}
+        </source>
+        <filter {{ $val.index }}>
+          @type record_transformer
+          <record>
+            hostname ${hostname}
+            clustername FID_CLUSTER_NAME
+          </record>
+        </filter>
+        <match {{ $val.index }}>
+          @type copy
+          {{- range $.Values.metrics.fluentd.aggregators }}
+            <store>
+              @type {{ .type }}
+              {{- if eq .type "splunk_hec" }}
+              hec_host {{ .hec_hostname }}
+              hec_port {{ .hec_port }}
+              hec_token {{ .hec_token }}
+              insecure_ssl true
+              index {{ $val.index }}
+              {{- else }}
+              host {{ .host }}
+              port {{ .port }}
+              logstash_format true
+              logstash_prefix {{ $val.index }}
+              {{- end }}
+            </store>
+          {{- end }}
+        </match>
+      {{- end }}
+    {{- end }}
 
 {{- end }}

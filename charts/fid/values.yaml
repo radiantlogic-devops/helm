@@ -160,21 +160,54 @@ metrics:
   pushGateway: http://prometheus-server:9091
   pushMetricCron: "* * * * *"
   fluentd:
-    enabled: false
-    enabledLogs:
-      vds_server.log:
+    enabled: true
+    logs:
+      vds_server:
         enabled: true
-        path:
-
-      vds_server_access: true
-      vds_events: true
-      periodiccache: true
-      web: true
-      web_access: true
-      sync_engine: true
-      alerts: true
-      adap_access: true
-      admin_rest_api_access: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+        index: vds_server.log
+      vds_server_access:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.log"
+        index: vds_server_access.log
+        parse: |-
+          <parse>
+            @type tsv
+            keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
+            types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
+          </parse>
+      vds_events:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
+        index: vds_events.log
+      periodiccache:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
+        index: periodiccache.log
+      web:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/web.log"
+        index: web.log
+      web_access:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/web_access.log"
+        index: web_access.log
+      sync_engine:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/sync_engine.log"
+        index: sync_engine.log
+      alerts:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/alerts.log"
+        index: alerts.log
+      adap_access:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
+        index: adap_access.log
+      admin_rest_api_access:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
+        index: admin_rest_api_access.log
     configFile: /fluentd/etc/fluent.conf
     aggregators:
       - type: "elasticsearch"
@@ -187,7 +220,6 @@ metrics:
         hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
         hec_port: "8088"
         hec_token: ""
-        splunk_index: "vds_server_access"
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
