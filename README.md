@@ -10,7 +10,7 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 ```console
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
 helm install my-fid-release radiantone/fid --set fid.license=<license> \
---set dependencies.zookeeper.enabled=true --set image.tag=7.4 --set fid.mountSectes=false
+--set dependencies.zookeeper.enabled=true --set image.tag=7.4 --set fid.mountSecrets=false
 ```
 **NOTE**
 * Only 7.3.x and 7.4.x versions are supported for Helm deployments
