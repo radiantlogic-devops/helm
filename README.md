@@ -18,15 +18,23 @@ helm install my-fid-release radiantone/fid --set fid.license=<license> \
 ---
 ### Add Helm repo
 
-Once Helm has been set up correctly, add the repo as follows:
+Add the repo by running the following command:
 
 ```console
 helm repo add radiantone https://radiantlogic-devops.github.io/helm
 ```
 
-To update a repository that has already been added, run `helm repo update` to retrieve the latest versions of the packages.
+To update a repository that has been added and retrieve the latest versions, run the following command:
 
-To see the charts in the radiantone repository, run `helm search repo radiantone`
+```console
+helm repo update
+```
+
+To see the charts in the radiantone repository, run the following command:
+
+```console
+helm search repo radiantone
+```
 
 ### Charts
 
@@ -37,6 +45,9 @@ To see the charts in the radiantone repository, run `helm search repo radiantone
 ### Setup
 #### Installation
 ##### Install RadiantOne FID version 7.4 (latest) using helm --set values
+
+To install the helm chart, run the following command:
+
 ```console
 helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
 --set dependencies.zookeeper.enabled=true
@@ -44,11 +55,12 @@ helm upgrade --install --namespace=<name space> <release name> radiantone/fid \
 --set fid.license="<license key>" \
 --set fid.rootPassword="test1234" \
 --set fid.mountSecrets=false \
---set image.tag=7.4
+--set image.tag=7.4.7
 ```
 ---
 **NOTE**
 * Curly brackets in the license must be escaped --set fid.license="\{rlib\}xxx"
+* Image tag 7.4 contains the latest patch release (7.4.7)
 
 ---
 
@@ -58,7 +70,7 @@ Create a file with these contents and save it as fid_values.yaml
   
 ```yaml
 image:
-  tag: "7.4"
+  tag: "7.4.7"
 fid:
   rootPassword: "test1234"
   license: "<license key>"
@@ -69,7 +81,7 @@ dependencies:
   zookeeper:
     enabled: true
 ```
-Run this command
+Run the following command
 ```console
 helm upgrade --install --namespace=<name space> <release name> radiantone/fid --values fid_values.yaml
 ```
@@ -106,7 +118,7 @@ helm upgrade --install --namespace=<name space> <release name> radiantone/fid --
 * Using values file - update the values file with the newer version tag.
 ```yaml
 image:
-  tag: "7.4"
+  tag: "7.4.8"
 fid:
   rootPassword: "test1234"
   license: "<license key>"
@@ -125,14 +137,14 @@ helm upgrade --install --namespace=<name space> <release name> radiantone/fid --
 ### Clean Up
 * Delete FID release
 
----
-**NOTE**
-* Note: Does not delete the persistent volumes
-
----
 ```console
 helm uninstall --namespace=<name space> <release name>
 ```
+---
+**NOTE**
+* Does not delete the persistent volumes
+
+---
 
 #### Remove Helm repo
 
