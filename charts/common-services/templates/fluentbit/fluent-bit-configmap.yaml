@@ -1,0 +1,49 @@
+{{- if eq (index .Values "fluent-bit" "enabled") true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Daemon Off
+        Flush {{ index .Values "fluent-bit" "flush" }}
+        Log_Level {{ index .Values "fluent-bit" "logLevel" }}
+        Parsers_File parsers.conf
+        Parsers_File custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port {{ index .Values "fluent-bit" "metricsPort" }}
+        Health_Check On
+{{- with (index .Values "fluent-bit" "logs") }}
+    {{- range . }}
+    {{- if .enable }}
+    [INPUT]
+        Name              tail
+        Tag               {{ .name }}.log
+        Path              {{ .path }}
+        Exclude_Path      /var/log/containers/kube-*,/var/log/containers/*node*,/var/log/containers/*logstash*,/var/log/containers/fluent-bit*,/var/log/containers/aws-node*
+        Parser            docker
+        DB                /var/log/flb_kube.db
+        Skip_Long_Lines   On
+        Refresh_Interval  {{ .refresh_interval }}
+    [OUTPUT]
+        Name               {{ index $.Values "fluent-bit" "outputSearchType" }}
+        Match              {{ .name }}.log
+        Host               {{ index $.Values "fluent-bit" "outputSearchHost" }}
+        Trace_Error        On
+        Replace_Dots       On
+        Logstash_Format    off
+        Index              {{ .name }}-index
+        Retry_Limit        False
+    {{- end }}
+    {{- end }}
+{{- end }}
+  custom_parsers.conf: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+{{- end }}
