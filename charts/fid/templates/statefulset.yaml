@@ -287,11 +287,13 @@ spec:
               export CLUSTER=join;
             fi;
 
+            # Run the statrtup script
+            ./run.sh
+
             {{- if .Values.postInstall.enabled }}
-              ./run.sh
               ## if CURRENT_BUILDID="" it is a new install
-              if [ $CURRENT_BUILDID = "" ]; then
-                echo "Running post install script"
+              if [ "$CURRENT_BUILDID" = "" ]; then
+                echo ">> Running post install script"
                 {{- if .Values.postInstall.leaderOnly }}
                 if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
                   {{ .Values.postInstall.script | nindent 14 }}
@@ -300,14 +302,10 @@ spec:
                   {{ .Values.postInstall.script | nindent 14 }}
                 {{- end }}
               fi;
-              tail -f /dev/null
-            {{- else }}
-              ./run.sh fg
             {{- end }}
 
             {{- if .Values.postStart.enabled }}
-              ./run.sh
-              echo "Running post startup script"
+              echo ">> Running post startup script"
               {{- if .Values.postStart.leaderOnly }}
               if [ $HOSTNAME = {{ template "fid.fullname" . }}-0 ]; then
                 {{ .Values.postStart.script | nindent 14 }}
@@ -315,11 +313,10 @@ spec:
               {{- else }}
                 {{ .Values.postStart.script | nindent 14 }}
               {{- end }}
-              tail -f /dev/null
-            {{- else }}
-              ./run.sh fg
             {{- end }}
-
+            
+            tail -f /dev/null
+            
 {{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
