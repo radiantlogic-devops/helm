@@ -30,6 +30,7 @@ fid:
   ## Post migration script to be run after install (configure_fid.sh)
     script:
   # Mount the secrets by default instead of passing them as env variables. Works on for fid image 8.0.0 or higher
+  # Mount secrets should be set to "false" in versions lower than "8.x.x"
   mountSecrets: true
   # Set sealedSecrets id using sealedSecrets
   sealedSecrets: false
@@ -49,6 +50,8 @@ fid:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+# zookeeper configuration
+# zookeeper is set to external by default
 zk:
   external: true
   connectionString: "zookeeper-app:2181"
