@@ -35,8 +35,9 @@ spec:
             - "-c"
             - |
               set -ex
-              apt-get update && apt-get -y install postgresql-client s3cmd
-              s3cmd get s3://$S3_BUCKETNAME/$S3_FOLDERNAME/$LATEST_BACKUP_FILENAME /backup/$LATEST_BACKUP_FILENAME
+              apt-get update && apt-get -y install postgresql-client awscli
+              aws sts get-caller-identity
+              aws s3 cp s3://$S3_BUCKETNAME/$S3_FOLDERNAME/$LATEST_BACKUP_FILENAME /backup/$LATEST_BACKUP_FILENAME
               if [ -f /backup/$LATEST_BACKUP_FILENAME ]; then
                 gunzip -c /backup/$LATEST_BACKUP_FILENAME | psql --host=$PGHOST --username=$PGUSER
               else

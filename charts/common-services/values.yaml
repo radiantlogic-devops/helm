@@ -182,21 +182,33 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/service-status
+      - name: 'ia-service-status'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-service-status
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
+    ia-service-status: "ia-service-status-dashboard"
 
 elasticsearch:
   enabled: true
-  replicas: 2
+  replicas: 1
   nodeSelector: {}
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
     resources:
       requests:
         storage: 30Gi
+  clusterHealthCheckParams: "wait_for_status=yellow&timeout=60s"
 
 kibana:
   enabled: true
@@ -205,8 +217,10 @@ kibana:
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/kibana"
+      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
+
 
 haproxy:
   enabled: true
@@ -384,7 +398,7 @@ postgresql:
     # enabled: false
     # s3bucketName: ""
     # folderName: "postgresql"
-    # latestBackupName: "posgresql-latest.sql.gz"
+    # latestBackupName: "postgresql-latest.sql.gz"
 
 pgadmin4:
   enabled: true
@@ -576,7 +590,30 @@ opensearch-dashboards:
 
 fluent-bit:
   enabled: false
-  outputSearchHost: "elasticsearch-master"  # "opensearch-cluster-master"
+  nodeSelector: {}
+    # tenantname:
+  logs:
+    - name: eoc-backend
+      enable: true
+      path: /var/log/containers/eoc-backend-*.log
+      refresh_interval: 10
+    - name: eoc-orchestrator
+      enable: true
+      path: /var/log/containers/eoc-orchestrator-*.log
+      refresh_interval: 10
+    - name: sdc
+      enable: true
+      path: /var/log/containers/sdc-*.log
+      refresh_interval: 10
+    - name: client-router
+      enable: true
+      path: /var/log/containers/client-*.log
+      refresh_interval: 10
+    - name: tunnel
+      enable: true
+      path: /var/log/containers/r1tunnel*.log
+      refresh_interval: 10
+  outputSearchHost: "elasticsearch-master"
   fullnameOverride: "fluent-bit"
   outputSearchType: "es"  # "opensearch"
   flush: 1
@@ -588,136 +625,73 @@ fluent-bit:
     enabled: false
   serviceMonitor:
     enabled: false
+  existingConfigMap: fluent-bit-config
+
+curator:
+  enabled: false
+  config:
+    client:
+      hosts: ["elasticsearch-master"]
+      port: 9200
+      use_ssl: false
+      ssl_no_validate: true
+      timeout: 300
+      certificate:
+      client_cert:
+      client_key:
+      http_auth:
+      master_only: false
+    logging:
+      loglevel: "INFO"
+      logfile:
+      logformat: default
+      blacklist: ['elasticsearch', 'urllib3']
+  logs:
+    - name: "vds_server"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "vds_server_access"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+    - name: "adap_access"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+    - name: "adap"
+      enable: true
+      unit: "days"
+      unit_count: 7
+      direction: "older"
+  cronjob:
+    schedule: "* * * * *"
+    annotations: {}
+    labels: {}
+    concurrencyPolicy: ""
+    failedJobsHistoryLimit: ""
+    successfulJobsHistoryLimit: ""
+    jobRestartPolicy: Never
+    startingDeadlineSeconds: ""
+  pod:
+    annotations: {}
+  rbac:
+    enabled: true
+  serviceAccount:
+    create: true
+    annotations: {}
+  hooks:
+    install: false
+    upgrade: false
+  priorityClassName: ""
+  securityContext:
+    runAsUser: 16
+  psp:
+    create: false
+  dryrun: true
+  resources: {}
   nodeSelector: {}
     # tenantname:
-  config:
-    service: |
-      [SERVICE]
-          Daemon Off
-          Flush {{ .Values.flush }}
-          Log_Level {{ .Values.logLevel }}
-          Parsers_File parsers.conf
-          Parsers_File custom_parsers.conf
-          HTTP_Server On
-          HTTP_Listen 0.0.0.0
-          HTTP_Port {{ .Values.metricsPort }}
-          Health_Check On
-    inputs: |
-        [INPUT]
-            Name              tail
-            Tag               backend.log
-            Path              /var/log/containers/eoc-backend-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               orchestrator.log
-            Path              /var/log/containers/eoc-orchestrator-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               agents.log
-            Path              /var/log/containers/sdc-agent*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               clientrouter.log
-            Path              /var/log/containers/client-*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-        [INPUT]
-            Name              tail
-            Tag               r1tunnel.log
-            Path              /var/log/containers/r1tunnel*.log
-            Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
-            Parser            docker
-            DB                /var/log/flb_kube.db
-            Skip_Long_Lines   On
-            Refresh_Interval  10
-
-    outputs: |
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              backend.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              backend-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              orchestrator.*
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              orchestrator-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              agents.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              sdc-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              clientrouter.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              router-index
-            Retry_Limit        False
-
-        [OUTPUT]
-            Name               {{ .Values.outputSearchType }}
-            Match              r1tunnel.log
-            Host               {{ .Values.outputSearchHost }}
-            Trace_Error        On
-            Replace_Dots       On
-            Logstash_Format    off
-            Index              r1tunnel-index
-            Retry_Limit        False
-
-    customParsers: |
-        [PARSER]
-            Name docker_no_time
-            Format json
-            Time_Keep Off
-            Time_Key time
-            Time_Format %Y-%m-%dT%H:%M:%S.%L
-
-
-  # The config volume is mounted by default, either to the existingConfigMap value, or the default of "fluent-bit.fullname"
-  volumeMounts:
-    - name: config
-      mountPath: /fluent-bit/etc/fluent-bit.conf
-      subPath: fluent-bit.conf
-    - name: config
-      mountPath: /fluent-bit/etc/custom_parsers.conf
-      subPath: custom_parsers.conf

@@ -35,12 +35,13 @@ spec:
             - "-c"
             - |
               set -ex
-              apt-get update && apt-get -y install postgresql-client s3cmd
+              apt-get update && apt-get -y install postgresql-client awscli
               DATE=`date +%Y%m%d%H%M%S`
               FILENAME=postgresql-$DATE.sql.gz
               pg_dumpall --host=$PGHOST --username=$PGUSER | gzip > /backup/$FILENAME
-              s3cmd put /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$FILENAME
-              s3cmd put /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$LATEST_BACKUP_FILENAME
+              aws sts get-caller-identity
+              aws s3 cp /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$FILENAME
+              aws s3 mv /backup/$FILENAME s3://$S3_BUCKET/$S3_FOLDERNAME/$LATEST_BACKUP_FILENAME
             volumeMounts:
             - name: backup-volume
               mountPath: /backup

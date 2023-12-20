@@ -1,6 +1,6 @@
 # common-services
 
-![Version: 1.0.5](https://img.shields.io/badge/Version-1.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2](https://img.shields.io/badge/AppVersion-1.2-informational?style=flat-square)
+![Version: 1.0.6](https://img.shields.io/badge/Version-1.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2](https://img.shields.io/badge/AppVersion-1.2-informational?style=flat-square)
 
 A Helm chart for RadiantOne Common Services on Kubernetes
 
@@ -17,14 +17,14 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | https://argoproj.github.io/argo-helm | argo-cd | 5.6.0 |
 | https://charts.bitnami.com/bitnami | postgresql | 12.1.3 |
 | https://charts.bitnami.com/bitnami | zookeeper | 11.0.0 |
-| https://fluent.github.io/helm-charts | fluent-bit | 0.24.0 |
+| https://fluent.github.io/helm-charts | fluent-bit | 0.39.0 |
 | https://grafana.github.io/helm-charts | grafana | 6.40.0 |
 | https://haproxytech.github.io/helm-charts | haproxy | 1.17.3 |
 | https://helm.elastic.co | elasticsearch | 7.17.3 |
 | https://helm.elastic.co | kibana | 7.17.3 |
 | https://helm.runix.net | pgadmin4 | 1.13.8 |
-| https://opensearch-project.github.io/helm-charts | opensearch | 2.11.1 |
-| https://opensearch-project.github.io/helm-charts | opensearch-dashboards | 2.9.0 |
+| https://opensearch-project.github.io/helm-charts | opensearch | 2.16.1 |
+| https://opensearch-project.github.io/helm-charts | opensearch-dashboards | 2.14.0 |
 | https://prometheus-community.github.io/helm-charts | prometheus | 15.13.0 |
 
 ## Values
@@ -44,31 +44,99 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | argo-cd.repoServer.nodeSelector | object | `{}` |  |
 | argo-cd.server.nodeSelector | object | `{}` |  |
 | argo-cd.server.service.type | string | `"NodePort"` |  |
+| curator.config.client.certificate | string | `nil` |  |
+| curator.config.client.client_cert | string | `nil` |  |
+| curator.config.client.client_key | string | `nil` |  |
+| curator.config.client.hosts[0] | string | `"elasticsearch-master"` |  |
+| curator.config.client.http_auth | string | `nil` |  |
+| curator.config.client.master_only | bool | `false` |  |
+| curator.config.client.port | int | `9200` |  |
+| curator.config.client.ssl_no_validate | bool | `true` |  |
+| curator.config.client.timeout | int | `300` |  |
+| curator.config.client.use_ssl | bool | `false` |  |
+| curator.config.logging.blacklist[0] | string | `"elasticsearch"` |  |
+| curator.config.logging.blacklist[1] | string | `"urllib3"` |  |
+| curator.config.logging.logfile | string | `nil` |  |
+| curator.config.logging.logformat | string | `"default"` |  |
+| curator.config.logging.loglevel | string | `"INFO"` |  |
+| curator.cronjob.annotations | object | `{}` |  |
+| curator.cronjob.concurrencyPolicy | string | `""` |  |
+| curator.cronjob.failedJobsHistoryLimit | string | `""` |  |
+| curator.cronjob.jobRestartPolicy | string | `"Never"` |  |
+| curator.cronjob.labels | object | `{}` |  |
+| curator.cronjob.schedule | string | `"* * * * *"` |  |
+| curator.cronjob.startingDeadlineSeconds | string | `""` |  |
+| curator.cronjob.successfulJobsHistoryLimit | string | `""` |  |
+| curator.dryrun | bool | `true` |  |
+| curator.enabled | bool | `false` |  |
+| curator.hooks.install | bool | `false` |  |
+| curator.hooks.upgrade | bool | `false` |  |
+| curator.logs[0].direction | string | `"older"` |  |
+| curator.logs[0].enable | bool | `true` |  |
+| curator.logs[0].name | string | `"vds_server"` |  |
+| curator.logs[0].unit | string | `"days"` |  |
+| curator.logs[0].unit_count | int | `15` |  |
+| curator.logs[1].direction | string | `"older"` |  |
+| curator.logs[1].enable | bool | `true` |  |
+| curator.logs[1].name | string | `"vds_server_access"` |  |
+| curator.logs[1].unit | string | `"days"` |  |
+| curator.logs[1].unit_count | int | `7` |  |
+| curator.logs[2].direction | string | `"older"` |  |
+| curator.logs[2].enable | bool | `true` |  |
+| curator.logs[2].name | string | `"adap_access"` |  |
+| curator.logs[2].unit | string | `"days"` |  |
+| curator.logs[2].unit_count | int | `7` |  |
+| curator.logs[3].direction | string | `"older"` |  |
+| curator.logs[3].enable | bool | `true` |  |
+| curator.logs[3].name | string | `"adap"` |  |
+| curator.logs[3].unit | string | `"days"` |  |
+| curator.logs[3].unit_count | int | `7` |  |
+| curator.nodeSelector | object | `{}` |  |
+| curator.pod.annotations | object | `{}` |  |
+| curator.priorityClassName | string | `""` |  |
+| curator.psp.create | bool | `false` |  |
+| curator.rbac.enabled | bool | `true` |  |
+| curator.resources | object | `{}` |  |
+| curator.securityContext.runAsUser | int | `16` |  |
+| curator.serviceAccount.annotations | object | `{}` |  |
+| curator.serviceAccount.create | bool | `true` |  |
+| elasticsearch.clusterHealthCheckParams | string | `"wait_for_status=yellow&timeout=60s"` |  |
 | elasticsearch.enabled | bool | `true` |  |
 | elasticsearch.nodeSelector | object | `{}` |  |
 | elasticsearch.replicas | int | `1` |  |
-| elasticsearch.singleNode | bool | `true` |  |
 | elasticsearch.volumeClaimTemplate.resources.requests.storage | string | `"30Gi"` |  |
-| fluent-bit.config.customParsers | string | `"[PARSER]\n    Name docker_no_time\n    Format json\n    Time_Keep Off\n    Time_Key time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L\n"` |  |
-| fluent-bit.config.inputs | string | `"[INPUT]\n    Name              tail\n    Tag               backend.log\n    Path              /var/log/containers/eoc-backend-*.log\n    Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n\n[INPUT]\n    Name              tail\n    Tag               orchestrator.log\n    Path              /var/log/containers/eoc-orchestrator-*.log\n    Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/eoc-backend-*.log\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n\n[INPUT]\n    Name              tail\n    Tag               agents.log\n    Path              /var/log/containers/sdc-agent*.log\n    Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n\n[INPUT]\n    Name              tail\n    Tag               clientrouter.log\n    Path              /var/log/containers/client-*.log\n    Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n\n[INPUT]\n    Name              tail\n    Tag               acmeco.log\n    Path              /var/log/containers/acmeco*.log\n    Exclude_Path      /var/log/containers/fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n"` |  |
-| fluent-bit.config.outputs | string | `"[OUTPUT]\n    Name               {{ .Values.outputSearchType }}\n    Match              backend.log\n    Host               elasticsearch-master\n    Trace_Error        On\n    Replace_Dots       On\n    Logstash_Format    off\n    Index              backend-index\n    Retry_Limit        False\n\n[OUTPUT]\n    Name               {{ .Values.outputSearchType }}\n    Match              orchestrator.*\n    Host               elasticsearch-master\n    Trace_Error        On\n    Replace_Dots       On\n    Logstash_Format    off\n    Index              orchestrator-index\n    Retry_Limit        False\n\n[OUTPUT]\n    Name               {{ .Values.outputSearchType }}\n    Match              agents.log\n    Host               elasticsearch-master\n    Trace_Error        On\n    Replace_Dots       On\n    Logstash_Format    off\n    Index              sdc-index\n    Retry_Limit        False\n\n[OUTPUT]\n    Name               {{ .Values.outputSearchType }}\n    Match              clientrouter.log\n    Host               elasticsearch-master\n    Trace_Error        On\n    Replace_Dots       On\n    Logstash_Format    off\n    Index              router-index\n    Retry_Limit        False\n\n[OUTPUT]\n    Name               {{ .Values.outputSearchType }}\n    Match              acmeco.log\n    Host               elasticsearch-master\n    Trace_Error        On\n    Replace_Dots       On\n    Logstash_Format    off\n    Index              acmeco-index\n    Retry_Limit        False\n"` |  |
-| fluent-bit.config.service | string | `"[SERVICE]\n    Daemon Off\n    Flush {{ .Values.flush }}\n    Log_Level {{ .Values.logLevel }}\n    Parsers_File parsers.conf\n    Parsers_File custom_parsers.conf\n    HTTP_Server On\n    HTTP_Listen 0.0.0.0\n    HTTP_Port {{ .Values.metricsPort }}\n    Health_Check On\n"` |  |
-| fluent-bit.enabled | bool | `true` |  |
+| fluent-bit.enabled | bool | `false` |  |
+| fluent-bit.existingConfigMap | string | `"fluent-bit-config"` |  |
 | fluent-bit.flush | int | `1` |  |
 | fluent-bit.fullnameOverride | string | `"fluent-bit"` |  |
 | fluent-bit.logLevel | string | `"info"` |  |
+| fluent-bit.logs[0].enable | bool | `true` |  |
+| fluent-bit.logs[0].name | string | `"eoc-backend"` |  |
+| fluent-bit.logs[0].path | string | `"/var/log/containers/eoc-backend-*.log"` |  |
+| fluent-bit.logs[0].refresh_interval | int | `10` |  |
+| fluent-bit.logs[1].enable | bool | `true` |  |
+| fluent-bit.logs[1].name | string | `"eoc-orchestrator"` |  |
+| fluent-bit.logs[1].path | string | `"/var/log/containers/eoc-orchestrator-*.log"` |  |
+| fluent-bit.logs[1].refresh_interval | int | `10` |  |
+| fluent-bit.logs[2].enable | bool | `true` |  |
+| fluent-bit.logs[2].name | string | `"sdc"` |  |
+| fluent-bit.logs[2].path | string | `"/var/log/containers/sdc-*.log"` |  |
+| fluent-bit.logs[2].refresh_interval | int | `10` |  |
+| fluent-bit.logs[3].enable | bool | `true` |  |
+| fluent-bit.logs[3].name | string | `"client-router"` |  |
+| fluent-bit.logs[3].path | string | `"/var/log/containers/client-*.log"` |  |
+| fluent-bit.logs[3].refresh_interval | int | `10` |  |
+| fluent-bit.logs[4].enable | bool | `true` |  |
+| fluent-bit.logs[4].name | string | `"tunnel"` |  |
+| fluent-bit.logs[4].path | string | `"/var/log/containers/r1tunnel*.log"` |  |
+| fluent-bit.logs[4].refresh_interval | int | `10` |  |
 | fluent-bit.metricsPort | int | `2020` |  |
 | fluent-bit.nodeSelector | object | `{}` |  |
+| fluent-bit.outputSearchHost | string | `"elasticsearch-master"` |  |
 | fluent-bit.outputSearchType | string | `"es"` |  |
 | fluent-bit.prometheusRule.enabled | bool | `false` |  |
 | fluent-bit.service.type | string | `"ClusterIP"` |  |
 | fluent-bit.serviceMonitor.enabled | bool | `false` |  |
-| fluent-bit.volumeMounts[0].mountPath | string | `"/fluent-bit/etc/fluent-bit.conf"` |  |
-| fluent-bit.volumeMounts[0].name | string | `"config"` |  |
-| fluent-bit.volumeMounts[0].subPath | string | `"fluent-bit.conf"` |  |
-| fluent-bit.volumeMounts[1].mountPath | string | `"/fluent-bit/etc/custom_parsers.conf"` |  |
-| fluent-bit.volumeMounts[1].name | string | `"config"` |  |
-| fluent-bit.volumeMounts[1].subPath | string | `"custom_parsers.conf"` |  |
 | grafana."grafana.ini"."auth.anonymous".enabled | bool | `true` |  |
 | grafana."grafana.ini"."auth.anonymous".org_role | string | `"Viewer"` |  |
 | grafana."grafana.ini"."log.console".format | string | `"text"` |  |
@@ -79,6 +147,9 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana."grafana.ini".security.allow_embedding | bool | `true` |  |
 | grafana."grafana.ini".server.root_url | string | `"%(protocol)s://%(domain)s/grafana"` |  |
 | grafana."grafana.ini".server.serve_from_sub_path | bool | `true` |  |
+| grafana."grafana.ini".smtp.enabled | bool | `true` |  |
+| grafana."grafana.ini".smtp.from_address | string | `"saas@radiantlogic.com"` |  |
+| grafana."grafana.ini".smtp.host | string | `"smtp-server:25"` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".apiVersion | int | `1` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].allowUiUpdates | bool | `true` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].disableDeletion | bool | `false` |  |
@@ -107,8 +178,18 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[2].orgId | int | `1` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[2].type | string | `"file"` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[2].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].name | string | `"service-status"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].options.path | string | `"/var/lib/grafana/dashboards/service-status"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[3].updateIntervalSeconds | int | `10` |  |
 | grafana.dashboardsConfigMaps.elasticsearch | string | `"audit-logs-elastic-dashboard"` |  |
 | grafana.dashboardsConfigMaps.fid | string | `"fid-dashboard"` |  |
+| grafana.dashboardsConfigMaps.service-status | string | `"service-status-dashboard"` |  |
 | grafana.dashboardsConfigMaps.zookeeper | string | `"zookeeper-dashboard"` |  |
 | grafana.datasources."datasources.yaml".apiVersion | int | `1` |  |
 | grafana.datasources."datasources.yaml".datasources[0].access | string | `"proxy"` |  |
@@ -134,15 +215,36 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.datasources."datasources.yaml".datasources[2].name | string | `"Alertmanager"` |  |
 | grafana.datasources."datasources.yaml".datasources[2].type | string | `"alertmanager"` |  |
 | grafana.datasources."datasources.yaml".datasources[2].url | string | `"http://prometheus-alertmanager"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].access | string | `"proxy"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].jsonData.esVersion | int | `70` |  |
+| grafana.datasources."datasources.yaml".datasources[3].jsonData.interval | string | `"Daily"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].jsonData.timeField | string | `"@timestamp"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].name | string | `"OpenSearch"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].type | string | `"opensearch"` |  |
+| grafana.datasources."datasources.yaml".datasources[3].url | string | `"http://opensearch-cluster-master:9200"` |  |
 | grafana.enabled | bool | `true` |  |
 | grafana.fullnameOverride | string | `"grafana"` |  |
 | grafana.nodeSelector | object | `{}` |  |
 | grafana.persistence.enabled | bool | `true` |  |
 | grafana.persistence.size | string | `"8Gi"` |  |
-| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  #use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  #use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  #use_backend alertmanager_backend if { path /alertmanager } or { path_beg /alertmanager/ }\n  #use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  #use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  #use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  #use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  #use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  #use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n  #use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }\n\nbackend argocd_backend\n  server argocd argocd-server:80\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\n#backend alertmanager_backend\n  #http-request set-path %[path,regsub(^/alertmanager/?,/)]\n  #server alertmanager prometheus-alertmanager:80\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n#backend pgadmin4_backend\n  #server pgadmin4 pgadmin4:80\nbackend slamd_backend\n  server slamd slamd:80\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n#backend eocui_backend\n  #server eocui eoc-ui-service:80\n#backend eocapi_backend\n  #server eocapi eoc-backend-service:80\n#backend sdcapi_backend\n  #server sdcapi sdc-agent:80\n"` |  |
+| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  # routing\n  {{- if ((.Values.route).argocd | default false) }}\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  {{- end }}\n  {{- if ((.Values.route).grafana | default false) }}\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  {{- end }}\n  {{- if ((.Values.route).prometheus | default false) }}\n  use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  {{- end }}\n  {{- if ((.Values.route).pushgateway | default false) }}\n  use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  {{- end }}\n  {{- if ((.Values.route).kibana | default false) }}\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  {{- end }}\n  {{- if ((.Values.route).elasticsearch | default false) }}\n  use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  {{- end }}\n  {{- if ((.Values.route).pgadmin4 | default false) }}\n  use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  {{- end }}\n  {{- if ((.Values.route).slamd | default false) }}\n  use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  {{- end }}\n  {{- if ((.Values.route).shellinabox | default false) }}\n  use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  {{- end }}\n  {{- if ((.Values.route).eocui | default false) }}\n  use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  {{- end }}\n  {{- if ((.Values.route).eocapi | default false) }}\n  use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n  {{- end }}\n  {{- if ((.Values.route).sdccui | default false) }}\n  use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearchdashboards | default false) }}\n  use_backend opensearchdashboards_backend if { path /opensearch-dashboards } or { path_beg /opensearch-dashboards/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearch | default false) }}\n  use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }\n  {{- end }}\n\n# backends\n{{- if ((.Values.route).argocd | default false) }}\nbackend argocd_backend\n  server argocd argocd-server:80\n{{- end }}\n{{- if ((.Values.route).grafana | default false) }}\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\n{{- end }}\n{{- if ((.Values.route).prometheus | default false) }}\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\n{{- end }}\n{{- if ((.Values.route).pushgateway | default false) }}\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n{{- end }}\n{{- if ((.Values.route).kibana | default false) }}\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\n{{- end }}\n{{- if ((.Values.route).elasticsearch | default false) }}\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\n{{- end }}\n{{- if ((.Values.route).pgadmin4 | default false) }}\nbackend pgadmin4_backend\n  server pgadmin4 pgadmin4:80\n{{- end }}\n{{- if ((.Values.route).slamd | default false) }}\nbackend slamd_backend\n  server slamd slamd:80\n{{- end }}\n{{- if ((.Values.route).shellinabox | default false) }}\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n{{- end }}\n{{- if ((.Values.route).eocui | default false) }}\nbackend eocui_backend\n  server eocui eoc-ui-service:80\n{{- end }}\n{{- if ((.Values.route).eocapi | default false) }}\nbackend eocapi_backend\n  server eocapi eoc-backend-service:80\n{{- end }}\n{{- if ((.Values.route).sdccui | default false) }}\nbackend sdcapi_backend\n  server sdcapi sdc-agent:80\n{{- end }}\n{{- if ((.Values.route).opensearchdashboards | default false) }}\nbackend opensearchdashboards_backend\n  #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]\n  server opensearchdashboards opensearch-dashboards:5601\n{{- end }}\n{{- if ((.Values.route).opensearch | default false) }}\nbackend opensearch_backend\n  http-request set-path %[path,regsub(^/opensearch/?,/)]\n  server opensearch opensearch-cluster-master:9200\n{{- end }}\n"` |  |
 | haproxy.enabled | bool | `true` |  |
 | haproxy.fullnameOverride | string | `"haproxy"` |  |
 | haproxy.nodeSelector | object | `{}` |  |
+| haproxy.route.argocd | bool | `true` |  |
+| haproxy.route.elasticsearch | bool | `false` |  |
+| haproxy.route.eocapi | bool | `false` |  |
+| haproxy.route.eocui | bool | `false` |  |
+| haproxy.route.grafana | bool | `true` |  |
+| haproxy.route.kibana | bool | `true` |  |
+| haproxy.route.opensearch | bool | `false` |  |
+| haproxy.route.opensearchdashboards | bool | `false` |  |
+| haproxy.route.pgadmin4 | bool | `false` |  |
+| haproxy.route.prometheus | bool | `false` |  |
+| haproxy.route.pushgateway | bool | `false` |  |
+| haproxy.route.sdcapi | bool | `false` |  |
+| haproxy.route.shellinabox | bool | `false` |  |
+| haproxy.route.slamd | bool | `false` |  |
 | haproxy.service.type | string | `"NodePort"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `"alb"` |  |
@@ -152,11 +254,11 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | ingress.tls | list | `[]` |  |
 | kibana.enabled | bool | `true` |  |
 | kibana.fullnameOverride | string | `"kibana"` |  |
-| kibana.kibanaConfig."kibana.yml" | string | `"server.basePath: \"/kibana\"\ntelemetry.optIn: false\nsecurity.showInsecureClusterWarning: false\n"` |  |
+| kibana.kibanaConfig."kibana.yml" | string | `"server.basePath: \"/kibana\"\nserver.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana\ntelemetry.optIn: false\nsecurity.showInsecureClusterWarning: false\n"` |  |
 | kibana.nodeSelector | object | `{}` |  |
 | nodeSelector | object | `{}` |  |
 | opensearch-dashboards.config."opensearch_dashboards.yml" | string | `"server:\n  basePath: \"/opensearch-dashboards\"\n  rewriteBasePath: true\n"` |  |
-| opensearch-dashboards.enabled | bool | `true` |  |
+| opensearch-dashboards.enabled | bool | `false` |  |
 | opensearch-dashboards.extraEnvs[0].name | string | `"DISABLE_SECURITY_DASHBOARDS_PLUGIN"` |  |
 | opensearch-dashboards.extraEnvs[0].value | string | `"true"` |  |
 | opensearch-dashboards.fullnameOverride | string | `"opensearch-dashboards"` |  |
@@ -174,23 +276,22 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | opensearch-dashboards.service.port | int | `5601` |  |
 | opensearch-dashboards.service.type | string | `"ClusterIP"` |  |
 | opensearch.clusterName | string | `"opensearch-cluster"` |  |
-| opensearch.enabled | bool | `true` |  |
-| opensearch.extraContainers | list | `[]` |  |
+| opensearch.enabled | bool | `false` |  |
 | opensearch.extraEnvs[0].name | string | `"DISABLE_SECURITY_PLUGIN"` |  |
 | opensearch.extraEnvs[0].value | string | `"true"` |  |
-| opensearch.extraInitContainers | list | `[]` |  |
-| opensearch.extraVolumeMounts | list | `[]` |  |
-| opensearch.extraVolumes | list | `[]` |  |
+| opensearch.extraEnvs[1].name | string | `"DISABLE_INSTALL_DEMO_CONFIG"` |  |
+| opensearch.extraEnvs[1].value | string | `"true"` |  |
 | opensearch.fullnameOverride | string | `"opensearch"` |  |
 | opensearch.masterService | string | `"opensearch-cluster-master"` |  |
 | opensearch.nodeGroup | string | `"master"` |  |
 | opensearch.nodeSelector | object | `{}` |  |
+| opensearch.persistence.size | string | `"30Gi"` |  |
 | opensearch.podSecurityContext.fsGroup | int | `1000` |  |
 | opensearch.podSecurityContext.runAsUser | int | `1000` |  |
 | opensearch.rbac.create | bool | `false` |  |
 | opensearch.rbac.serviceAccountAnnotations | object | `{}` |  |
 | opensearch.rbac.serviceAccountName | string | `""` |  |
-| opensearch.replicas | int | `3` |  |
+| opensearch.replicas | int | `1` |  |
 | opensearch.service.annotations | object | `{}` |  |
 | opensearch.service.httpPortName | string | `"http"` |  |
 | opensearch.service.nodePort | string | `""` |  |
@@ -215,36 +316,11 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | postgresql.primary.initdb.scriptsConfigMap | string | `"postgres-init-script"` |  |
 | postgresql.primary.nodeSelector | object | `{}` |  |
 | postgresql.primary.persistence.size | string | `"10Gi"` |  |
-| prometheus.alertmanager.config.global.slack_api_url | string | `"https://hooks.slack.com/services/XXXXXXXXXXXX"` |  |
-| prometheus.alertmanager.config.global.smtp_auth_password | string | `""` |  |
-| prometheus.alertmanager.config.global.smtp_auth_username | string | `""` |  |
-| prometheus.alertmanager.config.global.smtp_from | string | `"saas@radiantlogic.com"` |  |
-| prometheus.alertmanager.config.global.smtp_smarthost | string | `"smtp-server:25"` |  |
-| prometheus.alertmanager.config.inhibit_rules[0].equal[0] | string | `"alertname"` |  |
-| prometheus.alertmanager.config.inhibit_rules[0].source_matchers[0] | string | `"severity=\"critical\""` |  |
-| prometheus.alertmanager.config.inhibit_rules[0].target_matchers[0] | string | `"severity=\"warning\""` |  |
-| prometheus.alertmanager.config.receivers[0].email_configs[0].to | string | `"username_to@example.com"` |  |
-| prometheus.alertmanager.config.receivers[0].name | string | `"team-fid-devops"` |  |
-| prometheus.alertmanager.config.receivers[0].slack_configs[0].channel | string | `"#devops"` |  |
-| prometheus.alertmanager.config.receivers[0].slack_configs[0].send_resolved | bool | `true` |  |
-| prometheus.alertmanager.config.receivers[0].slack_configs[0].text | string | `"{{ range .Alerts -}} *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }} *Description:* {{ .Annotations.description }} *Details:*\n  {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`\n  {{ end }}\n{{ end }}"` |  |
-| prometheus.alertmanager.config.receivers[0].slack_configs[0].title | string | `"[{{ .Status | toUpper }}{{ if eq .Status \"firing\" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}\n{{- if gt (len .CommonLabels) (len .GroupLabels) -}}\n  {{\" \"}}(\n  {{- with .CommonLabels.Remove .GroupLabels.Names }}\n    {{- range $index, $label := .SortedPairs -}}\n      {{ if $index }}, {{ end }}\n      {{- $label.Name }}=\"{{ $label.Value -}}\"\n    {{- end }}\n  {{- end -}}\n  )\n{{- end }}"` |  |
-| prometheus.alertmanager.config.route.group_by[0] | string | `"alertname"` |  |
-| prometheus.alertmanager.config.route.group_interval | string | `"3h"` |  |
-| prometheus.alertmanager.config.route.group_wait | string | `"30s"` |  |
-| prometheus.alertmanager.config.route.receiver | string | `"team-fid-devops"` |  |
-| prometheus.alertmanager.config.route.repeat_interval | string | `"3h"` |  |
-| prometheus.alertmanager.config.route.routes[0].matchers[0] | string | `"monitor=~\"fid|radiantone|vds\""` |  |
-| prometheus.alertmanager.config.route.routes[0].receiver | string | `"team-fid-devops"` |  |
-| prometheus.alertmanager.config.templates[0] | string | `"/etc/alertmanager/*.tmpl"` |  |
-| prometheus.alertmanager.configmapReload.enabled | bool | `false` |  |
 | prometheus.alertmanager.enabled | bool | `false` |  |
-| prometheus.alertmanager.fullnameOverride | string | `"prometheus-alertmanager"` |  |
-| prometheus.alertmanager.nodeSelector | object | `{}` |  |
-| prometheus.alertmanager.replicationCount | int | `1` |  |
 | prometheus.enabled | bool | `true` |  |
 | prometheus.kubeStateMetrics.enabled | bool | `false` |  |
 | prometheus.nodeExporter.enabled | bool | `false` |  |
+| prometheus.pushgateway.extraArgs."web.enable-admin-api" | bool | `true` |  |
 | prometheus.pushgateway.fullnameOverride | string | `"prometheus-pushgateway"` |  |
 | prometheus.pushgateway.nodeSelector | object | `{}` |  |
 | prometheus.server.configmapReload.enabled | bool | `false` |  |
@@ -256,25 +332,6 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | prometheus.server.nodeSelector | object | `{}` |  |
 | prometheus.server.persistentVolume.size | string | `"8Gi"` |  |
 | prometheus.server.statefulSet.enabled | bool | `true` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].name | string | `"FID alerts"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].alert | string | `"FID memory is high"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].annotations.description | string | `"warning! {{ $labels.job }} on {{ $labels.instance }} found FID memory usage is more than 80% for 120s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].annotations.title | string | `"FID Memory usage on {{ $labels.instance }} is more than 80%"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].expr | string | `"(ldap_memory_used{job=\"fid-targets\"}/ldap_memory_max{job=\"fid-targets\"}) * 100 > 80"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].for | string | `"120s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[0].labels.severity | string | `"warning"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].alert | string | `"FID connections are high"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].annotations.description | string | `"warning! {{ $labels.job }} on {{ $labels.instance }} found FID connections are morethan 5 for 10s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].annotations.title | string | `"FID connections on {{ $labels.instance }} are more than 800"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].expr | string | `"ldap_current_connections{job=\"fid-targets\"} > 800"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].for | string | `"10s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[1].labels.severity | string | `"warning"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].alert | string | `"FID node disk usage is high"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].annotations.description | string | `"warning! {{ $labels.job }} on {{ $labels.instance }} found FID node disk usage are more than 80% for 120s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].annotations.title | string | `"FID node disk usage on {{ $labels.instance }} is more than 80%"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].expr | string | `"(ldap_disk_used{job=\"fid-targets\"}/ldap_disk_total{job=\"fid-targets\"}) * 100 > 80"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].for | string | `"120s"` |  |
-| prometheus.serverFiles."alerting_rules.yml".groups[0].rules[2].labels.severity | string | `"warning"` |  |
 | shellinabox.affinity | object | `{}` |  |
 | shellinabox.enabled | bool | `true` |  |
 | shellinabox.image.pullPolicy | string | `"IfNotPresent"` |  |

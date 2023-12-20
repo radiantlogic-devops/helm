@@ -184,7 +184,7 @@
           "refId": "memory_used"
         }
       ],
-      "title": "RAM Usage",
+      "title": "Memory Usage",
       "type": "gauge"
     },
     {
@@ -1143,7 +1143,7 @@
           "refId": "memory_used_graph"
         }
       ],
-      "title": "RAM Usage",
+      "title": "Memory Usage",
       "type": "timeseries"
     },
     {
