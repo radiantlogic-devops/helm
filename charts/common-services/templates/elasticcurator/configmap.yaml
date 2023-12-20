@@ -1,0 +1,58 @@
+{{- if eq .Values.curator.enabled true }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: curator-config
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+    app: curator
+data:
+  action_file.yml: |
+      actions:
+        {{- $counter := 0 }}
+        {{- range .Values.curator.logs }}
+        {{- if .enable }}
+        {{- $counter = add $counter 1 }}
+        {{ $counter }}:
+          action: delete_indices
+          description: "Delete indices older than {{ .unit_count }} days"
+          options:
+            timeout_override:
+            continue_if_exception: False
+            disable_action: False
+            ignore_empty_list: True
+          filters:
+            - filtertype: pattern
+              kind: prefix
+              value: {{ .name }}
+              exclude: False
+            - filtertype: age
+              source: name
+              timestring: '%Y.%m.%d'
+              unit: {{ .unit }}
+              unit_count: {{ .unit_count }}
+              direction: {{ .direction }}
+        {{- end }}
+        {{- end }}
+  config.yml: |
+      client:
+        hosts:
+          {{- range .Values.curator.config.client.hosts }}
+          - {{ . }}
+          {{- end }}
+        port: {{ .Values.curator.config.client.port }}
+        use_ssl: {{ .Values.curator.config.client.use_ssl }}
+        client_cert: {{ .Values.curator.config.client.client_cert }}
+        client_key: {{ .Values.curator.config.client.client_key }}
+        ssl_no_validate: {{ .Values.curator.config.client.ssl_no_validate }}
+        timeout: {{ .Values.curator.config.client.timeout }}
+        http_auth: {{ .Values.curator.config.client.http_auth }}
+        master_only: {{ .Values.curator.config.client.master_only }}
+      logging:
+        loglevel: {{ .Values.curator.config.logging.loglevel }}
+        logfile: {{ .Values.curator.config.logging.logfile }}
+        logformat: {{ .Values.curator.config.logging.logformat }}
+        blacklist: {{ .Values.curator.config.logging.blacklist }}
+
+{{- end }}
