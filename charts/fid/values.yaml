@@ -216,13 +216,13 @@ metrics:
       - type: "elasticsearch"
         host: "elastic-host"
         port: "9200"
-      - type: "opensearch"
-        host: "opensearch-cluster-master"
-        port: "9200"
-      - type: "splunk_hec"
-        hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
-        hec_port: "8088"
-        hec_token: ""
+      # - type: "opensearch"
+      #   host: "opensearch-cluster-master"
+      #   port: "9200"
+      # - type: "splunk_hec"
+      #   hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
+      #   hec_port: "8088"
+      #   hec_token: ""
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
@@ -261,16 +261,6 @@ gateway:
   ldaps:
     name: "ldaps"
     port: 2636
-
-# Kibana
-# Below is to import Kibana Dahsboard and Index patterns
-# If Kibana is deployed and healthy, changed the enabled to "true"
-# Provide kibana URL in the kibanaURL field
-# Setting enable to true will create a config_map and run a kubernetes job
-
-kibanadashboard:
-  enabled: false
-  kibanaURL: "<kibana-service-name>.<namespace>.svc.cluster.local:<kibana-port>"
 
 # Cronjob that runs migration export on a schedule
 # Uploads the artifact to an s3 bucket
