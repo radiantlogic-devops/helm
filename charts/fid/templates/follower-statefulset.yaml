@@ -107,6 +107,8 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          privileged: true
         lifecycle:
           postStart:
             exec:
@@ -225,10 +227,6 @@ spec:
         volumeMounts:
         - name: r1-pvc
           mountPath: /opt/radiantone/vds
-        - name: migrations
-          mountPath: /migrations
-        - name: scripts
-          mountPath: /opt/radiantone/scripts
 {{- if .Values.fid.mountSecrets }}
         - name: fid-creds
           mountPath: /var/secrets
@@ -281,21 +279,17 @@ spec:
             configMapKeyRef:
               name: {{ template "fid.fullname" . }}
               key: ZK_CLUSTER
-{{- if .Values.fid.rootUser }}
         - name: BIND_DN
           value: "uid=operator,ou=globalusers,cn=config"
           # valueFrom:
           #  secretKeyRef:
           #    name: rootcreds-{{ template "fid.fullname" . }}
           #    key: fid-root-username
-{{- end }}
-{{- if .Values.fid.rootPassword }}
         - name: BIND_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
-{{- end }}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
@@ -326,10 +320,6 @@ spec:
       {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $ ) | nindent 6 }}
 {{- end }}
       volumes:
-      - name: scripts
-        emptyDir: {}
-      - name: migrations
-        emptyDir: {}
 {{- if .Values.fid.mountSecrets }}
       - name: fid-creds
         secret:

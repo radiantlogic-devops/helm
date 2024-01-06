@@ -147,6 +147,8 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          privileged: true
         lifecycle:
           postStart:
             exec:
@@ -287,7 +289,7 @@ spec:
               export CLUSTER=join;
             fi;
 
-            # Run the statrtup script
+            # Run the startup script
             ./run.sh
 
             {{- if .Values.postInstall.enabled }}

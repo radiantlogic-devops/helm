@@ -155,7 +155,7 @@ persistence:
 ## Under development
 ##
 metrics:
-  enabled: true
+  enabled: false
   image: radiantone/fid-exporter
   imageTag: latest
   annotations: {}
@@ -163,7 +163,7 @@ metrics:
   pushGateway: http://prometheus-server:9091
   pushMetricCron: "* * * * *"
   fluentd:
-    enabled: true
+    enabled: false
     logs:
       vds_server:
         enabled: true
