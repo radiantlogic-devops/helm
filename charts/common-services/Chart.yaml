@@ -75,3 +75,7 @@ dependencies:
   version: 0.39.0
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
+- name: velero
+  version: 5.2.2
+  repository: https://vmware-tanzu.github.io/helm-charts
+  condition: velero.enabled

@@ -695,3 +695,33 @@ curator:
   resources: {}
   nodeSelector: {}
     # tenantname:
+
+velero:
+  enabled: false
+  backupStorage:
+    bucket: ""
+    region: ""
+  fullnameOverride: "velero"
+  credentials:
+    useSecret: false
+  cleanUpCRDs: true
+  nodeSelector: {}
+  configuration:
+    backupStorageLocation:
+      - name: default
+        provider: aws
+        bucket: {{ required ".Values.velero.backupStorage.bucket is required" .Values.backupStorage.bucket}}
+        config:
+          region: {{ required ".Values.velero.backupStorage.region is required" .Values.backupStorage.region }}
+    volumeSnapshotLocation:
+      - name: default
+        provider: aws
+        config:
+          region: {{ required ".Values.velero.backupStorage.region is required" .Values.backupStorage.region }}
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: "velero/velero-plugin-for-aws:v1.8.2"
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
