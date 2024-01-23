@@ -710,14 +710,14 @@ velero:
     backupStorageLocation:
       - name: default
         provider: aws
-        bucket: {{ .Values.backupStorage.bucket }}
+        bucket: {{ (.Values.backupStorage).bucket | default "" }}
         config:
-          region: {{ .Values.backupStorage.region }}
+          region: {{ (.Values.backupStorage).region | default "" }}
     volumeSnapshotLocation:
       - name: default
         provider: aws
         config:
-          region: {{ .Values.backupStorage.region }}
+          region: {{ (.Values.backupStorage).region | default "" }}
   initContainers:
     - name: velero-plugin-for-aws
       image: "velero/velero-plugin-for-aws:v1.8.2"
