@@ -698,26 +698,29 @@ curator:
 
 velero:
   enabled: false
+  fullnameOverride: "velero"
   backupStorage:
     bucket: ""
     region: ""
-  fullnameOverride: "velero"
+    # defines how frequently Velero should validate the object storage
+    validationFrequency: 1h
+    # prefix is the directory under which all Velero data should be stored within the bucket
+    prefix:
   credentials:
     useSecret: false
   cleanUpCRDs: true
   nodeSelector: {}
   configuration:
-    backupStorageLocation:
-      - name: default
-        provider: aws
-        bucket: {{ (.Values.backupStorage).bucket | default "" }}
-        config:
-          region: {{ (.Values.backupStorage).region | default "" }}
-    volumeSnapshotLocation:
-      - name: default
-        provider: aws
-        config:
-          region: {{ (.Values.backupStorage).region | default "" }}
+    defaultBackupStorageLocation: common-bsl
+    defaultVolumeSnapshotLocations: common-vsl
+    # how long to wait by default before backups can be garbage collected
+    defaultBackupTTL: 168h
+    # the frequency of the reconciliation loop that garbage the expired backups
+    garbageCollectionFrequency: 1h
+    # avoid default Backup Storage Location to be created by Velero chart
+    backupStorageLocation: nil
+    # avoid default Volume Storage Location to be created by Velero chart
+    volumeSnapshotLocation: nil
   initContainers:
     - name: velero-plugin-for-aws
       image: "velero/velero-plugin-for-aws:v1.8.2"
