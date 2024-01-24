@@ -15,9 +15,9 @@ spec:
   accessMode: ReadWrite
   objectStorage:
     bucket: {{ .Values.velero.backupStorage.bucket | quote }}
+    {{- with  .Values.velero.backupStorage.prefix }}
+    prefix: {{ . | quote }}
+    {{- end }}
   config:
     region: {{ .Values.velero.backupStorage.region | quote }}
-  {{- with  .Values.velero.backupStorage.prefix }}
-  prefix: {{ . | quote }}
-  {{- end }}
 {{- end }}
