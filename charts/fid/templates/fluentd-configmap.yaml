@@ -4,15 +4,16 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluentd-config
-  annotations:
-    "helm.sh/hook": pre-install, pre-upgrade
-    "helm.sh/hook-weight": "5"
-    "helm.sh/hook-delete-policy": before-hook-creation
+#  annotations:
+#    "helm.sh/hook": pre-install, pre-upgrade
+#    "helm.sh/hook-weight": "5"
+#    "helm.sh/hook-delete-policy": before-hook-creation
   labels:
     {{- include "fid.labels" . | nindent 4 }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
+    {{ $clusterName := .Values.zk.clusterName }}
     {{- range $key, $val := .Values.metrics.fluentd.logs }}
       {{- if $val.enabled }}
         <source>
@@ -33,7 +34,7 @@ data:
           @type record_transformer
           <record>
             hostname ${hostname}
-            clustername FID_CLUSTER_NAME
+            clustername {{ $clusterName }}
           </record>
         </filter>
         <match {{ $val.index }}>

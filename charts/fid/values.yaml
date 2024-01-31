@@ -171,7 +171,7 @@ metrics:
         index: vds_server.log
       vds_server_access:
         enabled: true
-        path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.log"
+        path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
         index: vds_server_access.log
         parse: |-
           <parse>
@@ -214,7 +214,7 @@ metrics:
     configFile: /fluentd/etc/fluent.conf
     aggregators:
       - type: "elasticsearch"
-        host: "elastic-host"
+        host: "elasticsearch-master"
         port: "9200"
       # - type: "opensearch"
       #   host: "opensearch-cluster-master"
