@@ -164,8 +164,6 @@ metrics:
   pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
-#Providing elasticSearchHost is optional, for multiple outputs use "aggregators"
-    #elasticSearchHost: elasticsearch-master
     logs:
       vds_server:
         enabled: true
