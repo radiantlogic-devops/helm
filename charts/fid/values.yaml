@@ -164,6 +164,8 @@ metrics:
   pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
+    # Providing elasticSearchHost is optional, for multiple outputs use "aggregators"
+    #elasticSearchHost: elasticsearch-master
     logs:
       vds_server:
         enabled: true
@@ -213,9 +215,9 @@ metrics:
         index: admin_rest_api_access.log
     configFile: /fluentd/etc/fluent.conf
     aggregators:
-      - type: "elasticsearch"
-        host: "elasticsearch-master"
-        port: "9200"
+      # - type: "elasticsearch"
+      #   host: "elasticsearch-master"
+      #   port: "9200"
       # - type: "opensearch"
       #   host: "opensearch-cluster-master"
       #   port: "9200"

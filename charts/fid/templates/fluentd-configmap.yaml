@@ -1,18 +1,16 @@
-{{- if .Values.metrics.fluentd.enabled }}
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluentd-config
-#  annotations:
-#    "helm.sh/hook": pre-install, pre-upgrade
-#    "helm.sh/hook-weight": "5"
-#    "helm.sh/hook-delete-policy": before-hook-creation
   labels:
     {{- include "fid.labels" . | nindent 4 }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
+    {{- if semverCompare ">1.0.0" .Chart.Version }}
+    # Configuration for Helm chart version > 1.0.0
+    {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
+    {{- $aggregators := .Values.metrics.fluentd.aggregators }}
     {{ $clusterName := .Values.zk.clusterName }}
     {{- range $key, $val := .Values.metrics.fluentd.logs }}
       {{- if $val.enabled }}
@@ -39,25 +37,34 @@ data:
         </filter>
         <match {{ $val.index }}>
           @type copy
-          {{- range $.Values.metrics.fluentd.aggregators }}
+          {{- if gt (len $aggregators) 0 }}
+            {{- range $aggregators }}
+              <store>
+                @type {{ .type }}
+                {{- if eq .type "splunk_hec" }}
+                hec_host {{ .hec_hostname }}
+                hec_port {{ .hec_port }}
+                hec_token {{ .hec_token }}
+                insecure_ssl true
+                index {{ $val.index }}
+                {{- else }}
+                host {{ .host }}
+                port {{ .port }}
+                logstash_format true
+                logstash_prefix {{ $val.index }}
+                {{- end }}
+              </store>
+            {{- end }}
+          {{- else if $elasticSearchHost }}
             <store>
-              @type {{ .type }}
-              {{- if eq .type "splunk_hec" }}
-              hec_host {{ .hec_hostname }}
-              hec_port {{ .hec_port }}
-              hec_token {{ .hec_token }}
-              insecure_ssl true
-              index {{ $val.index }}
-              {{- else }}
-              host {{ .host }}
-              port {{ .port }}
+              @type elasticsearch
+              host {{ $elasticSearchHost }}
+              port "9200"
               logstash_format true
               logstash_prefix {{ $val.index }}
-              {{- end }}
             </store>
           {{- end }}
         </match>
       {{- end }}
     {{- end }}
-
-{{- end }}
+    {{- end }}
