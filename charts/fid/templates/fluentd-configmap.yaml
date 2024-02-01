@@ -1,3 +1,4 @@
+{{- if .Values.metrics.fluentd.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,8 +11,8 @@ data:
     {{- if semverCompare ">1.0.0" .Chart.Version }}
     # Configuration for Helm chart version > 1.0.0
     {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
-    {{- $aggregators := .Values.metrics.fluentd.aggregators }}
-    {{ $clusterName := .Values.zk.clusterName }}
+    {{- $aggregators := .Values.metrics.fluentd.aggregators | default list}}
+    {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
     {{- range $key, $val := .Values.metrics.fluentd.logs }}
       {{- if $val.enabled }}
         <source>
@@ -68,3 +69,4 @@ data:
       {{- end }}
     {{- end }}
     {{- end }}
+{{- end }}
