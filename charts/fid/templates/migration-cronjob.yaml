@@ -38,9 +38,19 @@ spec:
                 ls -ltr
                 aws s3 ls $AWS_BUCKET
                 aws s3 mv ./$EXPORT_FILE_NAME $AWS_BUCKET ;
+                # Delete the file afer copying
+                rm ./$EXPORT_FILE_NAME
                 echo done;
       {{- with .Values.nodeSelector }}
           nodeSelector:
+          {{- toYaml . | nindent 12 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+          affinity:
+          {{- toYaml . | nindent 12 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+          tolerations:
           {{- toYaml . | nindent 12 }}
       {{- end }}
           restartPolicy: OnFailure

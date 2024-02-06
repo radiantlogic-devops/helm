@@ -8,8 +8,6 @@ metadata:
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
-    {{- if semverCompare ">1.0.0" .Chart.Version }}
-    # Configuration for Helm chart version > 1.0.0
     {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
     {{- $aggregators := .Values.metrics.fluentd.aggregators | default list}}
     {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
@@ -40,21 +38,21 @@ data:
           @type copy
           {{- if gt (len $aggregators) 0 }}
             {{- range $aggregators }}
-              <store>
-                @type {{ .type }}
-                {{- if eq .type "splunk_hec" }}
-                hec_host {{ .hec_hostname }}
-                hec_port {{ .hec_port }}
-                hec_token {{ .hec_token }}
-                insecure_ssl true
-                index {{ $val.index }}
-                {{- else }}
-                host {{ .host }}
-                port {{ .port }}
-                logstash_format true
-                logstash_prefix {{ $val.index }}
-                {{- end }}
-              </store>
+            <store>
+              @type {{ .type }}
+              {{- if eq .type "splunk_hec" }}
+              hec_host {{ .hec_hostname }}
+              hec_port {{ .hec_port }}
+              hec_token {{ .hec_token }}
+              insecure_ssl true
+              index {{ $val.index }}
+              {{- else }}
+              host {{ .host }}
+              port {{ .port }}
+              logstash_format true
+              logstash_prefix {{ $val.index }}
+              {{- end }}
+            </store>
             {{- end }}
           {{- else if $elasticSearchHost }}
             <store>
@@ -67,6 +65,5 @@ data:
           {{- end }}
         </match>
       {{- end }}
-    {{- end }}
     {{- end }}
 {{- end }}

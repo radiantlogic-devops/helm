@@ -41,6 +41,8 @@ metadata:
 spec:
   replicas: {{ .Values.fid.followerOnly.minReplicas }}
   serviceName: {{ template "fid.fullname" . }}-follower
+  updateStrategy:
+    type: {{ .Values.updateStrategy | default "RollingUpdate" }}
   selector:
     matchLabels:
       {{- include "fid.selectorLabels" . | nindent 6 }}
@@ -85,7 +87,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}-app', '2389']
+        command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}-app', '2636']
   {{- if hasKey .Values.sysctl "enabled" }}
   {{- if .Values.sysctl.enabled }}
       - name: sysctl
@@ -108,7 +110,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
-          privileged: true
+          {{- toYaml .Values.securityContext | nindent 10 }}
         lifecycle:
           postStart:
             exec:
@@ -260,8 +262,7 @@ spec:
         - name: fluentd-config-volume
           mountPath: /fluentd/etc
 {{- end }}
-        securityContext:
-          runAsUser: 0
+        securityContext: {{ .Values.metrics.securityContext | default dict | toYaml | nindent 10 }}
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
         env:
 {{- if .Values.metrics.pushMode }}
@@ -339,7 +340,9 @@ spec:
   {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
-  - metadata:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
       name: r1-pvc
       annotations:
       {{- range $key, $value := .Values.persistence.annotations }}

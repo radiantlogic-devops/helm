@@ -34,6 +34,8 @@ spec:
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   serviceName: {{ template "fid.fullname" . }}-headless
+  updateStrategy:
+    type: {{ .Values.updateStrategy | default "RollingUpdate" }}
   selector:
     matchLabels:
     {{- include "fid.selectorLabels" . | nindent 6 }}
@@ -147,8 +149,10 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.securityContext }}
         securityContext:
-          privileged: true
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
         lifecycle:
           postStart:
             exec:
@@ -294,6 +298,9 @@ spec:
 
             {{- if .Values.postInstall.enabled }}
               ## if CURRENT_BUILDID="" it is a new install
+              if [ -e $RLI_HOME/.CURRENT_BUILDID ]; then
+                CURRENT_BUILDID=$(cat $RLI_HOME/.CURRENT_BUILDID)
+              fi;
               if [ "$CURRENT_BUILDID" = "" ]; then
                 echo ">> Running post install script"
                 {{- if .Values.postInstall.leaderOnly }}
@@ -338,8 +345,7 @@ spec:
         - name: fluentd-config-volume
           mountPath: /fluentd/etc
 {{- end }}
-        securityContext:
-          runAsUser: 0
+        securityContext: {{ .Values.metrics.securityContext | default dict | toYaml | nindent 10 }}
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
         env:
 {{- if .Values.metrics.pushMode }}
@@ -417,7 +423,9 @@ spec:
   {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
-  - metadata:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
       name: r1-pvc
       annotations:
       {{- range $key, $value := .Values.persistence.annotations }}
