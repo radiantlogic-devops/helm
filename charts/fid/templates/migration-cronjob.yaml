@@ -38,8 +38,6 @@ spec:
                 ls -ltr
                 aws s3 ls $AWS_BUCKET
                 aws s3 mv ./$EXPORT_FILE_NAME $AWS_BUCKET ;
-                # Delete the file afer copying
-                rm ./$EXPORT_FILE_NAME
                 echo done;
       {{- with .Values.nodeSelector }}
           nodeSelector:
