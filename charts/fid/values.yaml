@@ -140,7 +140,7 @@ autoscaling:
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
-# nodeSelector is the simplest recommended form of node selection constraint. 
+# nodeSelector is the simplest recommended form of node selection constraint.
 nodeSelector: {}
 # Tolerations allow the scheduler to schedule pods with matching taints.
 tolerations: []
