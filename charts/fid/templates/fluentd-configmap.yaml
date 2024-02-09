@@ -9,16 +9,18 @@ metadata:
 data:
   fluent.conf: |
     {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
-    {{- $aggregators := .Values.metrics.fluentd.aggregators | default list}}
+    {{- $aggregators := .Values.metrics.fluentd.aggregators | default list }}
     {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
     {{- range $key, $val := .Values.metrics.fluentd.logs }}
       {{- if $val.enabled }}
+        {{- $index := (default $val.index $val.custom_index) }}
+        {{- $indexForSplunk := (trimSuffix ".log" (default $val.index $val.custom_index)) }}
         <source>
           @type tail
           read_from_head true
           path {{ $val.path }}
           pos_file {{ $val.path }}.pos
-          tag {{ $val.index }}
+          tag {{ $index }}
           {{- if $val.parse }}
           {{- $val.parse | nindent 10 }}
           {{- else }}
@@ -27,14 +29,14 @@ data:
           format1 /^(?<message>.*)$/
           {{- end }}
         </source>
-        <filter {{ $val.index }}>
+        <filter {{ $index }}>
           @type record_transformer
           <record>
             hostname ${hostname}
             clustername {{ $clusterName }}
           </record>
         </filter>
-        <match {{ $val.index }}>
+        <match {{ $index }}>
           @type copy
           {{- if gt (len $aggregators) 0 }}
             {{- range $aggregators }}
@@ -45,12 +47,27 @@ data:
               hec_port {{ .hec_port }}
               hec_token {{ .hec_token }}
               insecure_ssl true
-              index {{ $val.index }}
+              index {{ $indexForSplunk }}
               {{- else }}
               host {{ .host }}
               port {{ .port }}
               logstash_format true
-              logstash_prefix {{ $val.index }}
+              logstash_prefix {{ $index }}
+              {{- if .user }}
+              user {{ .user }}
+              {{- end }}
+              {{- if .password }}
+              password {{ .password }}
+              {{- end }}
+              {{- if .ssl_verify }}
+              ssl_verify  {{ .ssl_verify }}
+              {{- end }}
+              {{- if .ca_file }}
+              ca_file {{ .ca_file }}
+              {{- end }}
+              {{- if .scheme }}
+              scheme {{ .scheme }}
+              {{- end }}
               {{- end }}
             </store>
             {{- end }}
@@ -60,7 +77,7 @@ data:
               host {{ $elasticSearchHost }}
               port "9200"
               logstash_format true
-              logstash_prefix {{ $val.index }}
+              logstash_prefix {{ $index }}
             </store>
           {{- end }}
         </match>

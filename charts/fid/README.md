@@ -392,11 +392,29 @@ metrics:
   pushGateway: http://prometheus-server:9091
   pushMetricCron: "* * * * *"
   fluentd:
-    enabled: true
-    aggregators:
-      - type: "elasticsearch"
-        host: "elastic-host"
-        port: "9200"
+    enabled: false
+    logs:
+      vds_server:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+        index: vds_server.log
+        #custom_index:
+      vds_events:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
+        index: vds_events.log
+        #custom_index:
+    configFile: /fluentd/etc/fluent.conf
+    aggregators: []
+      # - type: "elasticsearch"
+      #   host: "elasticsearch-master"
+      #   port: "9200"
+      # - type: "elasticsearch"
+      #   host: "https://elasticsearch-master.local"
+      #   port: "9200"
+      #   scheme: "https"
+      #   user: "xxxx"
+      #   password: "xxxx"
       # - type: "opensearch"
       #   host: "opensearch-cluster-master"
       #   port: "9200"
@@ -404,6 +422,7 @@ metrics:
       #   hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
       #   hec_port: "8088"
       #   hec_token: ""
+      #   hec_index: ""
 ```
 
 ```yaml
@@ -566,6 +585,26 @@ metrics:
 
 * It is assumed that one or more of the supported sources is deployed, enabled and the endpoints required are available.
 
+* The logs that needs to be enabled/disabled can be managed here
+  * By default the logs will pushed to indexes with names corresponding to "index:" value
+  * If a custom_index provided, the default is overwritten
+  * The indexes for splunk are created without the ".log" extension to index names
+  * Path remains unchanged
+
+```yaml
+    logs:
+      vds_server:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+        index: vds_server.log
+        #custom_index:
+      vds_events:
+        enabled: true
+        path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
+        index: vds_events.log
+        #custom_index:
+```
+
 * The endpoints of the source/sources can be provided under "aggregators:"
 
 ```yaml
@@ -582,6 +621,8 @@ metrics:
         hec_token: ""
 
 ```
+
+> NOTE: Every modification to the aggregators/logs will reload the statefulset.
 
 * Different types of sources required different endpoints.
 

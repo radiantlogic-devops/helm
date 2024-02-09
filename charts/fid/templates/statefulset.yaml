@@ -42,10 +42,11 @@ spec:
       app.kubernetes.io/core-name: {{ include "fid.name" . }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/fluentd-configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
       labels:
       {{- include "fid.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/core-name: {{ include "fid.name" . }}
