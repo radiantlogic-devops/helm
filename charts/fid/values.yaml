@@ -182,12 +182,12 @@ metrics:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
         index: vds_server.log
-        #custom_index:
+        # custom_index:
       vds_server_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
         index: vds_server_access.log
-        #custom_index:
+        # custom_index:
         parse: |-
           <parse>
             @type tsv
@@ -198,42 +198,42 @@ metrics:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
         index: vds_events.log
-        #custom_index:
+        # custom_index:
       periodiccache:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
         index: periodiccache.log
-        #custom_index:
+        # custom_index:
       web:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/web.log"
         index: web.log
-        #custom_index:
+        # custom_index:
       web_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/web_access.log"
         index: web_access.log
-        #custom_index:
+        # custom_index:
       sync_engine:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/sync_engine.log"
         index: sync_engine.log
-        #custom_index:
+        # custom_index:
       alerts:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/alerts.log"
         index: alerts.log
-        #custom_index:
+        # custom_index:
       adap_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
         index: adap_access.log
-        #custom_index:
+        # custom_index:
       admin_rest_api_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
         index: admin_rest_api_access.log
-        #custom_index:
+        # custom_index:
     configFile: /fluentd/etc/fluent.conf
     aggregators: []
       # - type: "elasticsearch"
