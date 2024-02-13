@@ -1,5 +1,4 @@
-{{- if eq .Values.metrics.fluentd.enabled true }}
-
+{{- if .Values.metrics.fluentd.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,247 +8,79 @@ metadata:
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/vds_server.log
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_server.log.pos
-      tag vds_server.log
-    </source>
-    <filter vds_server.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_server.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_server.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      path /opt/radiantone/vds/vds_server/logs/vds_server_access.csv
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_server_access.csv.pos
-      tag vds_server_access.log
-      <parse>
-        @type tsv
-        keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
-        types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
-      </parse>
-    </source>
-    <filter vds_server_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_server_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_server_access.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/periodiccache.log
-      pos_file /opt/radiantone/vds/vds_server/logs/periodiccache.log.pos
-      tag periodiccache.log
-    </source>
-    <filter periodiccache.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match periodiccache.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix periodiccache.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/jetty/web.log
-      pos_file /opt/radiantone/vds/vds_server/logs/jetty/web.log.pos
-      tag web.log
-    </source>
-    <filter web.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match web.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix web.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/jetty/web_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/jetty/web_access.log.pos
-      tag web_access.log
-    </source>
-    <filter web_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match web_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix web_access.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log
-      pos_file /opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log.pos
-      tag sync_engine.log
-    </source>
-    <filter sync_engine.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match sync_engine.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix sync_engine.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/logs/alerts.log
-      pos_file /opt/radiantone/vds/logs/alerts.log.pos
-      tag alerts.log
-    </source>
-    <filter alerts.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match alerts.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix alerts.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/vds_events.log
-      pos_file /opt/radiantone/vds/vds_server/logs/vds_events.log.pos
-      tag vds_events.log
-    </source>
-    <filter vds_events.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match vds_events.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix vds_events.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/adap_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/adap_access.log.pos
-      tag adap_access.log
-    </source>
-    <filter adap_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match adap_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix adap_access.log
-    </match>
-    <source>
-      @type tail
-      read_from_head true
-      format multiline
-      format_firstline /\d{4}-\d{1,2}-\d{1,2}/
-      format1 /^(?<message>.*)$/
-      path /opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log
-      pos_file /opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log.pos
-      tag admin_rest_api_access.log
-    </source>
-    <filter admin_rest_api_access.log>
-      @type record_transformer
-      <record>
-      hostname ${hostname}
-      clustername FID_CLUSTER_NAME
-      </record>
-    </filter>
-    <match admin_rest_api_access.log>
-      @type {{ .Values.metrics.fluentd.elasticSearchType }}
-      host ELASTICSEARCH_HOST
-      port ELASTICSEARCH_PORT
-      logstash_format true
-      logstash_prefix admin_rest_api_access.log
-    </match>
-
+    {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
+    {{- $aggregators := .Values.metrics.fluentd.aggregators | default list }}
+    {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
+    {{- range $key, $val := .Values.metrics.fluentd.logs }}
+      {{- if $val.enabled }}
+        {{- $index := (default $val.index $val.custom_index) }}
+        {{- $indexForSplunk := (trimSuffix ".log" (default $val.index $val.custom_index)) }}
+        <source>
+          @type tail
+          read_from_head true
+          path {{ $val.path }}
+          pos_file {{ $val.path }}.pos
+          tag {{ $index }}
+          {{- if $val.parse }}
+          {{- $val.parse | nindent 10 }}
+          {{- else }}
+          format multiline
+          format_firstline /\d{4}-\d{1,2}-\d{1,2}/
+          format1 /^(?<message>.*)$/
+          {{- end }}
+        </source>
+        <filter {{ $index }}>
+          @type record_transformer
+          <record>
+            hostname ${hostname}
+            clustername {{ $clusterName }}
+          </record>
+        </filter>
+        <match {{ $index }}>
+          @type copy
+          {{- if gt (len $aggregators) 0 }}
+            {{- range $aggregators }}
+            <store>
+              @type {{ .type }}
+              {{- if eq .type "splunk_hec" }}
+              hec_host {{ .hec_hostname }}
+              hec_port {{ .hec_port }}
+              hec_token {{ .hec_token }}
+              insecure_ssl true
+              index {{ $indexForSplunk }}
+              {{- else }}
+              host {{ .host }}
+              port {{ .port }}
+              logstash_format true
+              logstash_prefix {{ $index }}
+              {{- if .user }}
+              user {{ .user }}
+              {{- end }}
+              {{- if .password }}
+              password {{ .password }}
+              {{- end }}
+              {{- if .ssl_verify }}
+              ssl_verify  {{ .ssl_verify }}
+              {{- end }}
+              {{- if .ca_file }}
+              ca_file {{ .ca_file }}
+              {{- end }}
+              {{- if .scheme }}
+              scheme {{ .scheme }}
+              {{- end }}
+              {{- end }}
+            </store>
+            {{- end }}
+          {{- else if $elasticSearchHost }}
+            <store>
+              @type elasticsearch
+              host {{ $elasticSearchHost }}
+              port "9200"
+              logstash_format true
+              logstash_prefix {{ $index }}
+            </store>
+          {{- end }}
+        </match>
+      {{- end }}
+    {{- end }}
 {{- end }}

@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "* 0 * * *"
-  pull_request:
-    paths:
-      - 'charts/fid/**'
+#  pull_request:
+#    paths:
+#      - 'charts/fid/**'
 
 jobs:
   lint-test:

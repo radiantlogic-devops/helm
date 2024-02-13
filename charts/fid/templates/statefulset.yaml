@@ -34,16 +34,19 @@ spec:
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   serviceName: {{ template "fid.fullname" . }}-headless
+  updateStrategy:
+    type: {{ .Values.updateStrategy | default "RollingUpdate" }}
   selector:
     matchLabels:
     {{- include "fid.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/core-name: {{ include "fid.name" . }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/fluentd-configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
       labels:
       {{- include "fid.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/core-name: {{ include "fid.name" . }}
@@ -147,6 +150,10 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.securityContext }}
+        securityContext:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
         lifecycle:
           postStart:
             exec:
@@ -287,11 +294,14 @@ spec:
               export CLUSTER=join;
             fi;
 
-            # Run the statrtup script
+            # Run the startup script
             ./run.sh
 
             {{- if .Values.postInstall.enabled }}
               ## if CURRENT_BUILDID="" it is a new install
+              if [ -e $RLI_HOME/.CURRENT_BUILDID ]; then
+                CURRENT_BUILDID=$(cat $RLI_HOME/.CURRENT_BUILDID)
+              fi;
               if [ "$CURRENT_BUILDID" = "" ]; then
                 echo ">> Running post install script"
                 {{- if .Values.postInstall.leaderOnly }}
@@ -314,9 +324,7 @@ spec:
                 {{ .Values.postStart.script | nindent 14 }}
               {{- end }}
             {{- end }}
-            
             tail -f /dev/null
-            
 {{- end }}
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
@@ -338,8 +346,7 @@ spec:
         - name: fluentd-config-volume
           mountPath: /fluentd/etc
 {{- end }}
-        securityContext:
-          runAsUser: 0
+        securityContext: {{ .Values.metrics.securityContext | default dict | toYaml | nindent 10 }}
         command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
         env:
 {{- if .Values.metrics.pushMode }}
@@ -357,31 +364,23 @@ spec:
             configMapKeyRef:
               name: {{ template "fid.fullname" . }}
               key: ZK_CLUSTER
-{{- if .Values.fid.rootUser }}
         - name: BIND_DN
           value: "uid=operator,ou=globalusers,cn=config"
           # valueFrom:
           #  secretKeyRef:
           #    name: rootcreds-{{ template "fid.fullname" . }}
           #    key: fid-root-username
-{{- end }}
-{{- if .Values.fid.rootPassword }}
         - name: BIND_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
-{{- end }}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
           value: {{ .Values.metrics.fluentd.enabled | quote }}
         - name: FLUENTD_CONF
           value: {{ .Values.metrics.fluentd.configFile | quote }}
-        - name: ELASTICSEARCH_HOST
-          value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
-        - name: ELASTICSEARCH_TYPE
-          value: {{ .Values.metrics.fluentd.elasticSearchType | default "elasticsearch" | quote }}
 {{- end }}
 {{- end }}
 
@@ -425,7 +424,9 @@ spec:
   {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
-  - metadata:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
       name: r1-pvc
       annotations:
       {{- range $key, $value := .Values.persistence.annotations }}
