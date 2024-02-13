@@ -383,6 +383,27 @@ entries:
     version: 1.0.0
   fid:
   - apiVersion: v2
+    appVersion: 8.0.1
+    created: "2024-02-13T04:56:27.540402799Z"
+    dependencies:
+    - alias: zookeeper
+      condition: dependencies.zookeeper.enabled
+      name: zookeeper
+      repository: https://radiantlogic-devops.github.io/helm
+      version: 0.1.4
+    description: A Helm chart for FID Kubernetes deployment
+    digest: 7a86b4b3d204d03b07ed74efbdd58e780b8c65e81564d87fbe5e3416f60e19ea
+    home: https://radiantlogic-devops.github.io/helm
+    maintainers:
+    - email: pgodey@radiantlogic.com
+      name: pgodey
+      url: https://www.radiantlogic.com
+    name: fid
+    type: application
+    urls:
+    - https://github.com/radiantlogic-devops/helm/releases/download/fid-1.0.1/fid-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 8.0.0
     created: "2023-07-05T18:43:40.077514963Z"
     dependencies:
@@ -643,4 +664,4 @@ entries:
     urls:
     - https://github.com/radiantlogic-devops/helm/releases/download/zookeeper-0.1.0/zookeeper-0.1.0.tgz
     version: 0.1.0
-generated: "2023-11-29T23:25:36.090458935Z"
+generated: "2024-02-13T04:56:27.540487438Z"
