@@ -192,12 +192,111 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-service-status
+      - name: 'ia-config-webapp'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-config-webapp
+      - name: ia-controller-beam
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-beam
+      - name: 'ia-controller-ecto'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-ecto
+      - name: 'ia-controller-oban'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-oban
+      - name: 'ia-controller-phoenix'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-phoenix
+      - name: 'ia-data-ingestion'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-data-ingestion
+      - name: 'ia-database'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-database
+      - name: 'ia-extractor-webapp'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-extractor-webapp
+      - name: 'ia-governance-portal'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-governance-portal
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
     ia-service-status: "ia-service-status-dashboard"
+    ia-config-webapp: "ia-config-webapp-dashboard"
+    ia-controller-beam: "ia-controller-beam-dashboard"
+    ia-controller-ecto: "ia-controller-ecto-dasboard"
+    ia-controller-oban: "ia-controller-oban-dashboard"
+    ia-controller-phoenix: "ia-controller-phoenix-dashboard"
+    ia-data-ingestion: "ia-data-ingestion-dashboard"
+    ia-database: "ia-database-dashboard"
+    ia-extractor-webapp: "ia-extractor-webapp-dashboard"
+    ia-governance-portal: "ia-governance-portal-dashboard"
 
 elasticsearch:
   enabled: true
