@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "common-services.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.slamd.service.type }}
+  type: {{ .Values.zoonavigator.service.type }}
   ports:
     - port: {{ .Values.zoonavigator.service.port }}
       targetPort: http
