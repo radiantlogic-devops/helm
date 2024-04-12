@@ -65,4 +65,4 @@ jobs:
           kubectl get nodes --context kind-chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s" --debug --upgrade
+        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --ser=zoonavigator.enabled=false" --debug --upgrade
