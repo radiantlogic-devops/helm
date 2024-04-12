@@ -76,6 +76,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+zoonavigator Selector labels
+*/}}
+{{- define "zoonavigator.selectorLabels" -}}
+app.kubernetes.io/name: zoonavigator
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "common-services.serviceAccountName" -}}

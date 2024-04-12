@@ -1,0 +1,62 @@
+{{- if (.Values.zoonavigator).enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zoonavigator
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.zoonavigator.autoscaling.enabled }}
+  replicas: {{ .Values.zoonavigator.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "zoonavigator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.zoonavigator.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "zoonavigator.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.zoonavigator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.zoonavigator.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.zoonavigator.securityContext | nindent 12 }}
+          image: "{{ .Values.zoonavigator.image.repository }}:{{ .Values.zoonavigator.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.zoonavigator.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.zoonavigator.resources | nindent 12 }}
+      {{- with .Values.zoonavigator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zoonavigator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zoonavigator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
