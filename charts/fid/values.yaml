@@ -163,8 +163,14 @@ persistence:
   - ReadWriteOnce
   size: 10Gi
   annotations: {}
-## Under development
-##
+
+## Metrics and Logging for VDS
+# Persisitence need to be enabled to enabled both logging or metrics
+# Fluentd needs to be set to true to enable logging
+# For splunk, to provide source, sourcetype, input them under aggregators.
+# For splunk, to provide, custom source, sourcetype, index, use individual logs (splunk_index,splunk_source, splunk_sourcetype)
+# Aggregators, Logs and key:value pairs for logs and aggregators can be added dynamically
+# custom_index can be provided for each log individually and it takes precedence
 metrics:
   enabled: false
   image: radiantone/fid-exporter
@@ -182,12 +188,18 @@ metrics:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
         index: vds_server.log
-        # custom_index:
+        # custom_index: vds_server_testing.log
+        # splunk_index: vds_server_splunk_testing.log
+        # splunk_source: testingsource
+        # splunk_sourcetype: testingsourcetype
       vds_server_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
         index: vds_server_access.log
         # custom_index:
+        # splunk_index:
+        # splunk_source:
+        # splunk_sourcetype:
         parse: |-
           <parse>
             @type tsv
@@ -199,41 +211,65 @@ metrics:
         path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
         index: vds_events.log
         # custom_index:
+        # splunk_index:
+        # splunk_source:
+        # splunk_sourcetype:
       periodiccache:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
         index: periodiccache.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       web:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/web.log"
         index: web.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       web_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/web_access.log"
         index: web_access.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       sync_engine:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/sync_engine.log"
         index: sync_engine.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       alerts:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/alerts.log"
         index: alerts.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       adap_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
         index: adap_access.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
       admin_rest_api_access:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
         index: admin_rest_api_access.log
         # custom_index:
+        # splunk_index:
+        # splunk_source
+        # splunk_sourcetype
     configFile: /fluentd/etc/fluent.conf
     aggregators: []
       # - type: "elasticsearch"
@@ -248,6 +284,8 @@ metrics:
       # - type: "opensearch"
       #   host: "opensearch-cluster-master"
       #   port: "9200"
+      #   user: "admin"
+      #   password: "admin"
       # - type: "opensearch"
       #   host: "opensearch-cluster-master"
       #   port: "9200"
@@ -255,10 +293,13 @@ metrics:
       #   user: "xxxx"
       #   password: "xxxx"
       # - type: "splunk_hec"
-      #   hec_hostname: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
+      #   hec_host: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
       #   hec_port: "8088"
       #   hec_token: ""
-      #   hec_index: ""
+      #   source: ""
+      #   sourcetype: "*"
+      #   insecure_ssl: "true"
+        # hec_index: ""
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5

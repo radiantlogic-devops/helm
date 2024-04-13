@@ -360,6 +360,13 @@ To deploy FID with metrics enabled , make the following changes to the values fi
 
 > **NOTE:** Deploying FID with metrics enabled will need persistence to be enabled and also requires Prometheus, Grafana, ElasticSearch and Kibana deployed.
 
+- Persisitence need to be enabled to enabled both logging or metrics
+- Fluentd needs to be set to true to enable logging
+- For splunk, to provide source, sourcetype, input them under aggregators.
+- For splunk, to provide, custom source, sourcetype, index, use individual logs (splunk_index,splunk_source, splunk_sourcetype)
+- Aggregators, Logs and key:value pairs for logs and aggregators can be added dynamically
+- custom_index can be provided for each log individually and it takes precedence
+
 ```yaml
 replicaCount: 1
 image:
