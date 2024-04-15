@@ -280,17 +280,20 @@ spec:
             configMapKeyRef:
               name: {{ template "fid.fullname" . }}
               key: ZK_CLUSTER
-        - name: BIND_DN
+{{- if hasKey .Values.metrics "binddn" }}  
+          value: {{ .Values.metrics.binddn | quote }}
+{{- else }}
           value: "uid=operator,ou=globalusers,cn=config"
-          # valueFrom:
-          #  secretKeyRef:
-          #    name: rootcreds-{{ template "fid.fullname" . }}
-          #    key: fid-root-username
+{{- end }}
         - name: BIND_PASSWORD
+{{- if hasKey .Values.metrics "bindpassword" }}
+          value: {{ .Values.metrics.bindpassword | quote }}
+{{- else }}
           valueFrom:
             secretKeyRef:
               name: rootcreds-{{ template "fid.fullname" . }}
               key: fid-root-password
+{{- end }}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
