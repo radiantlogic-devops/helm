@@ -6,7 +6,7 @@ A Helm chart for FID Kubernetes deployment
 
 ## Prerequisites
 
-* Kubernetes 1.18+
+* Kubernetes 1.24+
 * Helm 3
 
 ## TL;DR
