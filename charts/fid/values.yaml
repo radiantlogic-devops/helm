@@ -232,7 +232,7 @@ metrics:
         # splunk_sourcetype
       web_access:
         enabled: true
-        path: "/opt/radiantone/vds/vds_server/logs/web_access.log"
+        path: "/opt/radiantone/vds/vds_server/logs/jetty/web_access.log"
         index: web_access.log
         # custom_index:
         # splunk_index:
@@ -240,7 +240,7 @@ metrics:
         # splunk_sourcetype
       sync_engine:
         enabled: true
-        path: "/opt/radiantone/vds/vds_server/logs/sync_engine.log"
+        path: "/opt/radiantone/vds/vds_server/logs/jetty/sync_engine.log"
         index: sync_engine.log
         # custom_index:
         # splunk_index:
