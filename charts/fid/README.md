@@ -6,7 +6,7 @@ A Helm chart for FID Kubernetes deployment
 
 ## Prerequisites
 
-* Kubernetes 1.18+
+* Kubernetes 1.24+
 * Helm 3
 
 ## TL;DR
@@ -359,6 +359,13 @@ helm install --namespace=<name space> <release name> radiantone/fid --values <pa
 To deploy FID with metrics enabled , make the following changes to the values file, save and run the command
 
 > **NOTE:** Deploying FID with metrics enabled will need persistence to be enabled and also requires Prometheus, Grafana, ElasticSearch and Kibana deployed.
+
+- Persisitence need to be enabled to enabled both logging or metrics
+- Fluentd needs to be set to true to enable logging
+- For splunk, to provide source, sourcetype, input them under aggregators.
+- For splunk, to provide, custom source, sourcetype, index, use individual logs (splunk_index,splunk_source, splunk_sourcetype)
+- Aggregators, Logs and key:value pairs for logs and aggregators can be added dynamically
+- custom_index can be provided for each log individually and it takes precedence
 
 ```yaml
 replicaCount: 1

@@ -11,16 +11,16 @@ data:
     {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
     {{- $aggregators := .Values.metrics.fluentd.aggregators | default list }}
     {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
-    {{- range $key, $val := .Values.metrics.fluentd.logs }}
+    {{- range $logName, $val := .Values.metrics.fluentd.logs }}
       {{- if $val.enabled }}
         {{- $index := (default $val.index $val.custom_index) }}
-        {{- $indexForSplunk := (trimSuffix ".log" (default $val.index $val.custom_index)) }}
+        {{- $splunkIndex := (default (trimSuffix ".log" $index) $val.splunk_index) }}
         <source>
           @type tail
           read_from_head true
           path {{ $val.path }}
           pos_file {{ $val.path }}.pos
-          tag {{ $index }}
+          tag {{ $logName }}.log
           {{- if $val.parse }}
           {{- $val.parse | nindent 10 }}
           {{- else }}
@@ -29,56 +29,50 @@ data:
           format1 /^(?<message>.*)$/
           {{- end }}
         </source>
-        <filter {{ $index }}>
+        <filter {{ $logName }}.log>
           @type record_transformer
           <record>
             hostname ${hostname}
             clustername {{ $clusterName }}
           </record>
         </filter>
-        <match {{ $index }}>
+        <match {{ $logName }}.log>
           @type copy
           {{- if gt (len $aggregators) 0 }}
-            {{- range $aggregators }}
-            <store>
-              @type {{ .type }}
-              {{- if eq .type "splunk_hec" }}
-              hec_host {{ .hec_hostname }}
-              hec_port {{ .hec_port }}
-              hec_token {{ .hec_token }}
-              insecure_ssl true
-              index {{ $indexForSplunk }}
-              {{- else }}
-              host {{ .host }}
-              port {{ .port }}
-              logstash_format true
-              logstash_prefix {{ $index }}
-              {{- if .user }}
-              user {{ .user }}
-              {{- end }}
-              {{- if .password }}
-              password {{ .password }}
-              {{- end }}
-              {{- if .ssl_verify }}
-              ssl_verify  {{ .ssl_verify }}
-              {{- end }}
-              {{- if .ca_file }}
-              ca_file {{ .ca_file }}
-              {{- end }}
-              {{- if .scheme }}
-              scheme {{ .scheme }}
-              {{- end }}
-              {{- end }}
-            </store>
+          {{- range $aggregator := $aggregators }}
+          <store>
+            @type {{ $aggregator.type }}
+            {{- range $key, $value := $aggregator }}
+            {{- if and (ne $key "type") (ne $key "source") (ne $key "sourcetype") }}
+            {{ $key }} {{ $value }}
             {{- end }}
+            {{- end }}
+            {{- if eq $aggregator.type "splunk_hec" }}
+            index {{ $splunkIndex }}
+            {{- if $val.splunk_source }}
+            source {{ $val.splunk_source }}
+            {{- else if $aggregator.source }}
+            source {{ $aggregator.source }}
+            {{- end }}
+            {{- if $val.splunk_sourcetype }}
+            sourcetype {{ $val.splunk_sourcetype }}
+            {{- else if $aggregator.sourcetype }}
+            sourcetype {{ $aggregator.sourcetype }}
+            {{- end }}
+            {{- else }}
+            logstash_prefix {{ $index }}
+            logstash_format true
+            {{- end }}
+          </store>
+          {{- end }}
           {{- else if $elasticSearchHost }}
-            <store>
-              @type elasticsearch
-              host {{ $elasticSearchHost }}
-              port "9200"
-              logstash_format true
-              logstash_prefix {{ $index }}
-            </store>
+          <store>
+            @type elasticsearch
+            host {{ $elasticSearchHost }}
+            port 9200
+            logstash_format true
+            logstash_prefix {{ $index }}
+          </store>
           {{- end }}
         </match>
       {{- end }}
