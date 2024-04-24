@@ -294,7 +294,7 @@ grafana:
     ia-controller-oban: "ia-controller-oban-dashboard"
     ia-controller-phoenix: "ia-controller-phoenix-dashboard"
     ia-data-ingestion: "ia-data-ingestion-dashboard"
-    ia-database: "ia-database-dashboard"
+    #ia-database: "ia-database-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
 
@@ -361,6 +361,26 @@ haproxy:
       stats uri /stats
       monitor-uri /healthz
 
+      # Remove unnecessary headers
+      http-response del-header Server
+      http-response del-header X-Powered-By
+      http-response del-header X-AspNetMvc-Version
+      http-response del-header X-AspNet-Version
+      http-response del-header X-Drupal-Cache
+      http-response del-header X-Drupal-Dynamic-Cache
+      http-response del-header X-Generator
+      http-response del-header X-Runtime
+      http-response del-header X-Rack-Cache
+
+      # Add security headers
+      http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"
+      http-response set-header X-Frame-Options "SAMEORIGIN"
+      http-response set-header X-Content-Type-Options "nosniff"
+      http-response set-header Referrer-Policy no-referrer-when-downgrade
+      http-response set-header X-XSS-Protection 1;mode=block
+      http-response set-header Permissions-Policy interest-cohort=()
+
+
       # routing
       {{- if ((.Values.route).argocd | default false) }}
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
@@ -408,67 +428,67 @@ haproxy:
     # backends
     {{- if ((.Values.route).argocd | default false) }}
     backend argocd_backend
-      server argocd argocd-server:80
+      server argocd argocd-server:80 check
     {{- end }}
     {{- if ((.Values.route).grafana | default false) }}
     backend grafana_backend
       http-request set-path %[path,regsub(^/grafana/?,/)]
-      server grafana grafana:80
+      server grafana grafana:80 check
     {{- end }}
     {{- if ((.Values.route).prometheus | default false) }}
     backend prometheus_backend
       http-request set-path %[path,regsub(^/prometheus/?,/)]
-      server prometheus prometheus-server:80
+      server prometheus prometheus-server:80 check
     {{- end }}
     {{- if ((.Values.route).pushgateway | default false) }}
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
-      server pushgateway prometheus-pushgateway:9091
+      server pushgateway prometheus-pushgateway:9091 check
     {{- end }}
     {{- if ((.Values.route).kibana | default false) }}
     backend kibana_backend
       http-request set-path %[path,regsub(^/kibana/?,/)]
-      server kibana kibana:5601
+      server kibana kibana:5601 check
     {{- end }}
     {{- if ((.Values.route).elasticsearch | default false) }}
     backend elasticsearch_backend
       http-request set-path %[path,regsub(^/elasticsearch/?,/)]
-      server elasticsearch elasticsearch-master:9200
+      server elasticsearch elasticsearch-master:9200 check
     {{- end }}
     {{- if ((.Values.route).pgadmin4 | default false) }}
     backend pgadmin4_backend
-      server pgadmin4 pgadmin4:80
+      server pgadmin4 pgadmin4:80 check
     {{- end }}
     {{- if ((.Values.route).slamd | default false) }}
     backend slamd_backend
-      server slamd slamd:80
+      server slamd slamd:80 check
     {{- end }}
     {{- if ((.Values.route).shellinabox | default false) }}
     backend shellinabox_backend
       http-request set-path %[path,regsub(^/shellinabox/?,/)]
-      server shellinabox shellinabox:8080
+      server shellinabox shellinabox:8080 check
     {{- end }}
     {{- if ((.Values.route).eocui | default false) }}
     backend eocui_backend
-      server eocui eoc-ui-service:80
+      server eocui eoc-ui-service:80 check
     {{- end }}
     {{- if ((.Values.route).eocapi | default false) }}
     backend eocapi_backend
-      server eocapi eoc-backend-service:80
+      server eocapi eoc-backend-service:80 check
     {{- end }}
     {{- if ((.Values.route).sdccui | default false) }}
     backend sdcapi_backend
-      server sdcapi sdc-agent:80
+      server sdcapi sdc-agent:80 check
     {{- end }}
     {{- if ((.Values.route).opensearchdashboards | default false) }}
     backend opensearchdashboards_backend
       #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
-      server opensearchdashboards opensearch-dashboards:5601
+      server opensearchdashboards opensearch-dashboards:5601 check
     {{- end }}
     {{- if ((.Values.route).opensearch | default false) }}
     backend opensearch_backend
       http-request set-path %[path,regsub(^/opensearch/?,/)]
-      server opensearch opensearch-cluster-master:9200
+      server opensearch opensearch-cluster-master:9200 check
     {{- end }}
 
 
