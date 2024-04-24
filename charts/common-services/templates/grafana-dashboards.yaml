@@ -118,17 +118,6 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ia-database-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/ia-database-dashboard.json").AsConfig | indent 2 }}
-
----
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: ia-extractor-webapp-dashboard
   labels:
     grafana_dashboard: "1"
