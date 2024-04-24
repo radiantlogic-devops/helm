@@ -284,10 +284,7 @@ grafana:
     ia-controller-oban: "ia-controller-oban-dashboard"
     ia-controller-phoenix: "ia-controller-phoenix-dashboard"
     ia-data-ingestion: "ia-data-ingestion-dashboard"
-<<<<<<< HEAD
     #ia-database: "ia-database-dashboard"
-=======
->>>>>>> 3e2c76be4bd84c0977f9a345cd552a372a69cdf9
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
 

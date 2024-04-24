@@ -10,13 +10,25 @@ metadata:
 data:
   action_file.yml: |
       actions:
-        {{- $counter := 0 }}
+        {{- $defaultLogs := .Values.curator.logs }}
+        {{- $overwriteLogs := dict }}
         {{- range .Values.curator.logs }}
-        {{- if .enable }}
+        {{- $name := .name }}
+        {{- $overwriteLogs = set $overwriteLogs .name . }}
+        {{- end }}
+        {{- $counter := 0 }}
+        {{- range $defaultLogs }}
+        {{- $name := .name }}
+        {{- $overwriteLog := index $overwriteLogs $name }}
+        {{- $enable := default .enable ($overwriteLog).enable | default true }}
+        {{- $unit := default .unit ($overwriteLog).unit | default "days" }}
+        {{- $unit_count := default .unit_count ($overwriteLog).unit_count | default 7 }}
+        {{- $direction := default .direction ($overwriteLog).direction | default "older" }}
+        {{- if $enable }}
         {{- $counter = add $counter 1 }}
         {{ $counter }}:
           action: delete_indices
-          description: "Delete indices older than {{ .unit_count }} days"
+          description: "Delete indices older than {{ $unit_count }} {{ $unit }}"
           options:
             timeout_override:
             continue_if_exception: False
@@ -25,14 +37,14 @@ data:
           filters:
             - filtertype: pattern
               kind: prefix
-              value: {{ .name }}
+              value: {{ $name }}
               exclude: False
             - filtertype: age
               source: name
               timestring: '%Y.%m.%d'
-              unit: {{ .unit }}
-              unit_count: {{ .unit_count }}
-              direction: {{ .direction }}
+              unit: {{ $unit }}
+              unit_count: {{ $unit_count }}
+              direction: {{ $direction }}
         {{- end }}
         {{- end }}
   config.yml: |
