@@ -284,7 +284,7 @@ grafana:
     ia-controller-oban: "ia-controller-oban-dashboard"
     ia-controller-phoenix: "ia-controller-phoenix-dashboard"
     ia-data-ingestion: "ia-data-ingestion-dashboard"
-    #ia-database: "ia-database-dashboard"
+    # ia-database: "ia-database-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
 
@@ -472,7 +472,7 @@ haproxy:
     {{- end }}
     {{- if ((.Values.route).opensearchdashboards | default false) }}
     backend opensearchdashboards_backend
-      http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
+      #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
       server opensearchdashboards opensearch-dashboards:5601 check
     {{- end }}
     {{- if ((.Values.route).opensearch | default false) }}
