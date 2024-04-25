@@ -472,7 +472,7 @@ haproxy:
     {{- end }}
     {{- if ((.Values.route).opensearchdashboards | default false) }}
     backend opensearchdashboards_backend
-      #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
+      http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
       server opensearchdashboards opensearch-dashboards:5601 check
     {{- end }}
     {{- if ((.Values.route).opensearch | default false) }}
