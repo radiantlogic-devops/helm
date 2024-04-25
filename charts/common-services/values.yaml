@@ -738,6 +738,7 @@ fluent-bit:
 
 curator:
   enabled: false
+  dryrun: false
   config:
     client:
       hosts: ["elasticsearch-master"]
@@ -756,25 +757,60 @@ curator:
       logformat: default
       blacklist: ['elasticsearch', 'urllib3']
   logs:
-    - name: "vds_server"
+    - name: "vds_server.log"
       enable: true
       unit: "days"
       unit_count: 15
       direction: "older"
-    - name: "vds_server_access"
+    - name: "vds_server_access.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
       direction: "older"
-    - name: "adap_access"
+    - name: "adap_access.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
       direction: "older"
-    - name: "adap"
+    - name: "adap.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
+      direction: "older"
+    - name: "web.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "web_access.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "event.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "periodiccahe.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "admin_rest_api_access.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "sync_engine.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "alerts.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
       direction: "older"
   cronjob:
     schedule: "* * * * *"
@@ -800,7 +836,6 @@ curator:
     runAsUser: 16
   psp:
     create: false
-  dryrun: true
   resources: {}
   nodeSelector: {}
     # tenantname:
