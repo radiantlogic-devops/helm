@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  default: true
   provider: aws
   config:
     region: {{ .Values.velero.backupStorage.region | quote }}
