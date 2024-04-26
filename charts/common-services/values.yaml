@@ -855,8 +855,8 @@ velero:
   cleanUpCRDs: true
   nodeSelector: {}
   configuration:
-    defaultBackupStorageLocation: common-bsl
-    defaultVolumeSnapshotLocations: common-vsl
+    # defaultBackupStorageLocation: common-bsl
+    # defaultVolumeSnapshotLocations: common-vsl
     # how long to wait by default before backups can be garbage collected
     defaultBackupTTL: 168h
     # the frequency of the reconciliation loop that garbage the expired backups
