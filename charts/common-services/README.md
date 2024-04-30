@@ -1,6 +1,6 @@
 # common-services
 
-![Version: 1.0.6](https://img.shields.io/badge/Version-1.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2](https://img.shields.io/badge/AppVersion-1.2-informational?style=flat-square)
+![Version: 1.0.7](https://img.shields.io/badge/Version-1.0.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2](https://img.shields.io/badge/AppVersion-1.2-informational?style=flat-square)
 
 A Helm chart for RadiantOne Common Services on Kubernetes
 
@@ -11,6 +11,8 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | pgodey | <pgodey@radiantlogic.com> | <https://www.radiantlogic.com> |
 
 ## Requirements
+
+Kubernetes: `>=1.24.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
@@ -26,6 +28,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | https://opensearch-project.github.io/helm-charts | opensearch | 2.16.1 |
 | https://opensearch-project.github.io/helm-charts | opensearch-dashboards | 2.14.0 |
 | https://prometheus-community.github.io/helm-charts | prometheus | 15.13.0 |
+| https://vmware-tanzu.github.io/helm-charts | velero | 5.2.2 |
 
 ## Values
 
@@ -67,30 +70,65 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | curator.cronjob.schedule | string | `"* * * * *"` |  |
 | curator.cronjob.startingDeadlineSeconds | string | `""` |  |
 | curator.cronjob.successfulJobsHistoryLimit | string | `""` |  |
-| curator.dryrun | bool | `true` |  |
+| curator.dryrun | bool | `false` |  |
 | curator.enabled | bool | `false` |  |
 | curator.hooks.install | bool | `false` |  |
 | curator.hooks.upgrade | bool | `false` |  |
 | curator.logs[0].direction | string | `"older"` |  |
 | curator.logs[0].enable | bool | `true` |  |
-| curator.logs[0].name | string | `"vds_server"` |  |
+| curator.logs[0].name | string | `"vds_server.log"` |  |
 | curator.logs[0].unit | string | `"days"` |  |
 | curator.logs[0].unit_count | int | `15` |  |
+| curator.logs[10].direction | string | `"older"` |  |
+| curator.logs[10].enable | bool | `true` |  |
+| curator.logs[10].name | string | `"alerts.log"` |  |
+| curator.logs[10].unit | string | `"days"` |  |
+| curator.logs[10].unit_count | int | `15` |  |
 | curator.logs[1].direction | string | `"older"` |  |
 | curator.logs[1].enable | bool | `true` |  |
-| curator.logs[1].name | string | `"vds_server_access"` |  |
+| curator.logs[1].name | string | `"vds_server_access.log"` |  |
 | curator.logs[1].unit | string | `"days"` |  |
-| curator.logs[1].unit_count | int | `7` |  |
+| curator.logs[1].unit_count | int | `15` |  |
 | curator.logs[2].direction | string | `"older"` |  |
 | curator.logs[2].enable | bool | `true` |  |
-| curator.logs[2].name | string | `"adap_access"` |  |
+| curator.logs[2].name | string | `"adap_access.log"` |  |
 | curator.logs[2].unit | string | `"days"` |  |
-| curator.logs[2].unit_count | int | `7` |  |
+| curator.logs[2].unit_count | int | `15` |  |
 | curator.logs[3].direction | string | `"older"` |  |
 | curator.logs[3].enable | bool | `true` |  |
-| curator.logs[3].name | string | `"adap"` |  |
+| curator.logs[3].name | string | `"adap.log"` |  |
 | curator.logs[3].unit | string | `"days"` |  |
-| curator.logs[3].unit_count | int | `7` |  |
+| curator.logs[3].unit_count | int | `15` |  |
+| curator.logs[4].direction | string | `"older"` |  |
+| curator.logs[4].enable | bool | `true` |  |
+| curator.logs[4].name | string | `"web.log"` |  |
+| curator.logs[4].unit | string | `"days"` |  |
+| curator.logs[4].unit_count | int | `15` |  |
+| curator.logs[5].direction | string | `"older"` |  |
+| curator.logs[5].enable | bool | `true` |  |
+| curator.logs[5].name | string | `"web_access.log"` |  |
+| curator.logs[5].unit | string | `"days"` |  |
+| curator.logs[5].unit_count | int | `15` |  |
+| curator.logs[6].direction | string | `"older"` |  |
+| curator.logs[6].enable | bool | `true` |  |
+| curator.logs[6].name | string | `"event.log"` |  |
+| curator.logs[6].unit | string | `"days"` |  |
+| curator.logs[6].unit_count | int | `15` |  |
+| curator.logs[7].direction | string | `"older"` |  |
+| curator.logs[7].enable | bool | `true` |  |
+| curator.logs[7].name | string | `"periodiccahe.log"` |  |
+| curator.logs[7].unit | string | `"days"` |  |
+| curator.logs[7].unit_count | int | `15` |  |
+| curator.logs[8].direction | string | `"older"` |  |
+| curator.logs[8].enable | bool | `true` |  |
+| curator.logs[8].name | string | `"admin_rest_api_access.log"` |  |
+| curator.logs[8].unit | string | `"days"` |  |
+| curator.logs[8].unit_count | int | `15` |  |
+| curator.logs[9].direction | string | `"older"` |  |
+| curator.logs[9].enable | bool | `true` |  |
+| curator.logs[9].name | string | `"sync_engine.log"` |  |
+| curator.logs[9].unit | string | `"days"` |  |
+| curator.logs[9].unit_count | int | `15` |  |
 | curator.nodeSelector | object | `{}` |  |
 | curator.pod.annotations | object | `{}` |  |
 | curator.priorityClassName | string | `""` |  |
@@ -160,6 +198,33 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].orgId | int | `1` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].type | string | `"file"` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].name | string | `"ia-data-ingestion"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].options.path | string | `"/var/lib/grafana/dashboards/ia-data-ingestion"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[10].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].name | string | `"ia-extractor-webapp"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].options.path | string | `"/var/lib/grafana/dashboards/ia-extractor-webapp"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[11].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].name | string | `"ia-governance-portal"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].options.path | string | `"/var/lib/grafana/dashboards/ia-governance-portal"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[12].updateIntervalSeconds | int | `10` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[1].allowUiUpdates | bool | `true` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[1].disableDeletion | bool | `false` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[1].editable | bool | `true` |  |
@@ -187,8 +252,71 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[3].orgId | int | `1` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[3].type | string | `"file"` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[3].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].name | string | `"ia-service-status"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].options.path | string | `"/var/lib/grafana/dashboards/ia-service-status"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[4].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].name | string | `"ia-config-webapp"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].options.path | string | `"/var/lib/grafana/dashboards/ia-config-webapp"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[5].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].name | string | `"ia-controller-beam"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].options.path | string | `"/var/lib/grafana/dashboards/ia-controller-beam"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[6].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].name | string | `"ia-controller-ecto"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].options.path | string | `"/var/lib/grafana/dashboards/ia-controller-ecto"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[7].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].name | string | `"ia-controller-oban"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].options.path | string | `"/var/lib/grafana/dashboards/ia-controller-oban"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[8].updateIntervalSeconds | int | `10` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].allowUiUpdates | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].disableDeletion | bool | `false` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].editable | bool | `true` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].folder | string | `""` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].name | string | `"ia-controller-phoenix"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].options.path | string | `"/var/lib/grafana/dashboards/ia-controller-phoenix"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].orgId | int | `1` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].type | string | `"file"` |  |
+| grafana.dashboardProviders."dashboardproviders.yaml".providers[9].updateIntervalSeconds | int | `10` |  |
 | grafana.dashboardsConfigMaps.elasticsearch | string | `"audit-logs-elastic-dashboard"` |  |
 | grafana.dashboardsConfigMaps.fid | string | `"fid-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-config-webapp | string | `"ia-config-webapp-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-controller-beam | string | `"ia-controller-beam-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-controller-ecto | string | `"ia-controller-ecto-dasboard"` |  |
+| grafana.dashboardsConfigMaps.ia-controller-oban | string | `"ia-controller-oban-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-controller-phoenix | string | `"ia-controller-phoenix-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-data-ingestion | string | `"ia-data-ingestion-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-extractor-webapp | string | `"ia-extractor-webapp-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-governance-portal | string | `"ia-governance-portal-dashboard"` |  |
+| grafana.dashboardsConfigMaps.ia-service-status | string | `"ia-service-status-dashboard"` |  |
 | grafana.dashboardsConfigMaps.service-status | string | `"service-status-dashboard"` |  |
 | grafana.dashboardsConfigMaps.zookeeper | string | `"zookeeper-dashboard"` |  |
 | grafana.datasources."datasources.yaml".apiVersion | int | `1` |  |
@@ -227,7 +355,7 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | grafana.nodeSelector | object | `{}` |  |
 | grafana.persistence.enabled | bool | `true` |  |
 | grafana.persistence.size | string | `"8Gi"` |  |
-| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  # routing\n  {{- if ((.Values.route).argocd | default false) }}\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  {{- end }}\n  {{- if ((.Values.route).grafana | default false) }}\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  {{- end }}\n  {{- if ((.Values.route).prometheus | default false) }}\n  use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  {{- end }}\n  {{- if ((.Values.route).pushgateway | default false) }}\n  use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  {{- end }}\n  {{- if ((.Values.route).kibana | default false) }}\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  {{- end }}\n  {{- if ((.Values.route).elasticsearch | default false) }}\n  use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  {{- end }}\n  {{- if ((.Values.route).pgadmin4 | default false) }}\n  use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  {{- end }}\n  {{- if ((.Values.route).slamd | default false) }}\n  use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  {{- end }}\n  {{- if ((.Values.route).shellinabox | default false) }}\n  use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  {{- end }}\n  {{- if ((.Values.route).eocui | default false) }}\n  use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  {{- end }}\n  {{- if ((.Values.route).eocapi | default false) }}\n  use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n  {{- end }}\n  {{- if ((.Values.route).sdccui | default false) }}\n  use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearchdashboards | default false) }}\n  use_backend opensearchdashboards_backend if { path /opensearch-dashboards } or { path_beg /opensearch-dashboards/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearch | default false) }}\n  use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }\n  {{- end }}\n\n# backends\n{{- if ((.Values.route).argocd | default false) }}\nbackend argocd_backend\n  server argocd argocd-server:80\n{{- end }}\n{{- if ((.Values.route).grafana | default false) }}\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80\n{{- end }}\n{{- if ((.Values.route).prometheus | default false) }}\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80\n{{- end }}\n{{- if ((.Values.route).pushgateway | default false) }}\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091\n{{- end }}\n{{- if ((.Values.route).kibana | default false) }}\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601\n{{- end }}\n{{- if ((.Values.route).elasticsearch | default false) }}\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200\n{{- end }}\n{{- if ((.Values.route).pgadmin4 | default false) }}\nbackend pgadmin4_backend\n  server pgadmin4 pgadmin4:80\n{{- end }}\n{{- if ((.Values.route).slamd | default false) }}\nbackend slamd_backend\n  server slamd slamd:80\n{{- end }}\n{{- if ((.Values.route).shellinabox | default false) }}\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080\n{{- end }}\n{{- if ((.Values.route).eocui | default false) }}\nbackend eocui_backend\n  server eocui eoc-ui-service:80\n{{- end }}\n{{- if ((.Values.route).eocapi | default false) }}\nbackend eocapi_backend\n  server eocapi eoc-backend-service:80\n{{- end }}\n{{- if ((.Values.route).sdccui | default false) }}\nbackend sdcapi_backend\n  server sdcapi sdc-agent:80\n{{- end }}\n{{- if ((.Values.route).opensearchdashboards | default false) }}\nbackend opensearchdashboards_backend\n  #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]\n  server opensearchdashboards opensearch-dashboards:5601\n{{- end }}\n{{- if ((.Values.route).opensearch | default false) }}\nbackend opensearch_backend\n  http-request set-path %[path,regsub(^/opensearch/?,/)]\n  server opensearch opensearch-cluster-master:9200\n{{- end }}\n"` |  |
+| haproxy.config | string | `"defaults\n  timeout connect 10s\n  timeout client 30s\n  timeout server 30s\n  log global\n  mode http\n  option httplog\n  maxconn 3000\nfrontend http-in\n  bind *:80\n\n  stats enable\n  stats refresh 30s\n  stats show-node\n  stats uri /stats\n  monitor-uri /healthz\n\n  # Remove unnecessary headers\n  http-response del-header Server\n  http-response del-header X-Powered-By\n  http-response del-header X-AspNetMvc-Version\n  http-response del-header X-AspNet-Version\n  http-response del-header X-Drupal-Cache\n  http-response del-header X-Drupal-Dynamic-Cache\n  http-response del-header X-Generator\n  http-response del-header X-Runtime\n  http-response del-header X-Rack-Cache\n\n  # Add security headers\n  http-response set-header Strict-Transport-Security \"max-age=16000000; includeSubDomains; preload;\"\n  http-response set-header X-Frame-Options \"SAMEORIGIN\"\n  http-response set-header X-Content-Type-Options \"nosniff\"\n  http-response set-header Referrer-Policy no-referrer-when-downgrade\n  http-response set-header X-XSS-Protection 1;mode=block\n  http-response set-header Permissions-Policy interest-cohort=()\n\n\n  # routing\n  {{- if ((.Values.route).argocd | default false) }}\n  use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }\n  {{- end }}\n  {{- if ((.Values.route).grafana | default false) }}\n  use_backend grafana_backend if { path /grafana } or { path_beg /grafana/ }\n  {{- end }}\n  {{- if ((.Values.route).prometheus | default false) }}\n  use_backend prometheus_backend if { path /prometheus } or { path_beg /prometheus/ }\n  {{- end }}\n  {{- if ((.Values.route).pushgateway | default false) }}\n  use_backend pushgateway_backend if { path /pushgateway } or { path_beg /pushgateway/ }\n  {{- end }}\n  {{- if ((.Values.route).kibana | default false) }}\n  use_backend kibana_backend if { path /kibana } or { path_beg /kibana/ }\n  {{- end }}\n  {{- if ((.Values.route).elasticsearch | default false) }}\n  use_backend elasticsearch_backend if { path /elasticsearch } or { path_beg /elasticsearch/ }\n  {{- end }}\n  {{- if ((.Values.route).pgadmin4 | default false) }}\n  use_backend pgadmin4_backend if { path /pgadmin4 } or { path_beg /pgadmin4/ }\n  {{- end }}\n  {{- if ((.Values.route).slamd | default false) }}\n  use_backend slamd_backend if { path /slamd } or { path_beg /slamd/ }\n  {{- end }}\n  {{- if ((.Values.route).shellinabox | default false) }}\n  use_backend shellinabox_backend if { path /shellinabox } or { path_beg /shellinabox/ }\n  {{- end }}\n  {{- if ((.Values.route).eocui | default false) }}\n  use_backend eocui_backend if { path /eoc } or { path_beg /eoc/ }\n  {{- end }}\n  {{- if ((.Values.route).eocapi | default false) }}\n  use_backend eocapi_backend if { path /eoc-backend } or { path_beg /eoc-backend/ }\n  {{- end }}\n  {{- if ((.Values.route).sdccui | default false) }}\n  use_backend sdcapi_backend if { path /sdc } or { path_beg /sdc/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearchdashboards | default false) }}\n  use_backend opensearchdashboards_backend if { path /opensearch-dashboards } or { path_beg /opensearch-dashboards/ }\n  {{- end }}\n  {{- if ((.Values.route).opensearch | default false) }}\n  use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }\n  {{- end }}\n\n# backends\n{{- if ((.Values.route).argocd | default false) }}\nbackend argocd_backend\n  server argocd argocd-server:80 check\n{{- end }}\n{{- if ((.Values.route).grafana | default false) }}\nbackend grafana_backend\n  http-request set-path %[path,regsub(^/grafana/?,/)]\n  server grafana grafana:80 check\n{{- end }}\n{{- if ((.Values.route).prometheus | default false) }}\nbackend prometheus_backend\n  http-request set-path %[path,regsub(^/prometheus/?,/)]\n  server prometheus prometheus-server:80 check\n{{- end }}\n{{- if ((.Values.route).pushgateway | default false) }}\nbackend pushgateway_backend\n  http-request set-path %[path,regsub(^/pushgateway/?,/)]\n  server pushgateway prometheus-pushgateway:9091 check\n{{- end }}\n{{- if ((.Values.route).kibana | default false) }}\nbackend kibana_backend\n  http-request set-path %[path,regsub(^/kibana/?,/)]\n  server kibana kibana:5601 check\n{{- end }}\n{{- if ((.Values.route).elasticsearch | default false) }}\nbackend elasticsearch_backend\n  http-request set-path %[path,regsub(^/elasticsearch/?,/)]\n  server elasticsearch elasticsearch-master:9200 check\n{{- end }}\n{{- if ((.Values.route).pgadmin4 | default false) }}\nbackend pgadmin4_backend\n  server pgadmin4 pgadmin4:80 check\n{{- end }}\n{{- if ((.Values.route).slamd | default false) }}\nbackend slamd_backend\n  server slamd slamd:80 check\n{{- end }}\n{{- if ((.Values.route).shellinabox | default false) }}\nbackend shellinabox_backend\n  http-request set-path %[path,regsub(^/shellinabox/?,/)]\n  server shellinabox shellinabox:8080 check\n{{- end }}\n{{- if ((.Values.route).eocui | default false) }}\nbackend eocui_backend\n  server eocui eoc-ui-service:80 check\n{{- end }}\n{{- if ((.Values.route).eocapi | default false) }}\nbackend eocapi_backend\n  server eocapi eoc-backend-service:80 check\n{{- end }}\n{{- if ((.Values.route).sdccui | default false) }}\nbackend sdcapi_backend\n  server sdcapi sdc-agent:80 check\n{{- end }}\n{{- if ((.Values.route).opensearchdashboards | default false) }}\nbackend opensearchdashboards_backend\n  #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]\n  server opensearchdashboards opensearch-dashboards:5601 check\n{{- end }}\n{{- if ((.Values.route).opensearch | default false) }}\nbackend opensearch_backend\n  http-request set-path %[path,regsub(^/opensearch/?,/)]\n  server opensearch opensearch-cluster-master:9200 check\n{{- end }}\n"` |  |
 | haproxy.enabled | bool | `true` |  |
 | haproxy.fullnameOverride | string | `"haproxy"` |  |
 | haproxy.nodeSelector | object | `{}` |  |
@@ -401,9 +529,49 @@ A Helm chart for RadiantOne Common Services on Kubernetes
 | smtp.service.port | int | `8080` |  |
 | smtp.service.type | string | `"ClusterIP"` |  |
 | smtp.tolerations | list | `[]` |  |
+| velero.backupStorage.bucket | string | `""` |  |
+| velero.backupStorage.prefix | string | `nil` |  |
+| velero.backupStorage.region | string | `""` |  |
+| velero.backupStorage.validationFrequency | string | `"1h"` |  |
+| velero.cleanUpCRDs | bool | `true` |  |
+| velero.configuration.backupStorageLocation | string | `"nil"` |  |
+| velero.configuration.defaultBackupStorageLocation | string | `"common-bsl"` |  |
+| velero.configuration.defaultBackupTTL | string | `"168h"` |  |
+| velero.configuration.defaultVolumeSnapshotLocations | string | `"common-vsl"` |  |
+| velero.configuration.garbageCollectionFrequency | string | `"1h"` |  |
+| velero.configuration.volumeSnapshotLocation | string | `"nil"` |  |
+| velero.credentials.useSecret | bool | `false` |  |
+| velero.enabled | bool | `false` |  |
+| velero.fullnameOverride | string | `"velero"` |  |
+| velero.initContainers[0].image | string | `"velero/velero-plugin-for-aws:v1.8.2"` |  |
+| velero.initContainers[0].imagePullPolicy | string | `"IfNotPresent"` |  |
+| velero.initContainers[0].name | string | `"velero-plugin-for-aws"` |  |
+| velero.initContainers[0].volumeMounts[0].mountPath | string | `"/target"` |  |
+| velero.initContainers[0].volumeMounts[0].name | string | `"plugins"` |  |
+| velero.nodeSelector | object | `{}` |  |
 | zookeeper.enabled | bool | `false` |  |
 | zookeeper.fullnameOverride | string | `"zookeeper"` |  |
 | zookeeper.nodeSelector | object | `{}` |  |
+| zoonavigator.affinity | object | `{}` |  |
+| zoonavigator.autoscaling.enabled | bool | `false` |  |
+| zoonavigator.autoscaling.maxReplicas | int | `3` |  |
+| zoonavigator.autoscaling.minReplicas | int | `1` |  |
+| zoonavigator.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| zoonavigator.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| zoonavigator.enabled | bool | `false` |  |
+| zoonavigator.image.pullPolicy | string | `"Always"` |  |
+| zoonavigator.image.repository | string | `"elkozmon/zoonavigator"` |  |
+| zoonavigator.image.tag | string | `"latest"` |  |
+| zoonavigator.imagePullSecrets | list | `[]` |  |
+| zoonavigator.nodeSelector | object | `{}` |  |
+| zoonavigator.podAnnotations | object | `{}` |  |
+| zoonavigator.podSecurityContext | object | `{}` |  |
+| zoonavigator.replicaCount | int | `1` |  |
+| zoonavigator.resources | object | `{}` |  |
+| zoonavigator.securityContext | object | `{}` |  |
+| zoonavigator.service.port | int | `80` |  |
+| zoonavigator.service.type | string | `"ClusterIP"` |  |
+| zoonavigator.tolerations | list | `[]` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.11.0](https://github.com/norwoodj/helm-docs/releases/v1.11.0)

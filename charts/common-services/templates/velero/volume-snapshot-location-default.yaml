@@ -1,0 +1,15 @@
+{{- if .Values.velero.enabled }}
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: common-vsl
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.velero.fullnameOverride }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  provider: aws
+  config:
+    region: {{ .Values.velero.backupStorage.region | quote }}
+{{- end }}

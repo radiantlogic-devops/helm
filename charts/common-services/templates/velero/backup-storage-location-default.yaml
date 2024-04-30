@@ -1,0 +1,23 @@
+{{- if .Values.velero.enabled }}
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: common-bsl
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.velero.fullnameOverride }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  provider: aws
+  default: true
+  validationFrequency: {{ .Values.velero.backupStorage.validationFrequency | default "1h" }}
+  accessMode: ReadWrite
+  objectStorage:
+    bucket: {{ .Values.velero.backupStorage.bucket | quote }}
+    {{- with  .Values.velero.backupStorage.prefix }}
+    prefix: {{ . | quote }}
+    {{- end }}
+  config:
+    region: {{ .Values.velero.backupStorage.region | quote }}
+{{- end }}

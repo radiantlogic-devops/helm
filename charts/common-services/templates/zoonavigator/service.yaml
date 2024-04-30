@@ -1,0 +1,17 @@
+{{- if .Values.zoonavigator.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: zoonavigator-service
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.zoonavigator.service.type }}
+  ports:
+    - port: {{ .Values.zoonavigator.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "zoonavigator.selectorLabels" . | nindent 4 }}
+{{- end }}

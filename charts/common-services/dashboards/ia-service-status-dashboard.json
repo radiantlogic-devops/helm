@@ -337,7 +337,7 @@
               "uid": "${datasource}"
             },
             "editorMode": "code",
-            "expr": "(sum(count_over_time(app_config_http_status{clustername=\"$clustername\"}[$__range])) - sum(sum_over_time(app_config_http_status{clustername=\"$clustername\"}[$__range])))/sum(count_over_time(app_config_http_status{clustername=\"$clustername\"}[$__range])) * 100",
+            "expr": "(sum(count_over_time(ia_config_http_status{clustername=\"$clustername\"}[$__range])) - sum(sum_over_time(ia_config_http_status{clustername=\"$clustername\"}[$__range])))/sum(count_over_time(ia_config_http_status{clustername=\"$clustername\"}[$__range])) * 100",
             "legendFormat": "Configuration Availability",
             "range": true,
             "refId": "A"
@@ -663,7 +663,7 @@
             },
             "editorMode": "code",
             "exemplar": false,
-            "expr": "sum(app_config_http_status{clustername=\"$clustername\"})",
+            "expr": "sum(ia_config_http_status{clustername=\"$clustername\"})",
             "format": "time_series",
             "hide": false,
             "instant": false,

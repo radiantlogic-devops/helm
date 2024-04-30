@@ -192,12 +192,101 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-service-status
+      - name: 'ia-config-webapp'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-config-webapp
+      - name: ia-controller-beam
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-beam
+      - name: 'ia-controller-ecto'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-ecto
+      - name: 'ia-controller-oban'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-oban
+      - name: 'ia-controller-phoenix'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-controller-phoenix
+      - name: 'ia-data-ingestion'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-data-ingestion
+      - name: 'ia-extractor-webapp'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-extractor-webapp
+      - name: 'ia-governance-portal'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-governance-portal
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
     ia-service-status: "ia-service-status-dashboard"
+    ia-config-webapp: "ia-config-webapp-dashboard"
+    ia-controller-beam: "ia-controller-beam-dashboard"
+    ia-controller-ecto: "ia-controller-ecto-dasboard"
+    ia-controller-oban: "ia-controller-oban-dashboard"
+    ia-controller-phoenix: "ia-controller-phoenix-dashboard"
+    ia-data-ingestion: "ia-data-ingestion-dashboard"
+    # ia-database: "ia-database-dashboard"
+    ia-extractor-webapp: "ia-extractor-webapp-dashboard"
+    ia-governance-portal: "ia-governance-portal-dashboard"
 
 elasticsearch:
   enabled: true
@@ -262,6 +351,26 @@ haproxy:
       stats uri /stats
       monitor-uri /healthz
 
+      # Remove unnecessary headers
+      http-response del-header Server
+      http-response del-header X-Powered-By
+      http-response del-header X-AspNetMvc-Version
+      http-response del-header X-AspNet-Version
+      http-response del-header X-Drupal-Cache
+      http-response del-header X-Drupal-Dynamic-Cache
+      http-response del-header X-Generator
+      http-response del-header X-Runtime
+      http-response del-header X-Rack-Cache
+
+      # Add security headers
+      http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"
+      http-response set-header X-Frame-Options "SAMEORIGIN"
+      http-response set-header X-Content-Type-Options "nosniff"
+      http-response set-header Referrer-Policy no-referrer-when-downgrade
+      http-response set-header X-XSS-Protection 1;mode=block
+      http-response set-header Permissions-Policy interest-cohort=()
+
+
       # routing
       {{- if ((.Values.route).argocd | default false) }}
       use_backend argocd_backend if { path /argocd } or { path_beg /argocd/ }
@@ -309,67 +418,67 @@ haproxy:
     # backends
     {{- if ((.Values.route).argocd | default false) }}
     backend argocd_backend
-      server argocd argocd-server:80
+      server argocd argocd-server:80 check
     {{- end }}
     {{- if ((.Values.route).grafana | default false) }}
     backend grafana_backend
       http-request set-path %[path,regsub(^/grafana/?,/)]
-      server grafana grafana:80
+      server grafana grafana:80 check
     {{- end }}
     {{- if ((.Values.route).prometheus | default false) }}
     backend prometheus_backend
       http-request set-path %[path,regsub(^/prometheus/?,/)]
-      server prometheus prometheus-server:80
+      server prometheus prometheus-server:80 check
     {{- end }}
     {{- if ((.Values.route).pushgateway | default false) }}
     backend pushgateway_backend
       http-request set-path %[path,regsub(^/pushgateway/?,/)]
-      server pushgateway prometheus-pushgateway:9091
+      server pushgateway prometheus-pushgateway:9091 check
     {{- end }}
     {{- if ((.Values.route).kibana | default false) }}
     backend kibana_backend
       http-request set-path %[path,regsub(^/kibana/?,/)]
-      server kibana kibana:5601
+      server kibana kibana:5601 check
     {{- end }}
     {{- if ((.Values.route).elasticsearch | default false) }}
     backend elasticsearch_backend
       http-request set-path %[path,regsub(^/elasticsearch/?,/)]
-      server elasticsearch elasticsearch-master:9200
+      server elasticsearch elasticsearch-master:9200 check
     {{- end }}
     {{- if ((.Values.route).pgadmin4 | default false) }}
     backend pgadmin4_backend
-      server pgadmin4 pgadmin4:80
+      server pgadmin4 pgadmin4:80 check
     {{- end }}
     {{- if ((.Values.route).slamd | default false) }}
     backend slamd_backend
-      server slamd slamd:80
+      server slamd slamd:80 check
     {{- end }}
     {{- if ((.Values.route).shellinabox | default false) }}
     backend shellinabox_backend
       http-request set-path %[path,regsub(^/shellinabox/?,/)]
-      server shellinabox shellinabox:8080
+      server shellinabox shellinabox:8080 check
     {{- end }}
     {{- if ((.Values.route).eocui | default false) }}
     backend eocui_backend
-      server eocui eoc-ui-service:80
+      server eocui eoc-ui-service:80 check
     {{- end }}
     {{- if ((.Values.route).eocapi | default false) }}
     backend eocapi_backend
-      server eocapi eoc-backend-service:80
+      server eocapi eoc-backend-service:80 check
     {{- end }}
     {{- if ((.Values.route).sdccui | default false) }}
     backend sdcapi_backend
-      server sdcapi sdc-agent:80
+      server sdcapi sdc-agent:80 check
     {{- end }}
     {{- if ((.Values.route).opensearchdashboards | default false) }}
     backend opensearchdashboards_backend
       #http-request set-path %[path,regsub(^/opensearch-dashboards/?,/)]
-      server opensearchdashboards opensearch-dashboards:5601
+      server opensearchdashboards opensearch-dashboards:5601 check
     {{- end }}
     {{- if ((.Values.route).opensearch | default false) }}
     backend opensearch_backend
       http-request set-path %[path,regsub(^/opensearch/?,/)]
-      server opensearch opensearch-cluster-master:9200
+      server opensearch opensearch-cluster-master:9200 check
     {{- end }}
 
 
@@ -629,6 +738,7 @@ fluent-bit:
 
 curator:
   enabled: false
+  dryrun: false
   config:
     client:
       hosts: ["elasticsearch-master"]
@@ -647,25 +757,60 @@ curator:
       logformat: default
       blacklist: ['elasticsearch', 'urllib3']
   logs:
-    - name: "vds_server"
+    - name: "vds_server.log"
       enable: true
       unit: "days"
       unit_count: 15
       direction: "older"
-    - name: "vds_server_access"
+    - name: "vds_server_access.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
       direction: "older"
-    - name: "adap_access"
+    - name: "adap_access.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
       direction: "older"
-    - name: "adap"
+    - name: "adap.log"
       enable: true
       unit: "days"
-      unit_count: 7
+      unit_count: 15
+      direction: "older"
+    - name: "web.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "web_access.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "event.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "periodiccahe.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "admin_rest_api_access.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "sync_engine.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
+      direction: "older"
+    - name: "alerts.log"
+      enable: true
+      unit: "days"
+      unit_count: 15
       direction: "older"
   cronjob:
     schedule: "* * * * *"
@@ -691,7 +836,72 @@ curator:
     runAsUser: 16
   psp:
     create: false
-  dryrun: true
   resources: {}
   nodeSelector: {}
     # tenantname:
+
+velero:
+  enabled: false
+  fullnameOverride: "velero"
+  backupStorage:
+    bucket: ""
+    region: ""
+    # defines how frequently Velero should validate the object storage
+    validationFrequency: 1h
+    # prefix is the directory under which all Velero data should be stored within the bucket
+    prefix:
+  credentials:
+    useSecret: false
+  cleanUpCRDs: true
+  nodeSelector: {}
+  configuration:
+    # defaultBackupStorageLocation: common-bsl
+    # defaultVolumeSnapshotLocations: common-vsl
+    # how long to wait by default before backups can be garbage collected
+    defaultBackupTTL: 168h
+    # the frequency of the reconciliation loop that garbage the expired backups
+    garbageCollectionFrequency: 1h
+    # avoid default Backup Storage Location to be created by Velero chart
+    backupStorageLocation: nil
+    # avoid default Volume Storage Location to be created by Velero chart
+    volumeSnapshotLocation: nil
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: "velero/velero-plugin-for-aws:v1.8.2"
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+zoonavigator:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: elkozmon/zoonavigator
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 80
+  resources: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

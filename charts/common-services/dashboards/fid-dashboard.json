@@ -1692,7 +1692,7 @@
         },
         "definition": "label_values(ldap_monitor_starttime,instance)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "multi": true,
         "name": "node",
         "options": [],
