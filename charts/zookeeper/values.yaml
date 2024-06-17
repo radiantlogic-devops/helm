@@ -104,17 +104,87 @@ persistence:
 
 metrics:
   enabled: false
-  image: radiantone/zk-exporter
-  imageTag: latest
-  annotations: {}
+  image: radiantone/zookeeper-exporter
+  imageTag: ""
   zk_conn: localhost:2181
+  securityContext:
+    runAsUser: 0
+  annotations: {}
   pushMode: true
   pushGateway: http://prometheus-pushgateway:9091
+  pushMetricCron: "* * * * *"
   fluentd:
     enabled: false
+    logs:
+      zookeeper:
+        enabled: true
+        path: "/opt/radiantone/rli-zookeeper-external/zookeeper/logs/zookeeper.log"
+        index: zookeeper.log
+        parse: |-
+          <parse>
+            @type multiline_grok
+            grok_pattern %{TIMESTAMP_ISO8601:timestamp} \[myid:%{NUMBER:zk_id}\] - %{WORD:log_level} \[%{GREEDYDATA:thread_name}\] - %{GREEDYDATA:message}
+            multiline_start_regexp /\d{4}-\d{1,2}-\d{1,2}/
+          </parse>
+        # custom_index:
+        # splunk_index:
+        # splunk_source:
+        # splunk_sourcetype:
     configFile: /fluentd/etc/fluent.conf
-    elasticSearchHost: elasticsearch-master
-    elasticSearchType: elasticsearch
+    aggregators: []
+      # - type: "s3"
+      #   s3_bucket: "fluentd-logs-test"
+      #   s3_region: "us-east-2"
+      #   path: "logs/${hostname}/%Y/%m/%d/"
+      #   s3_object_key_format: "%{path}%{time_slice}_%{index}.log"
+      #   time_slice_format: "%Y%m%d%H"
+      #   time_slice_wait: 10m
+      #   utc: true
+      #   buffer_chunk_limit: 256m
+      #   buffer_queue_limit: 128
+      #   flush_interval: 1m
+      #   retry_limit: 17
+      #   retry_wait: 1s
+      #   log_format: json
+      # - type: sumologic
+      #   endpoint: ""
+      #   source_category: "kubernetes"
+      #   log_key: "message"
+      #   open_timeout: "60"
+      #   add_timestamp: true
+      # - type: "elasticsearch"
+      #   host: "elasticsearch-master"
+      #   port: "9200"
+      # - type: "datadog"
+      #   api_key: ""
+      #   #datadog_site: "datadoghq.com" # Use datadoghq.eu if in EU region
+      #   include_tag_key: true
+      #   tag_key: "tag"
+      # - type: "elasticsearch"
+      #   host: "elasticsearch-master"
+      #   port: "9200"
+      #   scheme: "https"
+      #   user: "xxxx"
+      #   password: "xxxx"
+      # - type: "opensearch"
+      #   host: "opensearch-cluster-master"
+      #   port: "9200"
+      #   user: "admin"
+      #   password: "admin"
+      # - type: "opensearch"
+      #   host: "opensearch-cluster-master"
+      #   port: "9200"
+      #   scheme: "https"
+      #   user: "xxxx"
+      #   password: "xxxx"
+      # - type: "splunk_hec"
+      #   hec_host: "splunk-s1-standalone-service.splunk-operator.svc.cluster.local"
+      #   hec_port: "8088"
+      #   hec_token: ""
+      #   source: ""
+      #   sourcetype: "*"
+      #   insecure_ssl: "true"
+        # hec_index: ""
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
