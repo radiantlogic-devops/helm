@@ -1,82 +1,93 @@
 apiVersion: v2
 name: common-services
-description: A Helm chart for RadiantOne Common Services on Kubernetes
+description: A Helm chart for deploying RadiantOne Common Services on Kubernetes
 
-# A chart can be either an 'application' or a 'library' chart.
-#
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-#
-# Library charts provide useful utilities or functions for the chart developer. They're included as
-# a dependency of application charts to inject those utilities and functions into the rendering
-# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+# Chart Type
+# ----------
+# This is an "application" chart, meaning it bundles together multiple Kubernetes resources to deploy a complete application.
 type: application
 
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.0.7
+# Chart Version
+# -------------
+# This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
+version: 1.0.8
 
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-appVersion: "1.2"
+# Application Version (Informational)
+# -----------------------------------
+# This represents the version of the RadiantOne Common Services software itself, not the Helm chart version.
+# Follow Semantic Versioning (https://semver.org/)
+appVersion: "1.3"
+
+# Required Kubernetes Version
+# --------------------------
+# Specifies the minimum Kubernetes version needed for this chart to function correctly.
 kubeVersion: ">=1.24.0-0"
+
+# Chart Maintainers (Optional)
+# ----------------------------
+# List the people or teams responsible for maintaining and supporting this Helm chart.
 maintainers:
   - name: pgodey
     email: pgodey@radiantlogic.com
     url: https://www.radiantlogic.com
 
+# Chart Dependencies
+# ------------------
+# List the Helm charts that this chart depends on to function.  Each dependency includes:
+#   - name: The name of the dependency chart.
+#   - version: The version of the dependency chart to use.
+#   - repository: The Helm repository where the dependency chart can be found.
+#   - condition (optional): A conditional expression that determines whether the dependency is included.
 dependencies:
-- name: argo-cd
+- name: argo-cd        # GitOps continuous delivery tool for Kubernetes
   version: 5.6.0
   repository: https://argoproj.github.io/argo-helm
   condition: argo-cd.enabled
-- name: prometheus
+- name: prometheus      # Time-series database for monitoring and alerting
   version: 15.13.0
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
-- name: grafana
+- name: grafana        # Observability platform for metrics visualization and dashboards
   version: 6.40.0
   repository: https://grafana.github.io/helm-charts
   condition: grafana.enabled
-- name: elasticsearch
+- name: elasticsearch   # Search and analytics engine for log aggregation and more
   version: 7.17.3
   repository: https://helm.elastic.co
   condition: elasticsearch.enabled
-- name: kibana
+- name: kibana         # Visualization tool for Elasticsearch data
   version: 7.17.3
   repository: https://helm.elastic.co
   condition: kibana.enabled
-- name: haproxy
+- name: haproxy        # Load balancer and proxy for routing traffic
   version: 1.17.3
   repository: https://haproxytech.github.io/helm-charts
   condition: haproxy.enabled
-- name: postgresql
+- name: postgresql      # Relational database management system
   version: 12.1.3
   repository: https://charts.bitnami.com/bitnami
   condition: postgresql.enabled
-- name: zookeeper
+- name: zookeeper       # Distributed coordination service
   version: 11.0.0
   repository: https://charts.bitnami.com/bitnami
   condition: zookeeper.enabled
-- name: pgadmin4
+- name: pgadmin4       # Web-based administration tool for PostgreSQL
   version: 1.13.8
   repository: https://helm.runix.net
   condition: pgadmin4.enabled
-- name: opensearch
+- name: opensearch      # Open-source distributed search and analytics engine (fork of Elasticsearch)
   version: 2.16.1
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch.enabled
-- name: opensearch-dashboards
+- name: opensearch-dashboards # Visualization tool for OpenSearch data
   version: 2.14.0
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch-dashboards.enabled
-- name: fluent-bit
+- name: fluent-bit      # Log processor and forwarder for collecting and shipping logs
   version: 0.39.0
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
-- name: velero
+- name: velero         # Backup and disaster recovery tool for Kubernetes resources
   version: 5.2.2
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled

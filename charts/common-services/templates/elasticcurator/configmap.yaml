@@ -40,7 +40,8 @@ data:
       certificate: "{{ .Values.curator.client.certificate | default "" }}"
       client_cert: "{{ .Values.curator.client.client_cert | default "" }}"
       client_key: "{{ .Values.curator.client.client_key | default "" }}"
-      http_auth: "{{ .Values.curator.client.http_auth | default "" }}"
+      username: "{{ .Values.curator.client.username | default "" }}"
+      password: "{{ .Values.curator.client.password | default "" }}"
       master_only: {{ .Values.curator.client.master_only | default false }}
     logging:
       loglevel: "{{ .Values.curator.logging.loglevel | default "INFO" }}"
