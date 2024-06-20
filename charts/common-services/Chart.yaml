@@ -37,7 +37,7 @@ maintainers:
 #   - name: The name of the dependency chart.
 #   - version: The version of the dependency chart to use.
 #   - repository: The Helm repository where the dependency chart can be found.
-#   - condition (optional): A conditional expression that determines whether the dependency is included.
+#   - condition: A conditional expression that determines whether the dependency is to be enabled or not.
 dependencies:
 - name: argo-cd        # GitOps continuous delivery tool for Kubernetes
   version: 5.6.0

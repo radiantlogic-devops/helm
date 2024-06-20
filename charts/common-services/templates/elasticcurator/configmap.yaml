@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "elasticsearch-curator.fullname" . }}
+  name: curator-config
 data:
   action_file.yml: |-
     actions:
@@ -11,10 +11,7 @@ data:
         action: {{ $log.action | default "delete_indices" }}
         description: "{{ $log.description | default "Action based on configurations" }}"
         options:
-          delete_aliases: {{ $log.delete_aliases | default false }}
-          skip_flush: {{ $log.skip_flush | default false }}
           ignore_empty_list: {{ $log.ignore_empty_list | default true }}
-          ignore_sync_failures: {{ $log.ignore_sync_failures | default false }}
           timeout_override: {{ $log.timeout_override | default "" }}
           continue_if_exception: {{ $log.continue_if_exception | default false }}
           disable_action: {{ $log.disable_action | default false }}
