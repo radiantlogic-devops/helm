@@ -350,6 +350,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-governance-portal
+      - name: 'ia-database'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-database
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
@@ -362,7 +372,7 @@ grafana:
     ia-controller-oban: "ia-controller-oban-dashboard"
     ia-controller-phoenix: "ia-controller-phoenix-dashboard"
     ia-data-ingestion: "ia-data-ingestion-dashboard"
-    # ia-database: "ia-database-dashboard"
+    ia-database: "ia-database-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
 
