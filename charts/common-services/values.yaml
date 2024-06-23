@@ -203,18 +203,16 @@ grafana:
             maxConcurrentShardRequests: 5
             timeField: '@timestamp'
           readonly: true
-        - name: Alertmanager
-          type: alertmanager
-          url: http://prometheus-alertmanager
-          access: proxy
         - name: OpenSearch
           type: opensearch
           access: proxy
+          isDefault: false
           url: http://opensearch-cluster-master:9200
           jsonData:
             esVersion: 70
             timeField: "@timestamp"
             interval: Daily
+          readonly: true
 
   dashboardProviders:
     dashboardproviders.yaml:
