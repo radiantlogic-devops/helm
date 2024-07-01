@@ -12,10 +12,11 @@ spec:
       {{- include "zookeeper.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-    {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/fluentd-configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
       labels:
         {{- include "zookeeper.selectorLabels" . | nindent 8 }}
     spec:
