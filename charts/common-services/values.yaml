@@ -419,6 +419,7 @@ kibana:
   #     value: elastic
   #   - name: ELASTICSEARCH_PASSWORD
   #     value: changeme
+  healthCheckPath: "/kibana"
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/kibana"
