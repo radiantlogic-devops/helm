@@ -1157,3 +1157,19 @@ zoonavigator:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# -----------------------------------------------------------------
+# -- Cloud Native PG
+# -----------------------------------------------------------------
+cloudnative-pg:
+  enabled: false
+  fullnameOverride: cnpg
+  config:
+    create: true
+    name: cnpg-controller-manager-config
+    data:
+      INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*
+      INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

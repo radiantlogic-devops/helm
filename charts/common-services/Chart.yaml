@@ -91,3 +91,7 @@ dependencies:
   version: 5.2.2
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
+- name: cloudnative-pg
+  repository: https://cloudnative-pg.github.io/charts
+  version: 0.21.4
+  condition: cloudnative-pg.enabled
