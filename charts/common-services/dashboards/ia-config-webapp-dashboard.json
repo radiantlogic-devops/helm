@@ -1619,8 +1619,7 @@
   "tags": [
     "identity-analytics",
     "radiantone",
-    "config",
-    "monitoring"
+    "config"
   ],
   "templating": {
     "list": [

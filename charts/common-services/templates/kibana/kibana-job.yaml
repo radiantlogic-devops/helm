@@ -6,13 +6,12 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "5"
-    #"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 5
   ttlSecondsAfterFinished: 600
   template:
     spec:
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.kibana.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -22,18 +21,50 @@ spec:
         configMap:
           name: kibana-data
           defaultMode: 0777
+      # initContainers:
+      # - name: wait-for-kibana
+      #   image: curlimages/curl:latest
+      #   command:
+      #   - 'sh'
+      #   - '-c'
+      #   - |
+      #     until curl -s -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" "${KIBANA_URL}/api/status" | grep -q '"status":{"overall":{"state":"green"'; do
+      #       echo "Waiting for Kibana to be ready...";
+      #       sleep 10;
+      #     done
       containers:
       - name: kibana-import
         image: alpine/curl:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
-          value: "kibana:5601"
+          value: "http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+        {{- $username := "" }}
+        {{- $password := "" }}
+        {{- range .Values.kibana.extraEnvs }}
+        {{- if eq .name "ELASTICSEARCH_USERNAME" }}
+        {{- $username = .value }}
+        {{- end }}
+        {{- if eq .name "ELASTICSEARCH_PASSWORD" }}
+        {{- $password = .value }}
+        {{- end }}
+        {{- end }}
+        {{- if and $username $password }}
+        - name: ELASTICSEARCH_USERNAME
+          value: {{ $username | quote }}
+        - name: ELASTICSEARCH_PASSWORD
+          value: {{ $password | quote }}
+        - name: AUTH_ENABLED
+          value: "true"
+        {{- else }}
+        - name: AUTH_ENABLED
+          value: "false"
+        {{- end }}
         command: ["/bin/sh", "-c"]
         args:
-            - |
-              apk add -q --no-cache jq
-              /kibana/curl-script.sh
+        - |
+          apk add -q --no-cache jq
+          /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
           mountPath: /kibana/

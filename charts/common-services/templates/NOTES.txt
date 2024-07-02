@@ -1,0 +1,254 @@
+{{- if .Release.IsUpgrade }}
+Thank you for upgrading {{ .Chart.Name }} to version {{ .Chart.Version }}.
+
+Your release {{ .Release.Name }} has been upgraded in the {{ .Release.Namespace }} namespace.
+
+Changes in this upgrade:
+- Chart version updated to {{ .Chart.Version }}
+- Application version is now {{ .Chart.AppVersion }}
+
+{{- if ne .Values.elasticsearch.volumeClaimTemplate.resources.requests.storage "30Gi" }}
+- Elasticsearch storage size has been changed to {{ .Values.elasticsearch.volumeClaimTemplate.resources.requests.storage }}
+{{- end }}
+
+{{- if ne .Values.postgresql.primary.persistence.size "10Gi" }}
+- PostgreSQL storage size has been changed to {{ .Values.postgresql.primary.persistence.size }}
+{{- end }}
+
+{{- if ne .Values.grafana.persistence.size "8Gi" }}
+- Grafana storage size has been changed to {{ .Values.grafana.persistence.size }}
+{{- end }}
+
+{{- if ne .Values.prometheus.server.persistentVolume.size "8Gi" }}
+- Prometheus storage size has been changed to {{ .Values.prometheus.server.persistentVolume.size }}
+{{- end }}
+
+Please review these changes and ensure they align with your expectations.
+
+{{- else }}
+Thank you for installing {{ .Chart.Name }} version {{ .Chart.Version }}.
+
+Your release is named {{ .Release.Name }} and is deployed in the {{ .Release.Namespace }} namespace.
+{{- end }}
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+Ingress:
+The application can be accessed via the following URL(s):
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
+  {{- end }}
+{{- end }}
+{{- else }}
+Ingress is not enabled. To access services, use port-forwarding or enable ingress in values.yaml.
+{{- end }}
+
+Deployed Resources in namespace {{ .Release.Namespace }}:
+{{- if index .Values "argo-cd" "enabled" }}
+- Argo CD
+  Service Type: {{ index .Values "argo-cd" "server" "service" "type" }}
+  {{- if index .Values "argo-cd" "server" "nodeSelector" }}
+  Node Selector: {{ index .Values "argo-cd" "server" "nodeSelector" | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.prometheus.enabled }}
+- Prometheus
+  Service Type: {{ .Values.prometheus.server.service.type }}
+  {{- if .Values.prometheus.server.nodeSelector }}
+  Node Selector: {{ .Values.prometheus.server.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.grafana.enabled }}
+- Grafana
+  Service Type: {{ .Values.grafana.service.type }}
+  {{- if .Values.grafana.nodeSelector }}
+  Node Selector: {{ .Values.grafana.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+  Datasources:
+  {{- if .Values.grafana.datasources }}
+    {{- if .Values.grafana.datasources.datasources }}
+      {{- if .Values.grafana.datasources.datasources.yaml }}
+        {{- if .Values.grafana.datasources.datasources.yaml.datasources }}
+          {{- range .Values.grafana.datasources.datasources.yaml.datasources }}
+    - {{ .name }}: {{ .type }}
+          {{- end }}
+        {{- else }}
+    No datasources defined in .Values.grafana.datasources.datasources.yaml.datasources
+        {{- end }}
+      {{- else }}
+    No datasources defined in .Values.grafana.datasources.datasources.yaml
+      {{- end }}
+    {{- else }}
+    No datasources defined in .Values.grafana.datasources.datasources
+    {{- end }}
+  {{- else }}
+    No datasources defined in .Values.grafana.datasources
+  {{- end }}
+{{- end }}
+{{- if .Values.elasticsearch.enabled }}
+- Elasticsearch
+  Service Type: {{ .Values.elasticsearch.service.type }}
+  Replicas: {{ .Values.elasticsearch.replicas }}
+  {{- if .Values.elasticsearch.nodeSelector }}
+  Node Selector: {{ .Values.elasticsearch.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.kibana.enabled }}
+- Kibana
+  Service Type: {{ .Values.kibana.service.type }}
+  {{- if .Values.kibana.nodeSelector }}
+  Node Selector: {{ .Values.kibana.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.haproxy.enabled }}
+- HAProxy
+  Service Type: {{ .Values.haproxy.service.type }}
+  {{- if .Values.haproxy.nodeSelector }}
+  Node Selector: {{ .Values.haproxy.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+  Enabled Routes:
+  {{- range $key, $value := .Values.haproxy.route }}
+    {{- if $value }}
+    - {{ $key }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if .Values.postgresql.enabled }}
+- PostgreSQL
+  Service Type: {{ .Values.postgresql.primary.service.type }}
+  {{- if .Values.postgresql.primary.nodeSelector }}
+  Node Selector: {{ .Values.postgresql.primary.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.pgadmin4.enabled }}
+- pgAdmin4
+  Service Type: {{ .Values.pgadmin4.service.type }}
+  {{- if .Values.pgadmin4.nodeSelector }}
+  Node Selector: {{ .Values.pgadmin4.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.slamd.enabled }}
+- SLAMD
+  Service Type: {{ .Values.slamd.service.type }}
+  {{- if .Values.slamd.nodeSelector }}
+  Node Selector: {{ .Values.slamd.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.shellinabox.enabled }}
+- Shellinabox
+  Service Type: {{ .Values.shellinabox.service.type }}
+  {{- if .Values.shellinabox.nodeSelector }}
+  Node Selector: {{ .Values.shellinabox.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.smtp.enabled }}
+- SMTP Relay
+  Service Type: {{ .Values.smtp.service.type }}
+  {{- if .Values.smtp.nodeSelector }}
+  Node Selector: {{ .Values.smtp.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.curator.enabled }}
+- Elasticsearch Curator
+  {{- if .Values.curator.nodeSelector }}
+  Node Selector: {{ .Values.curator.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+  Log Level: {{ .Values.curator.logging.loglevel }}
+  Dry Run: {{ .Values.curator.dryrun }}
+{{- end }}
+{{- if .Values.velero.enabled }}
+- Velero
+  {{- if .Values.velero.nodeSelector }}
+  Node Selector: {{ .Values.velero.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+  Backup Storage:
+    Bucket: {{ .Values.velero.backupStorage.bucket }}
+    Region: {{ .Values.velero.backupStorage.region }}
+{{- end }}
+{{- if .Values.zoonavigator.enabled }}
+- Zoo Navigator
+  Service Type: {{ .Values.zoonavigator.service.type }}
+  {{- if .Values.zoonavigator.nodeSelector }}
+  Node Selector: {{ .Values.zoonavigator.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.opensearch.enabled }}
+- OpenSearch
+  Service Type: {{ .Values.opensearch.service.type }}
+  {{- if .Values.opensearch.nodeSelector }}
+  Node Selector: {{ .Values.opensearch.nodeSelector | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if index .Values "fluent-bit" "enabled" }}
+- Fluent Bit
+  Service Type: {{ index .Values "fluent-bit" "service" "type" }}
+  {{- if index .Values "fluent-bit" "nodeSelector" }}
+  Node Selector: {{ index .Values "fluent-bit" "nodeSelector" | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+
+Access Information:
+
+{{- if .Values.haproxy.enabled }}
+HAProxy:
+  kubectl port-forward svc/{{ .Release.Name }}-haproxy 8080:80 -n {{ .Release.Namespace }}
+  Then access: http://localhost:8080
+
+Enabled routes and their port-forward commands:
+{{- range $key, $value := .Values.haproxy.route }}
+  {{- if $value }}
+  {{ $key }}:
+    kubectl port-forward svc/{{ $.Release.Name }}-{{ $key }} 8080:80 -n {{ $.Release.Namespace }}
+    Then access: http://localhost:8080
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- if index .Values "fluent-bit" "enabled" }}
+Log Forwarding:
+Fluent Bit is configured to forward logs from the following sources:
+{{- range (index .Values "fluent-bit" "logs") }}
+{{- if .enable }}
+  - {{ .name }} ({{ .path }})
+{{- end }}
+{{- end }}
+{{- else }}
+Log Forwarding:
+Fluent Bit is disabled. Log forwarding is not currently set up.
+{{- end }}
+
+{{- if .Values.curator.enabled }}
+Log Management:
+Elasticsearch Curator is configured to manage the following log indices:
+{{- range .Values.curator.logs }}
+  - {{ .name }}
+    {{- if .unit_count }}
+    Unit Count: {{ .unit_count }}
+    {{- else }}
+    Unit Count: 7 (default)
+    {{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.grafana.enabled }}
+Grafana Dashboards:
+The following dashboards have been imported into Grafana:
+{{- range $key, $value := .Values.grafana.dashboardsConfigMaps }}
+  - {{ $value }}
+{{- end }}
+{{- end }}
+
+Note: Replace 'localhost' with the appropriate hostname or IP address if you're not accessing these services from the same machine where you're running the port-forward command.
+
+To access services directly (without port-forwarding), you may need to use the full Kubernetes DNS name:
+<service-name>.<namespace>.svc.cluster.local
+
+For example, to access Elasticsearch within the cluster:
+{{ .Release.Name }}-elasticsearch-master.{{ .Release.Namespace }}.svc.cluster.local:9200
+
+Remember to use the correct namespace ({{ .Release.Namespace }}) when interacting with these resources using kubectl or other tools.

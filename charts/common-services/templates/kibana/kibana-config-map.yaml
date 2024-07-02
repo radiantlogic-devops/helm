@@ -1,51 +1,79 @@
-{{- if eq .Values.kibana.enabled true }}
+{{- if .Values.kibana.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kibana-data
 data:
-
   curl-script.sh: |
     #!/bin/sh
+    set -e
 
-    function import_index {
-        echo "Importing Index-Patterns"
-        echo "The curl command creates symlinks so using an alternative method"
-        echo "Copying the Index-Pattern file from /kibana/index_pattern to /opt/index_pattern to make it hardlink"
-        cat /kibana/index_pattern.ndjson > /opt/index_pattern.ndjson
-        response=""
-        success="false"
-        until [[ "$success" == "true" ]]; do
-            response=$(curl -s --location --request POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" \
-                            --header 'kbn-xsrf: true' \
-                            --form 'file=@"/opt/index_pattern.ndjson"' | jq '.')
-            success=$(echo "$response" | jq -r '.success')
+    MAX_ATTEMPTS=${MAX_ATTEMPTS:-30}
+    SLEEP_DURATION=${SLEEP_DURATION:-10}
+    KIBANA_TIMEOUT=${KIBANA_TIMEOUT:-300}
+
+    import_index() {
+        echo "Starting the import of index patterns."
+        local file_path="/tmp/index_pattern.ndjson"
+        echo "Copying index pattern file to a temporary location to avoid symlink issues."
+        cp /kibana/index_pattern.ndjson $file_path
+
+        local import_success="false"
+        local attempt=0
+
+        while [ "$import_success" != "true" ] && [ $attempt -lt $MAX_ATTEMPTS ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt of $MAX_ATTEMPTS"
+
+            local response=$(curl -s --location --request POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" \
+                              --header 'kbn-xsrf: true' \
+                              --header "Authorization: Basic $(echo -n "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" | base64)" \
+                              --form "file=@$file_path")
+            import_success=$(echo "$response" | jq -r '.success // false')
+
             echo "Response: $response"
-            sleep 5
+            if [ "$import_success" != "true" ]; then
+                echo "Error: Failed to import index patterns. Retrying in $SLEEP_DURATION seconds..."
+                sleep $SLEEP_DURATION
+            fi
         done
-        if [[ "$success" == "true" ]]; then
-            printf "\nThe Kibana Index Patterns have been successfully imported\n"
+
+        if [ "$import_success" = "true" ]; then
+            echo "Successfully imported index patterns."
         else
-            printf "\nFailure while importing index-pattern\n"
+            echo "Failed to import index patterns after $MAX_ATTEMPTS attempts."
             echo "Details: $(echo "$response" | jq '.errors[]')"
+            exit 1
         fi
     }
 
-    while true
-    do
-      if [[ $(curl -s ${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
-        echo "kibana is healthy"
-        import_index
-        break
-      else
-        echo "kibana is unhealthy"
-      fi
-    sleep 5
+    echo "Waiting for Kibana to be ready (timeout: ${KIBANA_TIMEOUT}s)..."
+    end_time=$(($(date +%s) + KIBANA_TIMEOUT))
+    while [ $(date +%s) -lt $end_time ]; do
+        response=$(curl -s -o /dev/null -w "%{http_code}" -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" "${KIBANA_URL}/api/status")
+
+        if [ "$response" = "200" ]; then
+            echo "Kibana is responding. Checking status..."
+            status_response=$(curl -s -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" "${KIBANA_URL}/api/status")
+
+            if echo "$status_response" | jq -e '.status.overall.state == "green"' > /dev/null; then
+                echo "Kibana is ready."
+                import_index
+                exit 0
+            else
+                echo "Kibana is responding but not yet green. Current status: $(echo "$status_response" | jq -r '.status.overall.state')"
+            fi
+        else
+            echo "Kibana is not yet responding. HTTP status: $response"
+        fi
+
+        echo "Checking again in $SLEEP_DURATION seconds."
+        sleep $SLEEP_DURATION
     done
+
+    echo "Timeout waiting for Kibana to be ready."
+    exit 1
 
   index_pattern.ndjson: |
 {{ .Files.Get "dashboards/kibana-index-pattern.ndjson" | indent 4 }}
-
-
 {{- end }}
-
