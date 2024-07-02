@@ -39,55 +39,55 @@ maintainers:
 #   - repository: The Helm repository where the dependency chart can be found.
 #   - condition: A conditional expression that determines whether the dependency is to be enabled or not.
 dependencies:
-- name: argo-cd        # GitOps continuous delivery tool for Kubernetes
+- name: argo-cd
   version: 5.6.0
   repository: https://argoproj.github.io/argo-helm
   condition: argo-cd.enabled
-- name: prometheus      # Time-series database for monitoring and alerting
+- name: prometheus
   version: 15.13.0
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
-- name: grafana        # Observability platform for metrics visualization and dashboards
+- name: grafana
   version: 6.40.0
   repository: https://grafana.github.io/helm-charts
   condition: grafana.enabled
-- name: elasticsearch   # Search and analytics engine for log aggregation and more
+- name: elasticsearch
   version: 7.17.3
   repository: https://helm.elastic.co
   condition: elasticsearch.enabled
-- name: kibana         # Visualization tool for Elasticsearch data
+- name: kibana
   version: 7.17.3
   repository: https://helm.elastic.co
   condition: kibana.enabled
-- name: haproxy        # Load balancer and proxy for routing traffic
+- name: haproxy
   version: 1.17.3
   repository: https://haproxytech.github.io/helm-charts
   condition: haproxy.enabled
-- name: postgresql      # Relational database management system
+- name: postgresql
   version: 12.1.3
   repository: https://charts.bitnami.com/bitnami
   condition: postgresql.enabled
-- name: zookeeper       # Distributed coordination service
+- name: zookeeper
   version: 11.0.0
   repository: https://charts.bitnami.com/bitnami
   condition: zookeeper.enabled
-- name: pgadmin4       # Web-based administration tool for PostgreSQL
+- name: pgadmin4
   version: 1.13.8
   repository: https://helm.runix.net
   condition: pgadmin4.enabled
-- name: opensearch      # Open-source distributed search and analytics engine (fork of Elasticsearch)
+- name: opensearch
   version: 2.16.1
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch.enabled
-- name: opensearch-dashboards # Visualization tool for OpenSearch data
+- name: opensearch-dashboards
   version: 2.14.0
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch-dashboards.enabled
-- name: fluent-bit      # Log processor and forwarder for collecting and shipping logs
+- name: fluent-bit
   version: 0.39.0
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
-- name: velero         # Backup and disaster recovery tool for Kubernetes resources
+- name: velero
   version: 5.2.2
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
