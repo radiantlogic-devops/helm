@@ -21,21 +21,31 @@ spec:
         configMap:
           name: kibana-data
           defaultMode: 0777
-      # initContainers:
-      # - name: wait-for-kibana
-      #   image: curlimages/curl:latest
-      #   command:
-      #   - 'sh'
-      #   - '-c'
-      #   - |
-      #     until curl -s -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" "${KIBANA_URL}/api/status" | grep -q '"status":{"overall":{"state":"green"'; do
-      #       echo "Waiting for Kibana to be ready...";
-      #       sleep 10;
-      #     done
-      containers:
-      - name: kibana-import
-        image: alpine/curl:latest
-        imagePullPolicy: IfNotPresent
+      initContainers:
+      - name: wait-for-kibana
+        image: alpine:3.14
+        command:
+        - 'sh'
+        - '-c'
+        - |
+          apk add --no-cache curl jq
+          set -e
+          KIBANA_URL="http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+          AUTH_HEADER=""
+          if [ "${AUTH_ENABLED}" = "true" ]; then
+            AUTH_HEADER="-u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
+          fi
+          echo "Waiting for Kibana to be accessible..."
+          until curl -s $AUTH_HEADER "${KIBANA_URL}" > /dev/null; do
+            echo "Kibana is not yet accessible. Retrying in 10 seconds..."
+            sleep 10
+          done
+          echo "Kibana is accessible. Checking API status..."
+          until curl -s $AUTH_HEADER "${KIBANA_URL}/api/status" | jq -e '.status.overall.state == "green"' > /dev/null; do
+            echo "Kibana is not yet green. Retrying in 10 seconds..."
+            sleep 10
+          done
+          echo "Kibana is green and ready."
         env:
         - name: KIBANA_URL
           value: "http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
@@ -60,10 +70,28 @@ spec:
         - name: AUTH_ENABLED
           value: "false"
         {{- end }}
+      containers:
+      - name: kibana-import
+        image: alpine:3.14
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: KIBANA_URL
+          value: "http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+        {{- if and $username $password }}
+        - name: ELASTICSEARCH_USERNAME
+          value: {{ $username | quote }}
+        - name: ELASTICSEARCH_PASSWORD
+          value: {{ $password | quote }}
+        - name: AUTH_ENABLED
+          value: "true"
+        {{- else }}
+        - name: AUTH_ENABLED
+          value: "false"
+        {{- end }}
         command: ["/bin/sh", "-c"]
         args:
         - |
-          apk add -q --no-cache jq
+          apk add --no-cache curl jq
           /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
