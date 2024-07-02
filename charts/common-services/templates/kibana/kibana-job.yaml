@@ -1,4 +1,8 @@
 {{- if eq .Values.kibana.enabled true }}
+{{- $healthCheckPath := .Values.kibana.healthCheckPath | default "/app/kibana" }}
+{{- $isDefaultHealthCheck := eq $healthCheckPath "/app/kibana" }}
+{{- $kibanaURL := ternary "http://kibana:5601" (printf "http://%s.%s.svc.cluster.local:5601%s" (.Values.kibana.fullnameOverride | default "kibana") .Release.Namespace $healthCheckPath) $isDefaultHealthCheck }}
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -30,12 +34,23 @@ spec:
         - |
           apk add --no-cache curl jq
           set -e
-          KIBANA_URL="http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+          KIBANA_URL="{{ $kibanaURL }}"
           AUTH_HEADER=""
           if [ "${AUTH_ENABLED}" = "true" ]; then
             AUTH_HEADER="-u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
           fi
           echo "Waiting for Kibana to be accessible..."
+          {{- if $isDefaultHealthCheck }}
+          while true; do
+            if [[ $(curl -s ${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
+              echo "Kibana is healthy"
+              break
+            else
+              echo "Kibana is unhealthy, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          {{- else }}
           until curl -s $AUTH_HEADER "${KIBANA_URL}" > /dev/null; do
             echo "Kibana is not yet accessible. Retrying in 10 seconds..."
             sleep 10
@@ -46,9 +61,10 @@ spec:
             sleep 10
           done
           echo "Kibana is green and ready."
+          {{- end }}
         env:
         - name: KIBANA_URL
-          value: "http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+          value: "{{ $kibanaURL }}"
         {{- $username := "" }}
         {{- $password := "" }}
         {{- range .Values.kibana.extraEnvs }}
@@ -76,7 +92,7 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
-          value: "http://{{ .Values.kibana.fullnameOverride | default "kibana" }}.{{ .Release.Namespace }}.svc.cluster.local:5601{{ .Values.kibana.healthCheckPath | default "/kibana" }}"
+          value: "{{ $kibanaURL }}"
         {{- if and $username $password }}
         - name: ELASTICSEARCH_USERNAME
           value: {{ $username | quote }}
