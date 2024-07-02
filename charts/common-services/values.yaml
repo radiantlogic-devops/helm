@@ -681,7 +681,6 @@ slamd:
   image:
     repository: pgodey/slamd
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
   imagePullSecrets: []
   podAnnotations: {}
@@ -713,7 +712,6 @@ slamd:
     image:
       repository: pgodey/slamd-client
       pullPolicy: IfNotPresent
-      # Overrides the image tag whose default is the chart appVersion.
       tag: "latest"
     podAnnotations: {}
     podSecurityContext: {}
@@ -757,7 +755,6 @@ shellinabox:
   image:
     repository: sspreitzer/shellinabox
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "ubuntu"
   imagePullSecrets: []
   podAnnotations: {}
@@ -800,7 +797,6 @@ smtp:
   image:
     repository: bytemark/smtp
     tag: "latest"
-    # Overrides the image tag whose default is the chart appVersion.
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   podAnnotations: {}
@@ -943,7 +939,7 @@ fluent-bit:
       refresh_interval: 10
   outputSearchHost: "elasticsearch-master"
   fullnameOverride: "fluent-bit"
-  outputSearchType: "es"  # "opensearch"
+  outputSearchType: "es"
   flush: 1
   logLevel: info
   metricsPort: 2020
@@ -975,15 +971,17 @@ curator:
     certificate: ""
     client_cert: ""
     client_key: ""
-    # http_auth: ""
-    username: "" # set username for es authentication
-    password: "" # set password for es authentication
+    # set username for es authentication
+    username: ""
+    # set password for es authentication
+    password: ""
     master_only: false
   logging:
     # Curator Logging Configuration
     # ------------------------------
     # Customize how Curator logs its activities.
-    loglevel: "INFO"  # Set the desired log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    # Set the desired log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    loglevel: "INFO"
     logfile: ""
     logformat: "default"
     blacklist: ['elasticsearch', 'urllib3']
@@ -992,8 +990,8 @@ curator:
 # Define a list of actions to be performed on Elasticsearch indices.
 # Each action can have filters to select specific indices based on name patterns or age.
   logs:
-    - name: "vds_server.log"     # Name of the index to act upon
-      # action: "delete_indices"  # Type of action (delete_indices, close, create_index, etc.)
+    - name: "vds_server.log"
+      # action: "delete_indices"
       # description: "Delete vds_server log files"
       # unit_count: 30
       # timeout_override: "120s"
@@ -1031,7 +1029,8 @@ curator:
     # Curator Cron Job Settings
     # --------------------------
     # Configure the Kubernetes CronJob that will trigger Curator actions.
-    schedule: "* * * * *"  # Cron schedule (e.g., every minute)
+    # Cron schedule (e.g., every minute)
+    schedule: "* * * * *"
     annotations: {}
     labels: {}
     concurrencyPolicy: ""
