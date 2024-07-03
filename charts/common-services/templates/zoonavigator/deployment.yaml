@@ -35,7 +35,7 @@ spec:
           imagePullPolicy: {{ .Values.zoonavigator.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 9000
               protocol: TCP
           livenessProbe:
             httpGet:

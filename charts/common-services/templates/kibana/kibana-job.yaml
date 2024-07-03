@@ -1,4 +1,8 @@
 {{- if eq .Values.kibana.enabled true }}
+{{- $healthCheckPath := .Values.kibana.healthCheckPath | default "/app/kibana" }}
+{{- $isDefaultHealthCheck := eq $healthCheckPath "/app/kibana" }}
+{{- $kibanaURL := ternary "http://kibana:5601" (printf "http://%s.%s.svc.cluster.local:5601%s" (.Values.kibana.fullnameOverride | default "kibana") .Release.Namespace $healthCheckPath) $isDefaultHealthCheck }}
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -6,13 +10,12 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "5"
-    #"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 5
   ttlSecondsAfterFinished: 600
   template:
     spec:
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.kibana.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -22,18 +25,90 @@ spec:
         configMap:
           name: kibana-data
           defaultMode: 0777
+      initContainers:
+      - name: wait-for-kibana
+        image: alpine:3.14
+        command:
+        - 'sh'
+        - '-c'
+        - |
+          apk add --no-cache curl jq
+          set -e
+          KIBANA_URL="{{ $kibanaURL }}"
+          AUTH_HEADER=""
+          if [ "${AUTH_ENABLED}" = "true" ]; then
+            AUTH_HEADER="-u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
+          fi
+          echo "Waiting for Kibana to be accessible..."
+          {{- if $isDefaultHealthCheck }}
+          while true; do
+            if [[ $(curl -s ${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
+              echo "Kibana is healthy"
+              break
+            else
+              echo "Kibana is unhealthy, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          {{- else }}
+          until curl -s $AUTH_HEADER "${KIBANA_URL}" > /dev/null; do
+            echo "Kibana is not yet accessible. Retrying in 10 seconds..."
+            sleep 10
+          done
+          echo "Kibana is accessible. Checking API status..."
+          until curl -s $AUTH_HEADER "${KIBANA_URL}/api/status" | jq -e '.status.overall.state == "green"' > /dev/null; do
+            echo "Kibana is not yet green. Retrying in 10 seconds..."
+            sleep 10
+          done
+          echo "Kibana is green and ready."
+          {{- end }}
+        env:
+        - name: KIBANA_URL
+          value: "{{ $kibanaURL }}"
+        {{- $username := "" }}
+        {{- $password := "" }}
+        {{- range .Values.kibana.extraEnvs }}
+        {{- if eq .name "ELASTICSEARCH_USERNAME" }}
+        {{- $username = .value }}
+        {{- end }}
+        {{- if eq .name "ELASTICSEARCH_PASSWORD" }}
+        {{- $password = .value }}
+        {{- end }}
+        {{- end }}
+        {{- if and $username $password }}
+        - name: ELASTICSEARCH_USERNAME
+          value: {{ $username | quote }}
+        - name: ELASTICSEARCH_PASSWORD
+          value: {{ $password | quote }}
+        - name: AUTH_ENABLED
+          value: "true"
+        {{- else }}
+        - name: AUTH_ENABLED
+          value: "false"
+        {{- end }}
       containers:
       - name: kibana-import
-        image: alpine/curl:latest
+        image: alpine:3.14
         imagePullPolicy: IfNotPresent
         env:
         - name: KIBANA_URL
-          value: "kibana:5601"
+          value: "{{ $kibanaURL }}"
+        {{- if and $username $password }}
+        - name: ELASTICSEARCH_USERNAME
+          value: {{ $username | quote }}
+        - name: ELASTICSEARCH_PASSWORD
+          value: {{ $password | quote }}
+        - name: AUTH_ENABLED
+          value: "true"
+        {{- else }}
+        - name: AUTH_ENABLED
+          value: "false"
+        {{- end }}
         command: ["/bin/sh", "-c"]
         args:
-            - |
-              apk add -q --no-cache jq
-              /kibana/curl-script.sh
+        - |
+          apk add --no-cache curl jq
+          /kibana/curl-script.sh
         volumeMounts:
         - name: kibana-data
           mountPath: /kibana/

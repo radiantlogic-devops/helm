@@ -1,4 +1,29 @@
+# RadiantLogic Common Services Configuration
+# ------------------------------------------
+
+# This configuration defines a suite of services for managing and monitoring a RadiantLogic deployment.
+# It includes tools for GitOps (Argo CD), observability (Prometheus, Grafana), log management (Elasticsearch, Kibana),
+# database administration (PostgreSQL, pgAdmin), load balancing (HAProxy), and other supporting services.
+
+# The following sections configure individual components.
+# Enable or disable them as needed by setting `enabled` to `true` or `false`.
+
+# Note: Adjust individual component settings to match your specific environment and requirements.
+
 nodeSelector: {}
+
+# Ingress Configuration for Load Balancing
+# ----------------------------------------
+
+# This section defines an Ingress resource to manage external access to services within your Kubernetes cluster.
+
+# Key Features:
+# - `className`: Specifies the Ingress controller to use ("alb" in this case, likely for AWS Application Load Balancer).
+# - `hosts`: Lists the hostnames that the Ingress should respond to.
+# - `paths`: Defines the URL paths that are routed to the corresponding services.
+# - `tls`: Configures TLS certificates for secure HTTPS communication (optional).
+
+# Note: Ensure the specified Ingress controller is installed and that the TLS configuration (if used) is valid.
 
 ingress:
   enabled: false
@@ -12,6 +37,26 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+zookeeper:
+  enabled: false
+  fullnameOverride: zookeeper
+  nodeSelector: {}
+
+# Argo CD Configuration
+# ---------------------
+#
+# This section enables and configures Argo CD, a GitOps continuous delivery tool for Kubernetes.
+#
+# Key Features:
+# - Automated application deployment and synchronization from Git repositories
+# - Declarative configuration using Kubernetes manifests
+# - Visual UI for managing applications and observing their state
+# - Optional integration with Dex for authentication and authorization
+# - Customizable server settings (root path, security)
+# - Node selector configuration for different Argo CD components
+#
+# Note: Review and adjust settings for production environments.
 
 argo-cd:
   enabled: true
@@ -38,6 +83,23 @@ argo-cd:
     nodeSelector: {}
   crds:
     keep: false
+
+# Prometheus Monitoring Stack Configuration
+# ----------------------------------------
+#
+# This section enables deployment and configuration of Prometheus components:
+#
+# - Prometheus Server: Core time-series database for metrics collection and querying.
+# - Pushgateway (Optional):  Allows ephemeral and batch jobs to expose metrics.
+# - Node Exporter, Kube State Metrics, Alertmanager (Optional): Additional components for node-level metrics, Kubernetes state metrics, and alerting respectively.
+#
+# Key Features:
+# - Customizable flags for Prometheus Server
+# - Persistent storage options for Prometheus Server
+# - Ability to enable/disable individual components
+# - Configurable nodeSelectors for pod placement
+#
+# Note: Ensure correct external URL for Prometheus Server and adjust storage as needed.
 
 prometheus:
   enabled: true
@@ -68,6 +130,22 @@ prometheus:
     nodeSelector: {}
     extraArgs:
       web.enable-admin-api: true
+
+# Grafana Configuration
+# ---------------------
+#
+# This section deploys and configures a Grafana instance, including:
+#
+# - Persistent storage for dashboards and data
+# - Data sources for Prometheus, Elasticsearch, Alertmanager, and OpenSearch
+# - Dashboard provisioning from files (with customizable update intervals)
+# - Configurable settings in `grafana.ini` (e.g., root URL, authentication)
+# - Ability to override the Grafana name (`fullnameOverride`)
+# - Configurable node selection and persistent storage options
+# - Email (SMTP) setup for notifications (if enabled)
+#
+# Note: Ensure correct data source URLs and credentials. Place dashboard JSON files in the specified directories.
+
 
 grafana:
   fullnameOverride: grafana
@@ -125,18 +203,16 @@ grafana:
             maxConcurrentShardRequests: 5
             timeField: '@timestamp'
           readonly: true
-        - name: Alertmanager
-          type: alertmanager
-          url: http://prometheus-alertmanager
-          access: proxy
         - name: OpenSearch
           type: opensearch
           access: proxy
+          isDefault: false
           url: http://opensearch-cluster-master:9200
           jsonData:
             esVersion: 70
             timeField: "@timestamp"
             interval: Daily
+          readonly: true
 
   dashboardProviders:
     dashboardproviders.yaml:
@@ -272,6 +348,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-governance-portal
+      - name: 'ia-database'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ia-database
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
@@ -284,9 +370,24 @@ grafana:
     ia-controller-oban: "ia-controller-oban-dashboard"
     ia-controller-phoenix: "ia-controller-phoenix-dashboard"
     ia-data-ingestion: "ia-data-ingestion-dashboard"
-    # ia-database: "ia-database-dashboard"
+    ia-database: "ia-database-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
+
+# Elasticsearch & Kibana Configuration
+# -----------------------------------
+#
+# This section enables deployment of an Elasticsearch cluster and Kibana for log management and visualization.
+#
+# Key Features:
+# - Single-node Elasticsearch cluster (customizable replica count)
+# - Persistent storage for Elasticsearch data
+# - Kibana instance with customizable base path and telemetry settings
+# - Configurable node selectors for pod placement
+#
+# Important Considerations:
+# - Adjust storage size (`volumeClaimTemplate.resources.requests.storage`) to match your needs.
+# - Modify `clusterHealthCheckParams` based on your cluster's expected health status and timeout.
 
 elasticsearch:
   enabled: true
@@ -298,11 +399,26 @@ elasticsearch:
       requests:
         storage: 30Gi
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=60s"
+  # enable authentication
+  # esMajorVersion: 6
+  # minimumMasterNodes: 1
+  # esConfig:
+  #   elasticsearch.yml: |
+  #     xpack.security.enabled: true
+  #     discovery.type: single-node
+  # extraEnvs:
+  #   - name: ELASTIC_PASSWORD
+  #     value: changeme
 
 kibana:
   enabled: true
   fullnameOverride: kibana
   nodeSelector: {}
+  # extraEnvs:
+  #   - name: ELASTICSEARCH_USERNAME
+  #     value: elastic
+  #   - name: ELASTICSEARCH_PASSWORD
+  #     value: changeme
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/kibana"
@@ -310,6 +426,18 @@ kibana:
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
 
+# HAProxy Configuration
+# ---------------------
+#
+# This section configures HAProxy as an API gateway for internal services.
+# It provides:
+#   - Load balancing and routing for enabled services
+#   - Basic security headers and connection timeouts
+#   - Stats and health check endpoints
+#   - Customization through the 'route' section (toggle services on/off)
+#   - Fine-grained backend configuration using templating
+#
+# Note: Ensure correct service names and ports in the backend definitions.
 
 haproxy:
   enabled: true
@@ -481,6 +609,22 @@ haproxy:
       server opensearch opensearch-cluster-master:9200 check
     {{- end }}
 
+# PostgreSQL Database Configuration
+# ---------------------------------
+#
+# This section enables deployment and configuration of a PostgreSQL database cluster.
+#
+# Key Features:
+# - Single-node PostgreSQL deployment (can be expanded in more advanced scenarios)
+# - Persistent storage for database data
+# - Customizable initialization scripts via ConfigMap
+# - Predefined databases for EOC and SDC applications
+# - Option to configure backups to S3 (commented out by default)
+#
+# Important Considerations:
+# - Adjust storage size (`persistence.size`) to match your needs.
+# - Securely manage database credentials (e.g., using Kubernetes Secrets).
+# - If enabling backups, ensure proper S3 configuration and credentials.
 
 postgresql:
   enabled: true
@@ -509,6 +653,19 @@ postgresql:
     # folderName: "postgresql"
     # latestBackupName: "postgresql-latest.sql.gz"
 
+# pgAdmin4 Configuration
+# ----------------------
+#
+# This section enables deployment of pgAdmin4, a web-based administration tool for PostgreSQL databases.
+#
+# Key Features:
+# - Single-pod deployment of pgAdmin4
+# - Configurable context path for web access
+# - Option to enable persistent storage for configuration data
+# - Customizable node selection for pod placement
+#
+# Note: Persistent storage is disabled by default. Enable it if you need to preserve pgAdmin4 configuration data across pod restarts.
+
 pgadmin4:
   enabled: true
   fullnameOverride: pgadmin4
@@ -518,10 +675,20 @@ pgadmin4:
   env:
     contextPath: "/pgadmin4"
 
-zookeeper:
-  enabled: false
-  fullnameOverride: zookeeper
-  nodeSelector: {}
+# SLAMD Configuration
+# --------------------
+#
+# This section enables deployment of SLAMD, a tool for load testing and benchmarking LDAP directories.
+#
+# Key Features:
+# - Deploy SLAMD server and optionally client instances
+# - Customize image versions and pull policies
+# - Configure pod and container security settings
+# - Define resource requests and limits for SLAMD components
+# - Optionally enable autoscaling based on CPU utilization
+# - Configure node selectors, tolerations, and affinity for pod placement
+#
+# Note: Review and adjust settings according to your testing requirements.
 
 slamd:
   enabled: true
@@ -529,7 +696,6 @@ slamd:
   image:
     repository: pgodey/slamd
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
   imagePullSecrets: []
   podAnnotations: {}
@@ -561,7 +727,6 @@ slamd:
     image:
       repository: pgodey/slamd-client
       pullPolicy: IfNotPresent
-      # Overrides the image tag whose default is the chart appVersion.
       tag: "latest"
     podAnnotations: {}
     podSecurityContext: {}
@@ -584,13 +749,27 @@ slamd:
     tolerations: []
     affinity: {}
 
+# Shellinabox Configuration
+# ------------------------
+#
+# This section enables deployment of Shellinabox, a web-based SSH terminal emulator.
+#
+# Key Features:
+# - Single-pod deployment of Shellinabox
+# - Customizable Docker image repository and tag
+# - Configurable service type and port for access
+# - Optional settings for pod and container security
+# - Resource management options for CPU and memory
+# - Node selection, tolerations, and affinity controls for pod scheduling
+#
+# Note: Review and adjust security settings based on your environment's requirements.
+
 shellinabox:
   enabled: true
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "ubuntu"
   imagePullSecrets: []
   podAnnotations: {}
@@ -611,13 +790,28 @@ shellinabox:
   tolerations: []
   affinity: {}
 
+# SMTP Relay Configuration
+# ------------------------
+#
+# This section enables deployment of an SMTP relay container to send emails from within the Kubernetes cluster.
+#
+# Key Features:
+# - Single-pod deployment of SMTP relay
+# - Configurable SMTP relay host, port, and authentication credentials
+# - Customizable Docker image repository and tag
+# - Configurable service type and port for access
+# - Optional settings for pod and container security
+# - Resource management options for CPU and memory
+# - Node selection, tolerations, and affinity controls for pod scheduling
+#
+# Note: Ensure correct SMTP relay credentials and adjust security settings based on your environment's requirements.
+
 smtp:
   enabled: true
   replicaCount: 1
   image:
     repository: bytemark/smtp
     tag: "latest"
-    # Overrides the image tag whose default is the chart appVersion.
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   podAnnotations: {}
@@ -637,6 +831,16 @@ smtp:
     port: "587"
     username: ""
     password: ""
+
+# OpenSearch Configuration
+# ------------------------
+# This section controls the deployment of an OpenSearch cluster and its accompanying dashboard.
+#
+# Key Settings:
+#   - `enabled`: Set to `true` to deploy OpenSearch (and optionally OpenSearch Dashboards).
+#   - `singleNode`: If `true`, a single-node cluster is created for development/testing.
+#   - `replicas`: Number of data replicas for each primary shard (for high availability and scalability).
+#   - `persistence.size`: Size of the persistent volume for storing OpenSearch data.
 
 opensearch:
   enabled: false
@@ -697,6 +901,32 @@ opensearch-dashboards:
         basePath: "/opensearch-dashboards"
         rewriteBasePath: true
 
+# Fluent Bit Configuration
+# ------------------------
+# This section controls the deployment and configuration of Fluent Bit, a lightweight and high-performance log processor and forwarder.
+
+# Enable/Disable Fluent Bit: Set `enabled` to `true` to deploy Fluent Bit.
+# Node Selection (Optional): Use `nodeSelector` to schedule Fluent Bit pods onto specific nodes.
+# Log Sources (Required): Define a list of log sources that Fluent Bit should collect.
+#    - For each source, specify:
+#        - `name`: A descriptive name for the log source.
+#        - `enable`: Whether to collect logs from this source (`true` or `false`).
+#        - `path`: The path to the log files (use wildcards like `*`).
+#        - `refresh_interval`: How often Fluent Bit checks for new log data (in seconds).
+# Output Destination (Required): Configure where Fluent Bit should send the collected logs.
+#    - `outputSearchHost`: Hostname or IP of your Elasticsearch (or OpenSearch) cluster.
+#    - `outputSearchType`:  Choose either "es" for Elasticsearch or "opensearch".
+# Fluent Bit Configuration (Optional): Fine-tune Fluent Bit's behavior.
+#    - `fullnameOverride`: Customize the name of Fluent Bit resources (e.g., DaemonSet).
+#    - `flush`: How often Fluent Bit sends logs to the output destination (in seconds).
+#    - `logLevel`:  Logging verbosity ("info", "debug", etc.).
+#    - `metricsPort`: Port for exposing Fluent Bit metrics.
+# Service (Optional): Expose Fluent Bit's metrics or other ports via a Kubernetes Service.
+# Monitoring (Optional):
+#    - `prometheusRule`: Enable to create a PrometheusRule for Fluent Bit metrics.
+#    - `serviceMonitor`: Enable to create a ServiceMonitor to scrape Fluent Bit metrics with Prometheus Operator.
+# Existing ConfigMap (Optional): If you have a pre-existing ConfigMap with custom Fluent Bit configuration, specify its name here.
+
 fluent-bit:
   enabled: false
   nodeSelector: {}
@@ -724,7 +954,7 @@ fluent-bit:
       refresh_interval: 10
   outputSearchHost: "elasticsearch-master"
   fullnameOverride: "fluent-bit"
-  outputSearchType: "es"  # "opensearch"
+  outputSearchType: "es"
   flush: 1
   logLevel: info
   metricsPort: 2020
@@ -736,83 +966,85 @@ fluent-bit:
     enabled: false
   existingConfigMap: fluent-bit-config
 
+# Curator Configuration
+# --------------------
+# This section controls the behavior of Elasticsearch Curator, a tool for managing Elasticsearch indices.
+# Curator can perform actions like deleting, closing, or creating indices based on configured filters.
+
 curator:
-  enabled: false
+  enabled: true
   dryrun: false
-  config:
-    client:
-      hosts: ["elasticsearch-master"]
-      port: 9200
-      use_ssl: false
-      ssl_no_validate: true
-      timeout: 300
-      certificate:
-      client_cert:
-      client_key:
-      http_auth:
-      master_only: false
-    logging:
-      loglevel: "INFO"
-      logfile:
-      logformat: default
-      blacklist: ['elasticsearch', 'urllib3']
+  # Elasticsearch Client Settings
+  # -----------------------------
+  # Specify the connection details for your Elasticsearch cluster.
+  client:
+    hosts: ["elasticsearch-master"]
+    port: 9200
+    use_ssl: false
+    ssl_no_validate: true
+    timeout: 300
+    certificate: ""
+    client_cert: ""
+    client_key: ""
+    # set username for es authentication
+    username: ""
+    # set password for es authentication
+    password: ""
+    master_only: false
+  logging:
+    # Curator Logging Configuration
+    # ------------------------------
+    # Customize how Curator logs its activities.
+    # Set the desired log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    loglevel: "INFO"
+    logfile: ""
+    logformat: "default"
+    blacklist: ['elasticsearch', 'urllib3']
+# Index Management Actions
+# -------------------------
+# Define a list of actions to be performed on Elasticsearch indices.
+# Each action can have filters to select specific indices based on name patterns or age.
   logs:
     - name: "vds_server.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
+      # action: "delete_indices"
+      # description: "Delete vds_server log files"
+      # unit_count: 30
+      # timeout_override: "120s"
     - name: "vds_server_access.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "adap_access.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "adap.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "web.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "web_access.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "event.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "periodiccahe.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "admin_rest_api_access.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "sync_engine.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
     - name: "alerts.log"
-      enable: true
-      unit: "days"
-      unit_count: 15
-      direction: "older"
+    # - name: "close-old-indices"
+    #   action: "close"
+    #   description: "Close indices older than a year"
+    #   delete_aliases: false
+    #   skip_flush: true
+    #   ignore_sync_failures: true
+    #   timeout_override: "60s"
+    #   value: "old-"
+    #   unit: "months"
+    #   unit_count: 12
+    #   direction: "older"
+    # - name: "create-new-index"
+    #   action: "create_index"
+    #   description: "Create a new index for upcoming logs"
+    #   extra_settings:
+    #     settings:
+    #       number_of_shards: 3
+    #       number_of_replicas: 1
+    #   unit: "days"
+    #   unit_count: 1
   cronjob:
+    # Curator Cron Job Settings
+    # --------------------------
+    # Configure the Kubernetes CronJob that will trigger Curator actions.
+    # Cron schedule (e.g., every minute)
     schedule: "* * * * *"
     annotations: {}
     labels: {}
@@ -839,6 +1071,24 @@ curator:
   resources: {}
   nodeSelector: {}
     # tenantname:
+
+# Velero Backup and Disaster Recovery Configuration
+# ------------------------------------------------
+#
+# This section enables deployment of Velero, a Kubernetes backup and disaster recovery tool.
+#
+# Key Features:
+# - Backup and restore Kubernetes resources and persistent volumes
+# - Scheduled backups with configurable frequency and retention policies
+# - Support for various backup storage providers (e.g., AWS S3, Azure Blob Storage, etc.)
+# - Plugin system for extending functionality
+#
+# Key Configuration:
+# - `backupStorage`: Define the storage location for backups (e.g., S3 bucket).
+# - `credentials`: Configure credentials for the backup storage provider (if needed).
+# - `defaultBackupTTL`: Set the default retention period for backups.
+#
+# Note: Ensure proper configuration of backup storage and credentials for successful operation.
 
 velero:
   enabled: false
@@ -873,6 +1123,22 @@ velero:
         - mountPath: /target
           name: plugins
 
+# Zoo Navigator Configuration
+# ----------------------------
+#
+# This section enables deployment of Zoo Navigator, a web-based tool for visualizing and managing Apache ZooKeeper clusters.
+#
+# Key Features:
+# - Single-pod deployment of Zoo Navigator
+# - Configurable Docker image repository, tag, and pull policy
+# - Service definition for exposing Zoo Navigator to the network
+# - Optional settings for pod and container security
+# - Resource limits and requests for CPU and memory
+# - Optional horizontal autoscaling based on CPU/memory utilization
+# - Node selector, tolerations, and affinity controls for pod scheduling
+#
+# Note: Review and adjust settings according to your ZooKeeper cluster setup and requirements.
+
 zoonavigator:
   enabled: false
   replicaCount: 1
@@ -902,6 +1168,22 @@ zoonavigator:
     maxReplicas: 3
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# -----------------------------------------------------------------
+# -- Cloud Native PG
+# -----------------------------------------------------------------
+cloudnative-pg:
+  enabled: false
+  fullnameOverride: cnpg
+  config:
+    create: true
+    name: cnpg-controller-manager-config
+    data:
+      INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*
+      INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*
   nodeSelector: {}
   tolerations: []
   affinity: {}

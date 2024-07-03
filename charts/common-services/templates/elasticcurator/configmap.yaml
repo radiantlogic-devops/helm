@@ -1,70 +1,48 @@
 {{- if eq .Values.curator.enabled true }}
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: curator-config
-  labels:
-    {{- include "common-services.labels" . | nindent 4 }}
-    app: curator
 data:
-  action_file.yml: |
-      actions:
-        {{- $defaultLogs := .Values.curator.logs }}
-        {{- $overwriteLogs := dict }}
-        {{- range .Values.curator.logs }}
-        {{- $name := .name }}
-        {{- $overwriteLogs = set $overwriteLogs .name . }}
-        {{- end }}
-        {{- $counter := 0 }}
-        {{- range $defaultLogs }}
-        {{- $name := .name }}
-        {{- $overwriteLog := index $overwriteLogs $name }}
-        {{- $enable := default .enable ($overwriteLog).enable | default true }}
-        {{- $unit := default .unit ($overwriteLog).unit | default "days" }}
-        {{- $unit_count := default .unit_count ($overwriteLog).unit_count | default 7 }}
-        {{- $direction := default .direction ($overwriteLog).direction | default "older" }}
-        {{- if $enable }}
-        {{- $counter = add $counter 1 }}
-        {{ $counter }}:
-          action: delete_indices
-          description: "Delete indices older than {{ $unit_count }} {{ $unit }}"
-          options:
-            timeout_override:
-            continue_if_exception: False
-            disable_action: False
-            ignore_empty_list: True
-          filters:
-            - filtertype: pattern
-              kind: prefix
-              value: {{ $name }}
-              exclude: False
-            - filtertype: age
-              source: name
-              timestring: '%Y.%m.%d'
-              unit: {{ $unit }}
-              unit_count: {{ $unit_count }}
-              direction: {{ $direction }}
-        {{- end }}
-        {{- end }}
-  config.yml: |
-      client:
-        hosts:
-          {{- range .Values.curator.config.client.hosts }}
-          - {{ . }}
-          {{- end }}
-        port: {{ .Values.curator.config.client.port }}
-        use_ssl: {{ .Values.curator.config.client.use_ssl }}
-        client_cert: {{ .Values.curator.config.client.client_cert }}
-        client_key: {{ .Values.curator.config.client.client_key }}
-        ssl_no_validate: {{ .Values.curator.config.client.ssl_no_validate }}
-        timeout: {{ .Values.curator.config.client.timeout }}
-        http_auth: {{ .Values.curator.config.client.http_auth }}
-        master_only: {{ .Values.curator.config.client.master_only }}
-      logging:
-        loglevel: {{ .Values.curator.config.logging.loglevel }}
-        logfile: {{ .Values.curator.config.logging.logfile }}
-        logformat: {{ .Values.curator.config.logging.logformat }}
-        blacklist: {{ .Values.curator.config.logging.blacklist }}
-
+  action_file.yml: |-
+    actions:
+      {{- range $index, $log := .Values.curator.logs }}
+      {{ add1 $index }}:
+        action: {{ $log.action | default "delete_indices" }}
+        description: "{{ $log.description | default "Action based on configurations" }}"
+        options:
+          ignore_empty_list: {{ $log.ignore_empty_list | default true }}
+          timeout_override: {{ $log.timeout_override | default "" }}
+          continue_if_exception: {{ $log.continue_if_exception | default false }}
+          disable_action: {{ $log.disable_action | default false }}
+        filters:
+          - filtertype: "pattern"
+            kind: {{ $log.kind | default "prefix" }}
+            value: {{ if eq $log.action "delete_indices" }}{{ $log.name }}{{ else }}{{ $log.value | default $log.name }}{{ end }}
+            exclude: {{ $log.exclude | default false }}
+          - filtertype: "age"
+            source: {{ $log.source | default "name" }}
+            timestring: {{ $log.timestring | default "'%Y.%m.%d'" }}
+            unit: {{ $log.unit | default "days" }}
+            unit_count: {{ $log.unit_count | default 7 }}
+            direction: {{ $log.direction | default "older" }}
+      {{- end }}
+  config.yml: |-
+    client:
+      hosts: ["{{ .Values.curator.client.hosts | default "elasticsearch-master" }}"]
+      port: {{ .Values.curator.client.port | default 9200 }}
+      use_ssl: {{ .Values.curator.client.use_ssl | default false }}
+      ssl_no_validate: {{ .Values.curator.client.ssl_no_validate | default true }}
+      timeout: {{ .Values.curator.client.timeout | default 300 }}
+      certificate: "{{ .Values.curator.client.certificate | default "" }}"
+      client_cert: "{{ .Values.curator.client.client_cert | default "" }}"
+      client_key: "{{ .Values.curator.client.client_key | default "" }}"
+      username: "{{ .Values.curator.client.username | default "" }}"
+      password: "{{ .Values.curator.client.password | default "" }}"
+      master_only: {{ .Values.curator.client.master_only | default false }}
+    logging:
+      loglevel: "{{ .Values.curator.logging.loglevel | default "INFO" }}"
+      logfile: "{{ .Values.curator.logging.logfile | default "" }}"
+      logformat: "{{ .Values.curator.logging.logformat | default "default" }}"
+      blacklist: ["elasticsearch", "urllib3"]
 {{- end }}

@@ -34,7 +34,6 @@
           "identity-analytics",
           "controller",
           "radiantone",
-          "monitoring",
           "start"
         ],
         "target": {
@@ -44,7 +43,6 @@
             "identity-analytics",
             "controller",
             "radiantone",
-            "monitoring",
             "start"
           ],
           "type": "tags"
@@ -66,7 +64,6 @@
           "identity-analytics",
           "controller",
           "radiantone",
-          "monitoring",
           "stop"
         ],
         "target": {
@@ -76,7 +73,6 @@
             "identity-analytics",
             "controller",
             "radiantone",
-            "monitoring",
             "stop"
           ],
           "type": "tags"
@@ -2013,8 +2009,7 @@
   "tags": [
     "identity-analytics",
     "controller",
-    "radiantone",
-    "monitoring"
+    "radiantone"
   ],
   "templating": {
     "list": [
