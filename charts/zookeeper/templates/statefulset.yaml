@@ -120,6 +120,8 @@ spec:
           value: {{ .Values.metrics.pushGateway | quote }}
         - name: JOB_NAME
           value: {{ .Release.Namespace | quote }}
+        - name: METRICS_PORT
+          value: '9095'
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
