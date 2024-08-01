@@ -12,10 +12,11 @@ spec:
       {{- include "zookeeper.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-    {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/fluentd-configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
       labels:
         {{- include "zookeeper.selectorLabels" . | nindent 8 }}
     spec:
@@ -119,6 +120,8 @@ spec:
           value: {{ .Values.metrics.pushGateway | quote }}
         - name: JOB_NAME
           value: {{ .Release.Namespace | quote }}
+        - name: METRICS_PORT
+          value: '9095'
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
