@@ -4,55 +4,89 @@ kind: ConfigMap
 metadata:
   name: kibana-data
 data:
-  curl-script.sh: |
+  wait-for-kibana.sh: |
+    #!/bin/sh
+    set -e
+
+    MAX_ATTEMPTS=30
+    SLEEP_DURATION=10
+
+    echo "Waiting for Kibana to be accessible..."
+    for i in $(seq 1 $MAX_ATTEMPTS); do
+      {{- if eq (.Values.kibana.healthCheckPath | default "/app/kibana") "/app/kibana" }}
+      if [[ $(curl -s ${KIBANA_URL}/api/status | jq -r .status.overall.state) == "green" ]]; then
+        echo "Kibana is healthy"
+        exit 0
+      else
+        echo "Kibana is unhealthy, retrying in $SLEEP_DURATION seconds... (Attempt $i/$MAX_ATTEMPTS)"
+        sleep $SLEEP_DURATION
+      fi
+      {{- else }}
+      AUTH_HEADER=""
+      if [ "${AUTH_ENABLED}" = "true" ]; then
+        AUTH_HEADER="-u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
+      fi
+      if curl -s $AUTH_HEADER "${KIBANA_URL}" > /dev/null; then
+        if curl -s $AUTH_HEADER "${KIBANA_URL}/api/status" | jq -e '.status.overall.state == "green"' > /dev/null; then
+          echo "Kibana is green and ready."
+          exit 0
+        else
+          echo "Kibana is accessible but not yet green. Retrying in $SLEEP_DURATION seconds... (Attempt $i/$MAX_ATTEMPTS)"
+        fi
+      else
+        echo "Kibana is not yet accessible. Retrying in $SLEEP_DURATION seconds... (Attempt $i/$MAX_ATTEMPTS)"
+      fi
+      sleep $SLEEP_DURATION
+      {{- end }}
+    done
+    echo "Kibana did not become ready within the allotted time."
+    exit 1
+
+  import-index.sh: |
     #!/bin/sh
     set -e
 
     MAX_ATTEMPTS=5
     SLEEP_DURATION=5
 
-    import_index() {
-        echo "Starting the import of index patterns."
-        local file_path="/tmp/index_pattern.ndjson"
-        echo "Copying index pattern file to a temporary location to avoid symlink issues."
-        cp /kibana/index_pattern.ndjson $file_path
+    echo "Starting the import of index patterns."
+    file_path="/tmp/index_pattern.ndjson"
+    echo "Copying index pattern file to a temporary location to avoid symlink issues."
+    cp /kibana/index_pattern.ndjson $file_path
 
-        local import_success="false"
-        local attempt=0
+    import_success="false"
+    attempt=0
 
-        while [ "$import_success" != "true" ] && [ $attempt -lt $MAX_ATTEMPTS ]; do
-            attempt=$((attempt + 1))
-            echo "Attempt $attempt of $MAX_ATTEMPTS"
+    while [ "$import_success" != "true" ] && [ $attempt -lt $MAX_ATTEMPTS ]; do
+      attempt=$((attempt + 1))
+      echo "Attempt $attempt of $MAX_ATTEMPTS"
 
-            local auth_header=""
-            if [ "${AUTH_ENABLED}" = "true" ]; then
-                auth_header="Authorization: Basic $(echo -n "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" | base64)"
-            fi
+      auth_header=""
+      if [ "${AUTH_ENABLED}" = "true" ]; then
+        auth_header="Authorization: Basic $(echo -n "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" | base64)"
+      fi
 
-            local response=$(curl -s --location --request POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" \
-                              --header 'kbn-xsrf: true' \
-                              --header "${auth_header}" \
-                              --form "file=@$file_path")
-            import_success=$(echo "$response" | grep -q '"success":true' && echo "true" || echo "false")
+      response=$(curl -s --location --request POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" \
+                  --header 'kbn-xsrf: true' \
+                  --header "${auth_header}" \
+                  --form "file=@$file_path")
+      import_success=$(echo "$response" | grep -q '"success":true' && echo "true" || echo "false")
 
-            echo "Response: $response"
-            if [ "$import_success" != "true" ]; then
-                echo "Error: Failed to import index patterns. Retrying in $SLEEP_DURATION seconds..."
-                sleep $SLEEP_DURATION
-            fi
-        done
+      echo "Response: $response"
+      if [ "$import_success" != "true" ]; then
+        echo "Error: Failed to import index patterns. Retrying in $SLEEP_DURATION seconds..."
+        sleep $SLEEP_DURATION
+      fi
+    done
 
-        if [ "$import_success" = "true" ]; then
-            echo "Successfully imported index patterns."
-        else
-            echo "Failed to import index patterns after $MAX_ATTEMPTS attempts."
-            echo "Details: $response"
-            exit 1
-        fi
-    }
-
-    import_index
-
+    if [ "$import_success" = "true" ]; then
+      echo "Successfully imported index patterns."
+      exit 0
+    else
+      echo "Failed to import index patterns after $MAX_ATTEMPTS attempts."
+      echo "Details: $response"
+      exit 1
+    fi
 
   index_pattern.ndjson: |
 {{ .Files.Get "dashboards/kibana-index-pattern.ndjson" | indent 4 }}

@@ -413,6 +413,7 @@ kibana:
       server.basePath: "/kibana"
       server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
       telemetry.optIn: false
+      server.rewriteBasePath: true
       security.showInsecureClusterWarning: false
 
 # HAProxy Configuration
