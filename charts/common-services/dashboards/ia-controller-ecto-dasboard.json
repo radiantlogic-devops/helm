@@ -18,74 +18,14 @@
           "type": "dashboard"
         },
         "type": "dashboard"
-      },
-      {
-        "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "#73BF69",
-        "limit": 100,
-        "name": "PromEx service start",
-        "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "radiantone",
-          "controller",
-          "start"
-        ],
-        "target": {
-          "limit": 100,
-          "matchAny": false,
-          "tags": [
-            "identity-analytics",
-            "radiantone",
-            "controller",
-            "start"
-          ],
-          "type": "tags"
-        },
-        "type": "tags"
-      },
-      {
-        "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "#FF9830",
-        "limit": 100,
-        "name": "PromEx service stop",
-        "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "radiantone",
-          "controller",
-          "stop"
-        ],
-        "target": {
-          "limit": 100,
-          "matchAny": false,
-          "tags": [
-            "identity-analytics",
-            "radiantone",
-            "controller",
-            "stop"
-          ],
-          "type": "tags"
-        },
-        "type": "tags"
       }
     ]
   },
-  "description": "All the data that is presented here is captured by the PromEx Ecto plugin (https://github.com/akoutmos/prom_ex/blob/master/lib/prom_ex/plugins/ecto.ex)",
+  "description": "",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 11,
+  "id": 32,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -166,7 +106,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_query_idle_time_milliseconds_sum{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_idle_time_milliseconds_count{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_query_idle_time_milliseconds_sum{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_idle_time_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -227,7 +167,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_query_queue_time_milliseconds_sum{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_queue_time_milliseconds_count{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_query_queue_time_milliseconds_sum{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_queue_time_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -288,7 +228,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_query_decode_time_milliseconds_sum{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_decode_time_milliseconds_count{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_query_decode_time_milliseconds_sum{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"} / bw_controller_prom_ex_ecto_repo_query_decode_time_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -349,7 +289,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_sum{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"}) / sum(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"})",
+          "expr": "sum(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_sum{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"}) / sum(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"})",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -410,7 +350,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -481,7 +421,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -552,7 +492,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_init_status_info{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -623,7 +563,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_init_pool_size{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_init_pool_size{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -694,7 +634,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_ecto_repo_init_timeout_duration{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}",
+          "expr": "bw_controller_prom_ex_ecto_repo_init_timeout_duration{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -818,7 +758,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_total_time_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by(command) / sum(irate(bw_controller_prom_ex_ecto_repo_query_total_time_milliseconds_count{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by(command)",
+              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_total_time_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by(command) / sum(irate(bw_controller_prom_ex_ecto_repo_query_total_time_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by(command)",
               "interval": "",
               "legendFormat": "{{ command }}",
               "range": true,
@@ -917,7 +857,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1032,7 +972,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by(command) / sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by(command)",
+              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by(command) / sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by(command)",
               "interval": "",
               "legendFormat": "{{ command }}",
               "range": true,
@@ -1131,7 +1071,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1203,8 +1143,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1245,9 +1184,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "sum(increase(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{instance=\"$instance\", environment=\"$environment\", repo=\"$repo\"}[$interval])) by(source)",
+              "editorMode": "code",
+              "expr": "sum(increase(bw_controller_prom_ex_ecto_repo_query_execution_time_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", repo=\"$repo\"}[$interval])) by(source)",
               "interval": "",
               "legendFormat": "{{ source }}",
+              "range": true,
               "refId": "A"
             }
           ],
@@ -1344,7 +1285,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_results_returned_bucket{environment=\"$environment\", instance=\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_ecto_repo_query_results_returned_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", repo=\"$repo\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1413,14 +1354,14 @@
       {
         "current": {
           "selected": false,
-          "text": "dev",
-          "value": "dev"
+          "text": "rli-ops10-jmc01",
+          "value": "rli-ops10-jmc01"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
         "hide": 0,
         "includeAll": false,
         "label": "environment",
@@ -1428,8 +1369,8 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
-          "refId": "Prometheus-environment-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -1443,23 +1384,23 @@
       {
         "current": {
           "selected": false,
-          "text": "10.42.0.21:4000",
-          "value": "10.42.0.21:4000"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, instance)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment=\"$environment\"}, instance)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Application Instance",
-        "multi": false,
+        "multi": true,
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{environment=\"$environment\"}, instance)",
-          "refId": "Prometheus-instance-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment=\"$environment\"}, instance)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -1558,6 +1499,6 @@
   "timezone": "",
   "title": "Controller - Database",
   "uid": "bw-ontroller-ecto-4",
-  "version": 20,
+  "version": 13,
   "weekStart": ""
 }
