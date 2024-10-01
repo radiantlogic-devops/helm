@@ -132,26 +132,6 @@ metrics:
         # splunk_sourcetype:
     configFile: /fluentd/etc/fluent.conf
     aggregators: []
-      # - type: "s3"
-      #   s3_bucket: "fluentd-logs-test"
-      #   s3_region: "us-east-2"
-      #   path: "logs/${hostname}/%Y/%m/%d/"
-      #   s3_object_key_format: "%{path}%{time_slice}_%{index}.log"
-      #   time_slice_format: "%Y%m%d%H"
-      #   time_slice_wait: 10m
-      #   utc: true
-      #   buffer_chunk_limit: 256m
-      #   buffer_queue_limit: 128
-      #   flush_interval: 1m
-      #   retry_limit: 17
-      #   retry_wait: 1s
-      #   log_format: json
-      # - type: sumologic
-      #   endpoint: ""
-      #   source_category: "kubernetes"
-      #   log_key: "message"
-      #   open_timeout: "60"
-      #   add_timestamp: true
       # - type: "elasticsearch"
       #   host: "elasticsearch-master"
       #   port: "9200"
@@ -185,6 +165,12 @@ metrics:
       #   sourcetype: "*"
       #   insecure_ssl: "true"
         # hec_index: ""
+      # - type: sumologic
+      #   endpoint: ""
+      #   source_category: "kubernetes"
+      #   log_key: "message"
+      #   open_timeout: "60"
+      #   add_timestamp: true
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5

@@ -147,21 +147,33 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if or (not .Values.persistence.enabled) (eq .Values.metrics.fluentd.enabled true) }}
+      volumes:
+      {{- if not .Values.persistence.enabled }}
+      - name: zk-pvc
+        emptyDir: {}
+      {{- end }}
+      {{- if eq .Values.metrics.fluentd.enabled true }}
+      - name: fluentd-config-volume
+        configMap:
+          name: fluentd-config
+      {{- end }}
+      {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
       name: zk-pvc
       annotations:
-      {{- range $key, $value := .Values.persistence.annotations }}
+        {{- range $key, $value := .Values.persistence.annotations }}
         {{ $key }}: {{ $value }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "zookeeper.labels" . | nindent 8 }}
     spec:
       accessModes:
-      {{- range .Values.persistence.accessModes }}
-      - {{ . | quote }}
-      {{- end }}
+        {{- range .Values.persistence.accessModes }}
+        - {{ . | quote }}
+        {{- end }}
       resources:
         requests:
           storage: {{ .Values.persistence.size | quote }}
@@ -172,13 +184,4 @@ spec:
       storageClassName: "{{ .Values.persistence.storageClass }}"
       {{- end }}
       {{- end }}
-{{- else }}
-      volumes:
-      - name: zk-pvc
-        emptyDir: {}
-{{- end }}
-{{- if eq .Values.metrics.fluentd.enabled true }}
-      - name: fluentd-config-volume
-        configMap:
-          name: fluentd-config
 {{- end }}
