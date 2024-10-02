@@ -6,6 +6,7 @@ data:
   ADMIN_PORT: {{ .Values.zk.adminPort | quote }}
   ZOOKEEPER_FLEET_SIZE: {{ .Values.replicaCount | quote }}
   JAVA_HOME: "/opt/radiantone/rli-zookeeper-external/jdk/jre/"
+  METRICS_PORT: '9095'
 kind: ConfigMap
 metadata:
   labels:

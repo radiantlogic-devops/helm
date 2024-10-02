@@ -1,38 +1,80 @@
-{{- if eq .Values.metrics.fluentd.enabled true }}
+{{- if .Values.metrics.fluentd.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluentd-config
   labels:
-    app: {{ template "zookeeper.fullname" . }}
-    chart: "{{ template "zookeeper.chart" . }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
+    {{- include "zookeeper.labels" . | nindent 4 }}
+    app.kubernetes.io/core-name: {{ include "zookeeper.name" . }}
 data:
   fluent.conf: |
-    <source>
-        @type tail
-        read_from_head true
-        path /opt/radiantone/rli-zookeeper-external/zookeeper/logs/zookeeper.log
-        pos_file /var/log/zookeeper/zookeeperlog.pos
-        tag zookeeper.log
-        <parse>
-            @type multiline_grok
-            grok_pattern %{TIMESTAMP_ISO8601:timestamp} \[myid:%{NUMBER:zk_id}\] - %{WORD:log_level} \[%{GREEDYDATA:thread_name}\] - %{GREEDYDATA:message}
-            multiline_start_regexp /\d{4}-\d{1,2}-\d{1,2}/
-        </parse>
-    </source>
-    <filter zookeeper.log>
-        @type record_transformer
-        <record>
-        hostname ${hostname}
-        </record>
-    </filter>
-    <match zookeeper.log>
-        @type {{ .Values.metrics.fluentd.elasticSearchType }}
-        host ELASTICSEARCH_HOST
-        port ELASTICSEARCH_PORT
-        logstash_format true
-        logstash_prefix zookeeper.log
-    </match>
+    {{- $elasticSearchHost := .Values.metrics.fluentd.elasticSearchHost }}
+    {{- $aggregators := .Values.metrics.fluentd.aggregators | default list }}
+    {{- $clusterName := .Values.zk.clusterName | default "zk-cluster" }}
+    {{- range $logName, $val := .Values.metrics.fluentd.logs }}
+      {{- if $val.enabled }}
+        {{- $index := (default $val.index $val.custom_index) }}
+        {{- $splunkIndex := (default (trimSuffix ".log" $index) $val.splunk_index) }}
+        <source>
+          @type tail
+          read_from_head true
+          path {{ $val.path }}
+          pos_file {{ $val.path }}.pos
+          tag {{ $logName }}.log
+          {{- if $val.parse }}
+          {{- $val.parse | nindent 10 }}
+          {{- else }}
+          format multiline
+          format_firstline /\d{4}-\d{1,2}-\d{1,2}/
+          format1 /^(?<message>.*)$/
+          {{- end }}
+        </source>
+        <filter {{ $logName }}.log>
+          @type record_transformer
+          <record>
+            hostname ${hostname}
+            clustername {{ $clusterName }}
+          </record>
+        </filter>
+        <match {{ $logName }}.log>
+          @type copy
+          {{- if gt (len $aggregators) 0 }}
+          {{- range $aggregator := $aggregators }}
+          <store>
+            @type {{ $aggregator.type }}
+            {{- range $key, $value := $aggregator }}
+            {{- if and (ne $key "type") (ne $key "source") (ne $key "sourcetype") }}
+            {{ $key }} {{ $value }}
+            {{- end }}
+            {{- end }}
+            {{- if eq $aggregator.type "splunk_hec" }}
+            index {{ $splunkIndex }}
+            {{- if $val.splunk_source }}
+            source {{ $val.splunk_source }}
+            {{- else if $aggregator.source }}
+            source {{ $aggregator.source }}
+            {{- end }}
+            {{- if $val.splunk_sourcetype }}
+            sourcetype {{ $val.splunk_sourcetype }}
+            {{- else if $aggregator.sourcetype }}
+            sourcetype {{ $aggregator.sourcetype }}
+            {{- end }}
+            {{- else if or (eq $aggregator.type "elasticsearch") (eq $aggregator.type "opensearch") }}
+            logstash_prefix {{ $index }}
+            logstash_format true
+            {{- end }}
+          </store>
+          {{- end }}
+          {{- else if $elasticSearchHost }}
+          <store>
+            @type elasticsearch
+            host {{ $elasticSearchHost }}
+            port 9200
+            logstash_format true
+            logstash_prefix {{ $index }}
+          </store>
+          {{- end }}
+        </match>
+      {{- end }}
+    {{- end }}
 {{- end }}
