@@ -672,7 +672,7 @@ postgresql:
 # Note: Persistent storage is disabled by default. Enable it if you need to preserve pgAdmin4 configuration data across pod restarts.
 
 pgadmin4:
-  enabled: true
+  enabled: false
   fullnameOverride: pgadmin4
   nodeSelector: {}
   persistentVolume:
@@ -696,7 +696,7 @@ pgadmin4:
 # Note: Review and adjust settings according to your testing requirements.
 
 slamd:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: pgodey/slamd
@@ -770,7 +770,7 @@ slamd:
 # Note: Review and adjust security settings based on your environment's requirements.
 
 shellinabox:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
@@ -812,7 +812,7 @@ shellinabox:
 # Note: Ensure correct SMTP relay credentials and adjust security settings based on your environment's requirements.
 
 smtp:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: bytemark/smtp
@@ -972,7 +972,7 @@ opensearch-dashboards:
 #   existingConfigMap: fluent-bit-config
 
 fluent-bit:
-  enabled: true
+  enabled: false
   fullnameOverride: "fluent-bit"
   existingConfigMap: fluent-bit-config
   nodeSelector: {}
@@ -1046,7 +1046,7 @@ fluent-bit:
 # Curator can perform actions like deleting, closing, or creating indices based on configured filters.
 
 curator:
-  enabled: true
+  enabled: false
   dryrun: false
   # Elasticsearch Client Settings
   # -----------------------------
@@ -1090,10 +1090,14 @@ curator:
     - name: "web.log"
     - name: "web_access.log"
     - name: "event.log"
-    - name: "periodiccahe.log"
+    - name: "periodiccache.log"
     - name: "admin_rest_api_access.log"
     - name: "sync_engine.log"
     - name: "alerts.log"
+    - name: "approvals_audit.log"
+    - name: "scim.log"
+    - name: "audit.log"
+    - name: "internal-container.log"
     # - name: "close-old-indices"
     #   action: "close"
     #   description: "Close indices older than a year"
@@ -1118,8 +1122,8 @@ curator:
     # Curator Cron Job Settings
     # --------------------------
     # Configure the Kubernetes CronJob that will trigger Curator actions.
-    # Cron schedule (e.g., every minute)
-    schedule: "* * * * *"
+    # Cron schedule (e.g., every day)
+    schedule: "0 0 * * *"
     annotations: {}
     labels: {}
     concurrencyPolicy: ""
