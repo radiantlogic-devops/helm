@@ -114,7 +114,7 @@ metrics:
   pushGateway: http://prometheus-pushgateway:9091
   pushMetricCron: "* * * * *"
   fluentd:
-    enabled: true
+    enabled: false
     logs:
       zookeeper:
         enabled: true
