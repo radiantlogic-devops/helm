@@ -157,7 +157,7 @@ grafana:
     size: 8Gi
   grafana.ini:
     server:
-      root_url: "%(protocol)s://%(domain)s/grafana"
+      root_url: "%(protocol)s://%(domain)s/eoc-backend/grafana"
       serve_from_sub_path: true
     auth.anonymous:
       enabled: true
@@ -177,7 +177,8 @@ grafana:
       enabled: true
       host: smtp-server:25
       from_address: saas@radiantlogic.com
-
+    live:
+      allowed_origins: "*"
   # Setup Data Source (prometheus and elastic)
   datasources:
     datasources.yaml:
@@ -419,13 +420,16 @@ kibana:
   #     value: elastic
   #   - name: ELASTICSEARCH_PASSWORD
   #     value: changeme
+  healthCheckPath: "/eoc-backend/kibana"
   kibanaConfig:
     kibana.yml: |
-      server.basePath: "/kibana"
-      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
+      server.basePath: "/eoc-backend/kibana"
+      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/eoc-backend/kibana
       telemetry.optIn: false
-      server.rewriteBasePath: true
       security.showInsecureClusterWarning: false
+      server.rewriteBasePath: true
+      server.compression.enabled: true
+      server.requestId.allowFromAnyIp: true      
 
 # HAProxy Configuration
 # ---------------------
