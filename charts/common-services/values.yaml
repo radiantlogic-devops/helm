@@ -429,7 +429,7 @@ kibana:
       security.showInsecureClusterWarning: false
       server.rewriteBasePath: true
       server.compression.enabled: true
-      server.requestId.allowFromAnyIp: true      
+      server.requestId.allowFromAnyIp: true
 
 # HAProxy Configuration
 # ---------------------
@@ -998,7 +998,7 @@ fluent-bit:
       enable: true
       path: /var/log/containers/r1tunnel*.log
       refresh_interval: 10
-  outputs: []
+  aggregators: []
     # - type: es  # Elasticsearch output plugin
     #   host: "elasticsearch-master"
     #   port: 9200
