@@ -105,7 +105,7 @@ persistence:
 metrics:
   enabled: false
   image: radiantone/zk-exporter
-  imageTag: ""
+  imageTag: latest
   zk_conn: localhost:2181
   securityContext:
     runAsUser: 0
