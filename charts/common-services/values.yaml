@@ -279,16 +279,6 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ida
-      - name: 'ia-config-webapp'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-config-webapp
       - name: ia-controller-beam
         orgId: 1
         folder: ''
@@ -366,7 +356,6 @@ grafana:
     service-status: "service-status-dashboard"
     ia-service-status: "ia-service-status-dashboard"
     ida: "ia-dashboard"
-    ia-config-webapp: "ia-config-webapp-dashboard"
     ia-controller-beam: "ia-controller-beam-dashboard"
     ia-controller-ecto: "ia-controller-ecto-dasboard"
     ia-controller-oban: "ia-controller-oban-dashboard"
