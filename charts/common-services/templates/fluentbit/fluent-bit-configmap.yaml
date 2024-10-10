@@ -1,22 +1,22 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.fluent-bit.existingConfigMap | default "fluent-bit-config" }}
+  name: {{ (index .Values "fluent-bit" "existingConfigMap") | default "fluent-bit-config" }}
 data:
   fluent-bit.conf: |
     [SERVICE]
         Daemon             Off
-        Flush              {{ .Values.fluent-bit.flush }}
-        Log_Level          {{ .Values.fluent-bit.logLevel }}
+        Flush              {{ index .Values "fluent-bit" "flush" }}
+        Log_Level          {{ index .Values "fluent-bit" "logLevel" }}
         Parsers_File       parsers.conf
         Parsers_File       custom_parsers.conf
         HTTP_Server        On
         HTTP_Listen        0.0.0.0
-        HTTP_Port          {{ .Values.fluent-bit.metricsPort }}
+        HTTP_Port          {{ index .Values "fluent-bit" "metricsPort" }}
         Health_Check       On
 
     # Input Sections
-    {{- range .Values.fluent-bit.logs }}
+    {{- range (index .Values "fluent-bit" "logs") }}
       {{- if .enable }}
     [INPUT]
         Name                tail
@@ -31,8 +31,8 @@ data:
     {{- end }}
 
     # Aggregator Sections
-    {{- if .Values.fluent-bit.aggregators }}
-      {{- range $aggregator := .Values.fluent-bit.aggregators }}
+    {{- if (index .Values "fluent-bit" "aggregators") }}
+      {{- range $aggregator := (index .Values "fluent-bit" "aggregators") }}
     [FILTER]
         Name                {{ $aggregator.type }}
         Match               {{ $aggregator.match }}
@@ -43,11 +43,11 @@ data:
     {{- end }}
 
     # Output Sections
-    {{- if .Values.fluent-bit.aggregators }}
-      {{- range $log := .Values.fluent-bit.logs }}
+    {{- if (index .Values "fluent-bit" "aggregators") }}
+      {{- range $log := (index .Values "fluent-bit" "logs") }}
         {{- if $log.enable }}
           {{- $tag := printf "%s.log" $log.name }}
-          {{- range $aggregator := $.Values.fluent-bit.aggregators }}
+          {{- range $aggregator := (index .Values "fluent-bit" "aggregators") }}
     [OUTPUT]
         Name                {{ $aggregator.type }}
         Match               {{ $tag }}
@@ -117,27 +117,27 @@ data:
       {{- end }}
     {{- else }}
       # Default Output if no aggregators are defined
-      {{- range .Values.fluent-bit.logs }}
+      {{- range (index .Values "fluent-bit" "logs") }}
         {{- if .enable }}
     [OUTPUT]
-        Name                {{ $.Values.fluent-bit.outputSearchType }}
+        Name                {{ index $.Values "fluent-bit" "outputSearchType" }}
         Match               {{ .name }}.log
-        Host                {{ $.Values.fluent-bit.outputSearchHost }}
-        Port                {{ $.Values.fluent-bit.outputSearchPort | default 9200 }}
+        Host                {{ index $.Values "fluent-bit" "outputSearchHost" }}
+        Port                {{ index $.Values "fluent-bit" "outputSearchPort" | default 9200 }}
         Index               {{ .name }}.log
         Logstash_Format     Off
         Trace_Error         On
         Replace_Dots        On
         Retry_Limit         False
-        {{- if $.Values.fluent-bit.outputSearchUsername }}
-        HTTP_User           {{ $.Values.fluent-bit.outputSearchUsername }}
+        {{- if (index $.Values "fluent-bit" "outputSearchUsername") }}
+        HTTP_User           {{ index $.Values "fluent-bit" "outputSearchUsername" }}
         {{- end }}
-        {{- if $.Values.fluent-bit.outputSearchPassword }}
-        HTTP_Passwd         {{ $.Values.fluent-bit.outputSearchPassword }}
+        {{- if (index $.Values "fluent-bit" "outputSearchPassword") }}
+        HTTP_Passwd         {{ index $.Values "fluent-bit" "outputSearchPassword" }}
         {{- end }}
-        {{- if $.Values.fluent-bit.outputSearchTLS }}
+        {{- if (index $.Values "fluent-bit" "outputSearchTLS") }}
         tls                 On
-        tls.verify          {{ $.Values.fluent-bit.outputSearchTLSVerify | default "On" }}
+        tls.verify          {{ index $.Values "fluent-bit" "outputSearchTLSVerify" | default "On" }}
         {{- else }}
         tls                 Off
         {{- end }}
