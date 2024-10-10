@@ -55,6 +55,8 @@ metadata:
   name: ia-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
 data:
 {{ (.Files.Glob "dashboards/ia-dashboard.json").AsConfig | indent 2 }}
 
