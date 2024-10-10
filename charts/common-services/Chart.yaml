@@ -88,7 +88,7 @@ dependencies:
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
 - name: velero
-  version: 5.2.2
+  version: 7.2.1
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
 - name: cloudnative-pg
