@@ -1,3 +1,4 @@
+{{- if (index .Values "fluent-bit" "enabled") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -30,117 +31,106 @@ data:
       {{- end }}
     {{- end }}
 
-    # Aggregator Sections
-    {{- if (index .Values "fluent-bit" "aggregators") }}
-      {{- range $aggregator := (index .Values "fluent-bit" "aggregators") }}
-    [FILTER]
-        Name                {{ $aggregator.type }}
-        Match               {{ $aggregator.match }}
-        {{- range $key, $value := $aggregator.config }}
-        {{ $key }}          {{ $value }}
-        {{- end }}
-      {{- end }}
-    {{- end }}
-
     # Output Sections
-    {{- if (index .Values "fluent-bit" "aggregators") }}
-      {{- range $log := (index .Values "fluent-bit" "logs") }}
-        {{- if $log.enable }}
-          {{- $tag := printf "%s.log" $log.name }}
-          {{- range $aggregator := (index .Values "fluent-bit" "aggregators") }}
+    {{- range $log := (index .Values "fluent-bit" "logs") }}
+      {{- if $log.enable }}
+        {{- $tag := printf "%s.log" $log.name }}
+        {{- if $log.aggregators }}
+          {{- range $aggregatorName := $log.aggregators }}
+            {{- range $aggregator := (index $.Values "fluent-bit" "aggregators") }}
+              {{- if eq $aggregator.name $aggregatorName }}
     [OUTPUT]
         Name                {{ $aggregator.type }}
         Match               {{ $tag }}
-        {{- if eq $aggregator.type "es" }}
+                {{- if eq $aggregator.type "es" }}
         # Elasticsearch Output
         Host                {{ $aggregator.host }}
         Port                {{ $aggregator.port | default 9200 }}
-        Index               {{ $log.name }}.log
+        Index               {{ $log.name }}-{{ $aggregator.name }}
         Logstash_Format     Off
         Trace_Error         On
         Replace_Dots        On
         Retry_Limit         False
-        {{- if $aggregator.username }}
+                {{- if $aggregator.username }}
         HTTP_User           {{ $aggregator.username }}
-        {{- end }}
-        {{- if $aggregator.password }}
+                {{- end }}
+                {{- if $aggregator.password }}
         HTTP_Passwd         {{ $aggregator.password }}
-        {{- end }}
-        {{- if $aggregator.tls }}
+                {{- end }}
+                {{- if $aggregator.tls }}
         tls                 On
         tls.verify          {{ $aggregator.tls_verify | default "On" }}
-        {{- else }}
+                {{- else }}
         tls                 Off
-        {{- end }}
-        {{- else if eq $aggregator.type "opensearch" }}
-        # OpenSearch Output
-        Host                {{ $aggregator.host }}
-        Port                {{ $aggregator.port | default 9200 }}
-        Index               {{ $log.name }}.log
-        Logstash_Format     Off
-        Trace_Error         On
-        Replace_Dots        On
-        Retry_Limit         False
-        {{- if $aggregator.username }}
-        HTTP_User           {{ $aggregator.username }}
-        {{- end }}
-        {{- if $aggregator.password }}
-        HTTP_Passwd         {{ $aggregator.password }}
-        {{- end }}
-        {{- if $aggregator.tls }}
-        tls                 On
-        tls.verify          {{ $aggregator.tls_verify | default "On" }}
-        {{- else }}
-        tls                 Off
-        {{- end }}
-        {{- else if eq $aggregator.type "splunk" }}
+                {{- end }}
+                {{- else if eq $aggregator.type "splunk" }}
         # Splunk Output
         Host                {{ $aggregator.host }}
         Port                {{ $aggregator.port | default 8088 }}
         Splunk_Token        {{ $aggregator.splunk_token }}
         Splunk_Send_Raw     On
-        Splunk_Index        {{ $log.name }}.log
+        Event_Host          ${HOSTNAME}
+        Event_Source        {{ $log.name }}
+        Event_Sourcetype    {{ $log.name }}-logs
+        Event_Index         {{ $log.name }}-{{ $aggregator.name }}
         Retry_Limit         False
-        {{- if $aggregator.tls }}
+                {{- if $aggregator.tls }}
         tls                 On
         tls.verify          {{ $aggregator.tls_verify | default "Off" }}
-        {{- else }}
+                {{- else }}
         tls                 Off
-        {{- end }}
-        {{- else }}
-        # Other Output
-        Name                {{ $aggregator.type }}
-        # Additional configuration for other output types can be added here
-        {{- end }}
-        {{- end }}
-        {{- end }}
-      {{- end }}
-    {{- else }}
-      # Default Output if no aggregators are defined
-      {{- range (index .Values "fluent-bit" "logs") }}
-        {{- if .enable }}
-    [OUTPUT]
-        Name                {{ index $.Values "fluent-bit" "outputSearchType" }}
-        Match               {{ .name }}.log
-        Host                {{ index $.Values "fluent-bit" "outputSearchHost" }}
-        Port                {{ index $.Values "fluent-bit" "outputSearchPort" | default 9200 }}
-        Index               {{ .name }}.log
+                {{- end }}
+                {{- else if eq $aggregator.type "opensearch" }}
+        # OpenSearch Output
+        Host                {{ $aggregator.host }}
+        Port                {{ $aggregator.port | default 9200 }}
+        Index               {{ $log.name }}-{{ $aggregator.name }}
         Logstash_Format     Off
         Trace_Error         On
         Replace_Dots        On
         Retry_Limit         False
-        {{- if (index $.Values "fluent-bit" "outputSearchUsername") }}
+                {{- if $aggregator.username }}
+        HTTP_User           {{ $aggregator.username }}
+                {{- end }}
+                {{- if $aggregator.password }}
+        HTTP_Passwd         {{ $aggregator.password }}
+                {{- end }}
+                {{- if $aggregator.tls }}
+        tls                 On
+        tls.verify          {{ $aggregator.tls_verify | default "On" }}
+                {{- else }}
+        tls                 Off
+                {{- end }}
+                {{- else }}
+        # Other Output
+        # Additional configuration for other output types can be added here
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- else }}
+    [OUTPUT]
+        Name                {{ index $.Values "fluent-bit" "outputSearchType" }}
+        Match               {{ $tag }}
+        Host                {{ index $.Values "fluent-bit" "outputSearchHost" }}
+        Port                {{ index $.Values "fluent-bit" "outputSearchPort" | default 9200 }}
+        Index               {{ $log.name }}
+        Logstash_Format     Off
+        Trace_Error         On
+        Replace_Dots        On
+        Retry_Limit         False
+          {{- if (index $.Values "fluent-bit" "outputSearchUsername") }}
         HTTP_User           {{ index $.Values "fluent-bit" "outputSearchUsername" }}
-        {{- end }}
-        {{- if (index $.Values "fluent-bit" "outputSearchPassword") }}
+          {{- end }}
+          {{- if (index $.Values "fluent-bit" "outputSearchPassword") }}
         HTTP_Passwd         {{ index $.Values "fluent-bit" "outputSearchPassword" }}
-        {{- end }}
-        {{- if (index $.Values "fluent-bit" "outputSearchTLS") }}
+          {{- end }}
+          {{- if (index $.Values "fluent-bit" "outputSearchTLS") }}
         tls                 On
         tls.verify          {{ index $.Values "fluent-bit" "outputSearchTLSVerify" | default "On" }}
-        {{- else }}
+          {{- else }}
         tls                 Off
-        {{- end }}
+          {{- end }}
         {{- end }}
       {{- end }}
     {{- end }}
@@ -152,3 +142,4 @@ data:
         Time_Keep           Off
         Time_Key            time
         Time_Format         %Y-%m-%dT%H:%M:%S.%L
+{{- end }}
