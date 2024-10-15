@@ -1,0 +1,23 @@
+{{- if and .Values.velero.enabled .Values.backupManager.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: backup-manager
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.backupManager.port | default 80 }}
+      targetPort: {{ .Values.backupManager.containerPort | default 8080 }}
+      protocol: TCP
+    {{- if and .Values.backupManager.swagger.enabled (ne (.Values.backupManager.swagger.port | toString) "8080") }}
+    - name: api-doc
+      port: {{ .Values.backupManager.swagger.port }}
+      targetPort: {{ .Values.backupManager.swagger.port }}
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "backup-manager.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1254,3 +1254,49 @@ cloudnative-pg:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# -----------------------------------------------------------------
+# -- Backup Manager service for Velero
+# -----------------------------------------------------------------
+backupManager:
+  enabled: false
+  replicas: 1
+  image:
+    repository: radiantone/backup-manager
+    tag: dev
+    pullPolicy: Always
+  imagePullSecrets: []
+  service:
+    port: 80
+    containerPort: 8080
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: "250m"
+      memory: 512Mi
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  log:
+    format: text
+    level: info
+  swagger:
+    enabled: false
+    host: localhost
+    port: 8080
+  webhook:
+    enabled: false
+    syncPeriod: "1m"
+    backup:
+      # Ex. http://eoc-backend-service/webhook/backups
+      url: ""
+      timeout: "1h"
+    restore:
+      # Ex. http://eoc-backend-service/webhook/restores
+      url: ""
+      timeout: "1h"
