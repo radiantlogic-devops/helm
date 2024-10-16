@@ -32,90 +32,23 @@ data:
     {{- end }}
 
     # Output Sections
-    {{- range $log := (index .Values "fluent-bit" "logs") }}
-      {{- if $log.enable }}
-        {{- $tag := printf "%s.log" $log.name }}
-        {{- if $log.aggregators }}
-          {{- range $aggregatorName := $log.aggregators }}
-            {{- range $aggregator := (index $.Values "fluent-bit" "aggregators") }}
-              {{- if eq $aggregator.name $aggregatorName }}
+    {{- $useOldConfig := and (eq (len (index .Values "fluent-bit" "aggregators")) 0) (index .Values "fluent-bit" "outputSearchHost") }}
+    {{- if $useOldConfig }}
+      {{- $outputSearchType := (index .Values "fluent-bit" "outputSearchType") | default "es" }}
+      {{- $outputSearchPort := (index .Values "fluent-bit" "outputSearchPort") | default 9200 }}
+      {{- range $log := (index .Values "fluent-bit" "logs") }}
+        {{- if $log.enable }}
     [OUTPUT]
-        Name                {{ $aggregator.type }}
-        Match               {{ $tag }}
-                {{- if eq $aggregator.type "es" }}
-        # Elasticsearch Output
-        Host                {{ $aggregator.host }}
-        Port                {{ $aggregator.port | default 9200 }}
-        Index               {{ $log.name }}-{{ $aggregator.name }}
-        Logstash_Format     Off
-        Trace_Error         On
-        Replace_Dots        On
-        Retry_Limit         False
-                {{- if $aggregator.username }}
-        HTTP_User           {{ $aggregator.username }}
-                {{- end }}
-                {{- if $aggregator.password }}
-        HTTP_Passwd         {{ $aggregator.password }}
-                {{- end }}
-                {{- if $aggregator.tls }}
-        tls                 On
-        tls.verify          {{ $aggregator.tls_verify | default "On" }}
-                {{- else }}
-        tls                 Off
-                {{- end }}
-                {{- else if eq $aggregator.type "splunk" }}
-        # Splunk Output
-        Host                {{ $aggregator.host }}
-        Port                {{ $aggregator.port | default 8088 }}
-        Splunk_Token        {{ $aggregator.splunk_token }}
-        Splunk_Send_Raw     On
-        Event_Host          ${HOSTNAME}
-        Event_Source        {{ $log.name }}
-        Event_Sourcetype    {{ $log.name }}-logs
-        Event_Index         {{ $log.name }}-{{ $aggregator.name }}
-        Retry_Limit         False
-                {{- if $aggregator.tls }}
-        tls                 On
-        tls.verify          {{ $aggregator.tls_verify | default "Off" }}
-                {{- else }}
-        tls                 Off
-                {{- end }}
-                {{- else if eq $aggregator.type "opensearch" }}
-        # OpenSearch Output
-        Host                {{ $aggregator.host }}
-        Port                {{ $aggregator.port | default 9200 }}
-        Index               {{ $log.name }}-{{ $aggregator.name }}
-        Logstash_Format     Off
-        Trace_Error         On
-        Replace_Dots        On
-        Retry_Limit         False
-                {{- if $aggregator.username }}
-        HTTP_User           {{ $aggregator.username }}
-                {{- end }}
-                {{- if $aggregator.password }}
-        HTTP_Passwd         {{ $aggregator.password }}
-                {{- end }}
-                {{- if $aggregator.tls }}
-        tls                 On
-        tls.verify          {{ $aggregator.tls_verify | default "On" }}
-                {{- else }}
-        tls                 Off
-                {{- end }}
-                {{- else }}
-        # Other Output
-        # Additional configuration for other output types can be added here
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-        {{- else }}
-    [OUTPUT]
-        Name                {{ index $.Values "fluent-bit" "outputSearchType" }}
-        Match               {{ $tag }}
+        Name                {{ $outputSearchType }}
+        Match               {{ $log.name }}.log
         Host                {{ index $.Values "fluent-bit" "outputSearchHost" }}
-        Port                {{ index $.Values "fluent-bit" "outputSearchPort" | default 9200 }}
+        Port                {{ $outputSearchPort }}
         Index               {{ $log.name }}
-        Logstash_Format     Off
+        Logstash_Format     On
+        Logstash_Prefix     {{ $log.name }}.log
+        Logstash_DateFormat %Y.%m.%d
+        Time_Key            @timestamp
+        Compress            gzip
         Trace_Error         On
         Replace_Dots        On
         Retry_Limit         False
@@ -133,6 +66,168 @@ data:
           {{- end }}
         {{- end }}
       {{- end }}
+    {{- else }}
+      {{- range $log := (index .Values "fluent-bit" "logs") }}
+        {{- if $log.enable }}
+          {{- $tag := printf "%s.log" $log.name }}
+          {{- range $aggregatorName := $log.aggregators }}
+            {{- range $aggregator := (index $.Values "fluent-bit" "aggregators") }}
+              {{- if eq $aggregator.name $aggregatorName }}
+    [OUTPUT]
+        Name                {{ $aggregator.type }}
+        Match               {{ $tag }}
+                {{- if or (eq $aggregator.type "es") (eq $aggregator.type "opensearch") }}
+        # Elasticsearch/OpenSearch Output
+        Host                {{ $aggregator.host }}
+        Port                {{ $aggregator.port | default 9200 }}
+                {{- if $aggregator.path }}
+        Path                {{ $aggregator.path }}
+                {{- end }}
+                {{- if $aggregator.pipeline }}
+        Pipeline            {{ $aggregator.pipeline }}
+                {{- end }}
+                {{- if $aggregator.buffer_size }}
+        Buffer_Size         {{ $aggregator.buffer_size }}
+                {{- end }}
+                {{- if $aggregator.aws_auth }}
+        AWS_Auth            {{ $aggregator.aws_auth }}
+                {{- end }}
+                {{- if $aggregator.aws_region }}
+        AWS_Region          {{ $aggregator.aws_region }}
+                {{- end }}
+                {{- if $aggregator.aws_sts_endpoint }}
+        AWS_STS_Endpoint    {{ $aggregator.aws_sts_endpoint }}
+                {{- end }}
+                {{- if $aggregator.aws_role_arn }}
+        AWS_Role_ARN        {{ $aggregator.aws_role_arn }}
+                {{- end }}
+                {{- if $aggregator.aws_external_id }}
+        AWS_External_ID     {{ $aggregator.aws_external_id }}
+                {{- end }}
+                {{- if $aggregator.aws_service_name }}
+        AWS_Service_Name    {{ $aggregator.aws_service_name }}
+                {{- end }}
+                {{- if $aggregator.http_user }}
+        HTTP_User           {{ $aggregator.http_user }}
+                {{- end }}
+                {{- if $aggregator.http_passwd }}
+        HTTP_Passwd         {{ $aggregator.http_passwd }}
+                {{- end }}
+        Logstash_Format     On
+        Logstash_Prefix     {{ $log.name }}.log-{{ $aggregator.type }}
+        Logstash_DateFormat %Y.%m.%d
+        Time_Key            @timestamp
+        Compress            {{ $aggregator.compress | default "gzip" }}
+                {{- if $aggregator.generate_id }}
+        Generate_ID         {{ $aggregator.generate_id }}
+                {{- end }}
+                {{- if $aggregator.id_key }}
+        Id_Key              {{ $aggregator.id_key }}
+                {{- end }}
+        Write_Operation     {{ $aggregator.write_operation | default "create" }}
+        Replace_Dots        {{ $aggregator.replace_dots | default "On" }}
+        Trace_Error         On
+        Trace_Output        {{ $aggregator.trace_output | default "Off" }}
+        Retry_Limit         False
+        Suppress_Type_Name  On
+                {{- if $aggregator.tls }}
+        tls                 On
+        tls.verify          {{ $aggregator.tls_verify | default "On" }}
+                {{- else }}
+        tls                 Off
+                {{- end }}
+              {{- else if eq $aggregator.type "splunk" }}
+        # Splunk Output
+        Host                {{ $aggregator.host }}
+        Port                {{ $aggregator.port | default 8088 }}
+        Splunk_Token        {{ $aggregator.splunk_token }}
+                {{- if $aggregator.http_user }}
+        HTTP_User           {{ $aggregator.http_user }}
+                {{- end }}
+                {{- if $aggregator.http_passwd }}
+        HTTP_Passwd         {{ $aggregator.http_passwd }}
+                {{- end }}
+                {{- if $aggregator.channel }}
+        Channel             {{ $aggregator.channel }}
+                {{- end }}
+        Compress            {{ $aggregator.compress | default "gzip" }}
+                {{- if $aggregator.event_host }}
+        Event_Host          {{ $aggregator.event_host }}
+                {{- end }}
+                {{- if $aggregator.event_source }}
+        Event_Source        {{ $aggregator.event_source }}
+                {{- end }}
+                {{- if $aggregator.event_sourcetype }}
+        Event_Sourcetype    {{ $aggregator.event_sourcetype }}
+                {{- end }}
+                {{- if $aggregator.event_index }}
+        Event_Index         {{ $aggregator.event_index }}
+                {{- end }}
+                {{- range $field := $aggregator.event_fields }}
+        Event_Field         {{ $field }}
+                {{- end }}
+              {{- else if eq $aggregator.type "loki" }}
+        # Loki Output
+        Host                {{ $aggregator.host }}
+        Port                {{ $aggregator.port | default 3100 }}
+                {{- if $aggregator.tenant_id }}
+        Tenant_ID           {{ $aggregator.tenant_id }}
+                {{- end }}
+                {{- if $aggregator.tenant_id_key }}
+        Tenant_ID_Key       {{ $aggregator.tenant_id_key }}
+                {{- end }}
+        Labels              {{ $aggregator.labels | default "job=fluent-bit" }}
+                {{- if $aggregator.label_keys }}
+        Label_Keys          {{ $aggregator.label_keys }}
+                {{- end }}
+                {{- if $aggregator.line_format }}
+        Line_Format         {{ $aggregator.line_format }}
+                {{- end }}
+        Compress            {{ $aggregator.compress | default "gzip" }}
+                {{- if $aggregator.http_user }}
+        HTTP_User           {{ $aggregator.http_user }}
+                {{- end }}
+                {{- if $aggregator.http_passwd }}
+        HTTP_Passwd         {{ $aggregator.http_passwd }}
+                {{- end }}
+              {{- else if eq $aggregator.type "s3" }}
+        # Amazon S3 Output
+        region              {{ $aggregator.region | default "us-east-1" }}
+        bucket              {{ $aggregator.bucket }}
+        json_date_key       {{ $aggregator.json_date_key | default "date" }}
+        json_date_format    {{ $aggregator.json_date_format | default "iso8601" }}
+        total_file_size     {{ $aggregator.total_file_size | default "100M" }}
+        upload_timeout      {{ $aggregator.upload_timeout | default "10m" }}
+        use_put_object      {{ $aggregator.use_put_object | default "Off" }}
+        s3_key_format       {{ $aggregator.s3_key_format | default "/fluent-bit-logs/$TAG/%Y/%m/%d/%H/%M/%S" }}
+                {{- if $aggregator.role_arn }}
+        role_arn            {{ $aggregator.role_arn }}
+                {{- end }}
+                {{- if $aggregator.endpoint }}
+        endpoint            {{ $aggregator.endpoint }}
+                {{- end }}
+                {{- if $aggregator.sts_endpoint }}
+        sts_endpoint        {{ $aggregator.sts_endpoint }}
+                {{- end }}
+                {{- if $aggregator.canned_acl }}
+        canned_acl          {{ $aggregator.canned_acl }}
+                {{- end }}
+                {{- if $aggregator.compression }}
+        compression         {{ $aggregator.compression }}
+                {{- end }}
+                {{- if $aggregator.content_type }}
+        content_type        {{ $aggregator.content_type }}
+                {{- end }}
+                {{- if $aggregator.storage_class }}
+        storage_class       {{ $aggregator.storage_class }}
+                {{- end }}
+              {{- end }}
+        Workers             {{ $aggregator.workers | default 1 }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
     {{- end }}
 
   custom_parsers.conf: |
@@ -142,4 +237,36 @@ data:
         Time_Keep           Off
         Time_Key            time
         Time_Format         %Y-%m-%dT%H:%M:%S.%L
+
+  # Configuration Usage Guide
+  # -------------------------
+  # This ConfigMap supports both new and old configuration styles.
+  #
+  # For the new style (using aggregators):
+  # fluent-bit:
+  #   aggregators:
+  #     - type: es  # or 'opensearch', 'splunk', 'loki', 's3'
+  #       name: elasticsearch
+  #       host: elasticsearch-master
+  #       port: 9200
+  #       # ... other type-specific configurations
+  #
+  # For the old style (backward compatibility):
+  # fluent-bit:
+  #   outputSearchHost: "elasticsearch-master"
+  #   outputSearchPort: 9200  # Optional, defaults to 9200
+  #   outputSearchType: "es"  # Optional, defaults to "es"
+  #   outputSearchUsername: "elastic"  # Optional
+  #   outputSearchPassword: "changeme"  # Optional
+  #   outputSearchTLS: false  # Optional
+  #   outputSearchTLSVerify: true  # Optional
+  #
+  # The old style is automatically used when aggregators is empty and outputSearchHost is provided.
+  #
+  # For full configuration options and explanations, please refer to the Fluent Bit documentation:
+  # - Elasticsearch: https://docs.fluentbit.io/manual/pipeline/outputs/elasticsearch
+  # - OpenSearch: https://docs.fluentbit.io/manual/pipeline/outputs/opensearch
+  # - Splunk: https://docs.fluentbit.io/manual/pipeline/outputs/splunk
+  # - Loki: https://docs.fluentbit.io/manual/pipeline/outputs/loki
+  # - Amazon S3: https://docs.fluentbit.io/manual/pipeline/outputs/s3
 {{- end }}

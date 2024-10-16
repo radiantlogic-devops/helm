@@ -103,6 +103,20 @@ argo-cd:
 
 prometheus:
   enabled: true
+  configmapReload:
+    prometheus:
+      enabled: false
+  nodeExporter:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  alertmanager:
+    enabled: false
+  pushgateway:
+    fullnameOverride: prometheus-pushgateway
+    nodeSelector: {}
+    extraArgs:
+      web.enable-admin-api: true
   server:
     extraFlags:
       - web.enable-lifecycle
@@ -110,26 +124,13 @@ prometheus:
       - web.external-url=http://prometheus-server/prometheus/
       - web.enable-admin-api
     fullnameOverride: prometheus-server
-    configmapReload:
-      enabled: false
     nodeSelector: {}
     # Persistence enabled by default and size to 50Gi
     persistentVolume:
+      # storageClass: "-"
       size: 8Gi
     statefulSet:
       enabled: true
-  nodeExporter:
-    enabled: false
-  kubeStateMetrics:
-    enabled: false
-  alertmanager:
-    enabled: false
-
-  pushgateway:
-    fullnameOverride: prometheus-pushgateway
-    nodeSelector: {}
-    extraArgs:
-      web.enable-admin-api: true
 
 # Grafana Configuration
 # ---------------------
@@ -661,7 +662,7 @@ postgresql:
 # Note: Persistent storage is disabled by default. Enable it if you need to preserve pgAdmin4 configuration data across pod restarts.
 
 pgadmin4:
-  enabled: false
+  enabled: true
   fullnameOverride: pgadmin4
   nodeSelector: {}
   persistentVolume:
@@ -685,7 +686,7 @@ pgadmin4:
 # Note: Review and adjust settings according to your testing requirements.
 
 slamd:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: pgodey/slamd
@@ -759,7 +760,7 @@ slamd:
 # Note: Review and adjust security settings based on your environment's requirements.
 
 shellinabox:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
@@ -801,7 +802,7 @@ shellinabox:
 # Note: Ensure correct SMTP relay credentials and adjust security settings based on your environment's requirements.
 
 smtp:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: bytemark/smtp
@@ -921,102 +922,12 @@ opensearch-dashboards:
 #    - `serviceMonitor`: Enable to create a ServiceMonitor to scrape Fluent Bit metrics with Prometheus Operator.
 # Existing ConfigMap (Optional): If you have a pre-existing ConfigMap with custom Fluent Bit configuration, specify its name here.
 
-# fluent-bit:
-#   enabled: false
-#   nodeSelector: {}
-#     # tenantname:
-#   logs:
-#     - name: eoc-backend
-#       enable: true
-#       path: /var/log/containers/eoc-backend-*.log
-#       refresh_interval: 10
-#     - name: eoc-orchestrator
-#       enable: true
-#       path: /var/log/containers/eoc-orchestrator-*.log
-#       refresh_interval: 10
-#     - name: sdc
-#       enable: true
-#       path: /var/log/containers/sdc-*.log
-#       refresh_interval: 10
-#     - name: client-router
-#       enable: true
-#       path: /var/log/containers/client-*.log
-#       refresh_interval: 10
-#     - name: tunnel
-#       enable: true
-#       path: /var/log/containers/r1tunnel*.log
-#       refresh_interval: 10
-#   outputSearchHost: "elasticsearch-master"
-#   fullnameOverride: "fluent-bit"
-#   outputSearchType: "es"
-#   flush: 1
-#   logLevel: info
-#   metricsPort: 2020
-#   service:
-#     type: ClusterIP
-#   prometheusRule:
-#     enabled: false
-#   serviceMonitor:
-#     enabled: false
-#   existingConfigMap: fluent-bit-config
-
 fluent-bit:
   enabled: false
-  fullnameOverride: "fluent-bit"
-  existingConfigMap: fluent-bit-config
   nodeSelector: {}
     # tenantname:
-  logs:
-    - name: eoc-backend
-      enable: true
-      path: /var/log/containers/eoc-backend-*.log
-      refresh_interval: 10
-    - name: eoc-orchestrator
-      enable: true
-      path: /var/log/containers/eoc-orchestrator-*.log
-      refresh_interval: 10
-    - name: sdc
-      enable: true
-      path: /var/log/containers/sdc-*.log
-      refresh_interval: 10
-    - name: client-router
-      enable: true
-      path: /var/log/containers/client-*.log
-      refresh_interval: 10
-    - name: tunnel
-      enable: true
-      path: /var/log/containers/r1tunnel*.log
-      refresh_interval: 10
-  aggregators: []
-    # - type: es  # Elasticsearch output plugin
-    #   host: "elasticsearch-master"
-    #   port: 9200
-    #   index_prefix: "es-index"
-    #   tls: false
-    #   username: "elastic"
-    #   password: "changeme"
-    # - type: splunk  # Splunk output plugin
-    #   host: "splunk-master"
-    #   port: 8088
-    #   splunk_token: "your-splunk-token"
-    #   index_prefix: "splunk-index"
-    #   tls: true
-    #   tls_verify: false
-    #   # Splunk output plugin uses Splunk_Token for authentication
-    # - type: opensearch  # OpenSearch output plugin
-    #   host: "opensearch-master"
-    #   port: 9200
-    #   index_prefix: "opensearch-index"
-    #   tls: false
-    #   username: "admin"
-    #   password: "admin"
-  outputSearchType: "es"
-  outputSearchHost: "elasticsearch-master"
-  outputSearchPort: 9200  # Default port for Elasticsearch
-  # outputSearchTLS: false
-  # outputSearchTLSVerify: true
-  # outputSearchUsername: "elastic"  # Optional username
-  # outputSearchPassword: "changeme"  # Optional password
+  fullnameOverride: "fluent-bit"
+  existingConfigMap: fluent-bit-config
   flush: 1
   logLevel: info
   metricsPort: 2020
@@ -1026,6 +937,68 @@ fluent-bit:
     enabled: false
   serviceMonitor:
     enabled: false
+# ====== For helm chart version < 1.0.9 =====
+  outputSearchType: "es"
+  outputSearchHost: "elasticsearch-master"
+  # outputSearchPort: 9200
+  # outputSearchTLS: false
+  # outputSearchTLSVerify: true
+  # outputSearchUsername: "elastic"
+  # outputSearchPassword: "changeme"
+# =========================================
+  logs:
+    - name: eoc-backend
+      enable: true
+      path: /var/log/containers/eoc-backend-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: eoc-orchestrator
+      enable: true
+      path: /var/log/containers/eoc-orchestrator-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: sdc
+      enable: true
+      path: /var/log/containers/sdc-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: client-router
+      enable: true
+      path: /var/log/containers/client-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: tunnel
+      enable: true
+      path: /var/log/containers/r1tunnel*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+# ====== For helm chart version >= 1.0.9 =====
+  aggregators: []
+    # - type: es  # Elasticsearch output plugin
+    #   host: "elasticsearch-master"
+    #   port: 9200
+    #   index_prefix: "es-index"
+    #   tls: false
+    #   name: "elasticsearch"
+    #   username: "elastic"
+    #   password: "changeme"
+    # - type: splunk  # Splunk output plugin
+    #   host: "splunk-master"
+    #   port: 8088
+    #   splunk_token: "your-splunk-token"
+    #   index_prefix: "splunk-index"
+    #   tls: true
+    #   tls_verify: false
+    #   name: "splunk"
+    # - type: opensearch  # OpenSearch output plugin
+    #   host: "opensearch-cluster-master"
+    #   port: 9200
+    #   index_prefix: "opensearch-index"
+    #   tls: false
+    #   name: "opensearch"
+    #   username: "admin"
+    #   password: "admin"
+
 
 
 
@@ -1035,7 +1008,7 @@ fluent-bit:
 # Curator can perform actions like deleting, closing, or creating indices based on configured filters.
 
 curator:
-  enabled: false
+  enabled: true
   dryrun: false
   # Elasticsearch Client Settings
   # -----------------------------
@@ -1123,9 +1096,9 @@ curator:
   pod:
     annotations: {}
   rbac:
-    enabled: true
+    enabled: false
   serviceAccount:
-    create: true
+    create: false
     annotations: {}
   hooks:
     install: false
