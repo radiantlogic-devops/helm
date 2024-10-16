@@ -146,8 +146,6 @@ prometheus:
 # - Email (SMTP) setup for notifications (if enabled)
 #
 # Note: Ensure correct data source URLs and credentials. Place dashboard JSON files in the specified directories.
-
-
 grafana:
   fullnameOverride: grafana
   enabled: true
@@ -433,7 +431,6 @@ kibana:
 #   - Fine-grained backend configuration using templating
 #
 # Note: Ensure correct service names and ports in the backend definitions.
-
 haproxy:
   enabled: true
   route:
@@ -998,9 +995,6 @@ fluent-bit:
     #   name: "opensearch"
     #   username: "admin"
     #   password: "admin"
-
-
-
 
 # Curator Configuration
 # --------------------
