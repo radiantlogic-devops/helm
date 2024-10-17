@@ -362,6 +362,7 @@ grafana:
     ia-data-ingestion: "ia-data-ingestion-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
+    ia-config-webapp: "ia-service-status-dashboard"
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
