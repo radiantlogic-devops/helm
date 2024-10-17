@@ -126,3 +126,11 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- define "elasticsearch-curator.fullname" -}}
 {{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Backup Manager Selector labels
+*/}}
+{{- define "backup-manager.selectorLabels" -}}
+app.kubernetes.io/name: backup-manager
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

@@ -1,0 +1,116 @@
+{{- if and .Values.velero.enabled .Values.backupManager.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-manager
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backupManager.replicas }}
+  selector:
+    matchLabels:
+      {{- include "backup-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      name: backup-manager
+      labels:
+        {{- include "backup-manager.selectorLabels" . | nindent 8 }}
+      {{- with .Values.backupManager.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: backup-manager-sa
+      {{- with .Values.backupManager.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.backupManager.podSecurityContext | nindent 8 }}
+      {{- with .Values.backupManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backupManager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backupManager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: velero-api
+          image: {{ .Values.backupManager.image.repository }}:{{ .Values.backupManager.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.backupManager.image.pullPolicy }}
+          {{- with .Values.backupManager.securityContext }}
+          securityContext:
+            {{- toYaml .Values.backupManager.securityContext | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backupManager.containerPort | default 8080 }}
+            {{- if and .Values.backupManager.swagger.enabled (ne (.Values.backupManager.swagger.port | toString) "8080") }}
+            - name: api-doc
+              containerPort: {{ .Values.backupManager.swagger.port }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backupManager.resources | nindent 12 }}
+          env:
+            - name: LISTEN_PORT
+              value: {{ .Values.backupManager.containerPort | default 8080 | quote }}
+            - name: LOG_FORMAT
+              value: {{ .Values.backupManager.log.format | default "text" | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.backupManager.log.level | default "info" | quote }}
+            - name: DEV_MODE
+              value: "false"
+            - name: SWAGGER_ENABLED
+              value: {{ .Values.backupManager.swagger.enabled | default false | quote }}
+            - name: SWAGGER_HOST
+              value: {{ .Values.backupManager.swagger.host | default "localhost" | quote }}
+            - name: SWAGGER_PORT
+              value: {{ .Values.backupManager.swagger.port | default "8080" | quote }}
+            - name: VELERO_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: GOMAXPROCS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+            - name: GOMEMLIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            - name: WEBHOOK_ENABLED
+              value: {{ .Values.backupManager.webhook.enabled | default false | quote }}
+            - name: WATCH_SYNC_PERIOD
+              value: {{ .Values.backupManager.webhook.syncPeriod | default "1m" | quote }}
+            - name: BACKUP_WEBHOOK_URL
+              value: {{ .Values.backupManager.webhook.backup.url | quote }}
+            - name: BACKUP_WAIT_TIMEOUT
+              value: {{ .Values.backupManager.webhook.backup.timeout | default "1h" | quote }}
+            - name: RESTORE_WEBHOOK_URL
+              value: {{ .Values.backupManager.webhook.restore.url | quote }}
+            - name: RESTORE_WAIT_TIMEOUT
+              value: {{ .Values.backupManager.webhook.restore.timeout | default "1h" | quote }}
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 1
+            httpGet:
+              scheme: HTTP
+              path: /probes/healthz
+              port: {{ .Values.backupManager.containerPort | default 8080 }}
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 1
+            httpGet:
+              scheme: HTTP
+              path: /probes/readyz
+              port: {{ .Values.backupManager.containerPort | default 8080 }}
+{{- end }}
