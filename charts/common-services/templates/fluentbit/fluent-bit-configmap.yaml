@@ -114,7 +114,7 @@ data:
         HTTP_Passwd         {{ $aggregator.http_passwd }}
                 {{- end }}
         Logstash_Format     On
-        Logstash_Prefix     {{ $log.name }}.log-{{ $aggregator.type }}
+        Logstash_Prefix     {{ $log.name }}.log
         Logstash_DateFormat %Y.%m.%d
         Time_Key            @timestamp
         Compress            {{ $aggregator.compress | default "gzip" }}

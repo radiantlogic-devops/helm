@@ -1,0 +1,2005 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "Dashboard to monitor key metrics from fid-exporter",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 146,
+    "links": [
+      {
+        "asDropdown": false,
+        "icon": "external link",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [
+          "zk"
+        ],
+        "targetBlank": false,
+        "title": "Zookeeper Dashboard",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
+      }
+    ],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The current amount of system CPU utilized",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "mappings": [],
+            "max": 100,
+            "min": 1,
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "id": 4,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_current_system_cpu_utilized_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_current_system_cpu_utilized_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "cpu_used"
+          }
+        ],
+        "title": "CPU Used",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "JVM Memory used(Note: This is not the actual machine memory)",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "max": 100,
+            "min": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 80
+                },
+                {
+                  "color": "dark-red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "id": 27,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto",
+          "text": {}
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_memory_used_jvm_kilobytes{clustername=~\"$job\", host_name=~\"$node.*\"} / fid_node_monitor_memory_allocated_by_javm_kilobytes{clustername=~\"$job\", host_name=~\"$node.*\"} * 100,\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_memory_used_jvm_kilobytes{cluster_name=~\"$job\", host_name=~\"$node.*\"} / fid_node_monitor_memory_allocated_by_javm_kilobytes{cluster_name=~\"$job\", host_name=~\"$node.*\"} * 100,\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "memory_used"
+          }
+        ],
+        "title": "Memory Used",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "Disk space used in percentage",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "id": 10,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_disk_space_used_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_disk_space_used_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "format": "time_series",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "disk_used"
+          }
+        ],
+        "title": "Disk Space Used Percent",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "Disk space used in GB",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "max": 500000,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 400000
+                },
+                {
+                  "color": "red",
+                  "value": 450000
+                }
+              ]
+            },
+            "unit": "decmbytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "id": 33,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_disk_space_used_bytes{clustername=~\"$job\", host_name=~\"$node.*\"} / 1e+6,\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_disk_space_used_bytes{cluster_name=~\"$job\", host_name=~\"$node.*\"} / 1e+6,\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "format": "time_series",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "disk_used"
+          }
+        ],
+        "title": "Disk Space Used (GB)",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "mappings": [],
+            "max": 100,
+            "min": 1,
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 5,
+          "x": 0,
+          "y": 4
+        },
+        "id": 43,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_physical_memory_used_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_physical_memory_used_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "cpu_used"
+          }
+        ],
+        "title": "Physical Memory Used",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "mappings": [],
+            "max": 100,
+            "min": 1,
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 5,
+          "x": 5,
+          "y": 4
+        },
+        "id": 44,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_open_file_descriptors_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_open_file_descriptors_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "cpu_used"
+          }
+        ],
+        "title": "File Descriptors Used",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "yellow",
+                    "index": 0,
+                    "text": "No"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "Yes"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "/^ldap_current_pool_size_anonymous*/g"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Anonymous"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "/^ldap_current_pool_size_simple*/g"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Simple"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "/^ldap_current_pool_size_digest*/g"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Digest"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 5,
+          "x": 10,
+          "y": 4
+        },
+        "id": 14,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\nfid_node_monitor_is_this_vds_leader{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\nfid_node_monitor_is_this_vds_leader{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "refId": "anonymous"
+          }
+        ],
+        "title": "Is Leader",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The value is 1 if the ZooKeeper service on the node can be written to. This value is 0 if the ZooKeeper service on the node cannot be written to.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "green",
+                    "index": 0,
+                    "text": "NO"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "YES"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 15,
+          "y": 4
+        },
+        "id": 39,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_is_task_scheduler_running_on_leader_node{clustername=~\"$job\"}\n or fid_cluster_info_is_task_scheduler_running_on_leader_node{cluster_name=~\"$job\"}",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Is Scheduler on Leader",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The number of RadiantOne Universal Directory stores on the node.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 18,
+          "y": 4
+        },
+        "id": 36,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_radiant_one_node_universal_directory_num_stores{clustername=~\"$job\"} or fid_cluster_info_radiant_one_node_universal_directory_num_stores{cluster_name=~\"$job\"} ",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Number of HDAP Stores",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The combined index size (in GB) of all RadiantOne Universal Directory (HDAP) stores in the cluster.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "decgbytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 21,
+          "y": 4
+        },
+        "id": 37,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_radiant_one_cluster_universal_directory_stores_combined_index_size_kilobytes{clustername=~\"$job\"} / 1e+6\n or fid_cluster_info_radiant_one_cluster_universal_directory_stores_combined_index_size_kilobytes{cluster_name=~\"$job\"} / 1e+6",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Total HDAP Size",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "Time elapsed since the server is started",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "dtdurations"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 0,
+          "y": 7
+        },
+        "id": 22,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_radiant_one_node_uptime_milliseconds{clustername=~\"$job\"} / 1000 or fid_cluster_info_radiant_one_node_uptime_milliseconds{cluster_name=~\"$job\"} / 1000",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Up Time",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The total number of operations RadiantOne FID has done on the connection",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 5,
+          "x": 3,
+          "y": 7
+        },
+        "id": 12,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_num_ldap_operations{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_num_ldap_operations{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "operation_count"
+          }
+        ],
+        "title": "Operation Count",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The live number of concurrent connections to RadiantOne FID (will never be more than connectionMax). This number increases or decreases depending on new connections coming into RadiantOne FID or existing connections being closed",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "max": 1000,
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 8,
+          "y": 7
+        },
+        "id": 6,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_num_active_connections{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_num_active_connections{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "current_connections"
+          }
+        ],
+        "title": "Live Connections",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "Peak values for CPU, Connections, Memory, and Disk Usage",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "orange",
+                  "value": 90
+                },
+                {
+                  "color": "red",
+                  "value": 100
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "CPU Usage (%) - fid-0.fid-headless.duploservices-rli-ops05-rahul.svc.cluster.local"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Max Connections - fid-0.fid-headless.duploservices-rli-ops05-rahul.svc.cluster.local"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Peak Memory Usage (MB) - fid-0.fid-headless.duploservices-rli-ops05-rahul.svc.cluster.local"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "deckbytes"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Peak Disk Usage (MB) - fid-0.fid-headless.duploservices-rli-ops05-rahul.svc.cluster.local"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 13,
+          "x": 11,
+          "y": 7
+        },
+        "id": 32,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(fid_node_monitor_highest_system_cpu_utilized_percent{clustername=~\"$job\",host_name=~\"$node.*\"}, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\") or label_replace(fid_node_monitor_highest_system_cpu_utilized_percent{cluster_name=~\"$job\",host_name=~\"$node.*\"}, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\")",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "CPU Peak",
+            "range": true,
+            "refId": "cpu_peak"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(fid_node_monitor_num_connections_peak{cluster_name=~\"$job\",host_name=~\"$node.*\"}, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\") or label_replace(fid_node_monitor_num_connections_peak{clustername=~\"$job\",host_name=~\"$node.*\"}, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\")",
+            "interval": "",
+            "legendFormat": "Connections peak",
+            "range": true,
+            "refId": "connection_peak"
+          },
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(fid_node_monitor_memory_used_peak_kilobytes{cluster_name=~\"$job\",host_name=~\"$node.*\"} / 1048576, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\") or label_replace(fid_node_monitor_memory_used_peak_kilobytes{clustername=~\"$job\",host_name=~\"$node.*\"} / 1048576, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\")",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Memory Peak",
+            "range": true,
+            "refId": "memory_peak"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(fid_node_monitor_disk_space_used_peak_bytes{cluster_name=~\"$job\",host_name=~\"$node.*\"} / 1e+9, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\") or label_replace(fid_node_monitor_disk_space_used_peak_bytes{clustername=~\"$job\",host_name=~\"$node.*\"} / 1e+9, \"pod\", \"$1\", \"host_name\", \"(fid-[0-9]+).*\")",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Disk Peak",
+            "range": true,
+            "refId": "disk_peak"
+          }
+        ],
+        "title": "Peak Stats",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The value is 1 if the ZooKeeper service on the node can be written to. This value is 0 if the ZooKeeper service on the node cannot be written to.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "green",
+                    "index": 0,
+                    "text": "NO"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "YES"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 4,
+          "x": 0,
+          "y": 10
+        },
+        "id": 40,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_is_zookeeper_on_node_writable{clustername=~\"$job\"}\n or fid_cluster_info_is_zookeeper_on_node_writable{cluster_name=~\"$job\"}",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Is ZK Writeable",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The value is 1 if the ZooKeeper service on the node can be written to. This value is 0 if the ZooKeeper service on the node cannot be written to.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "green",
+                    "index": 0,
+                    "text": "NO"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "YES"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 3,
+          "x": 4,
+          "y": 10
+        },
+        "id": 41,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_is_zookeeper_on_node_readable{clustername=~\"$job\"}\n or fid_cluster_info_is_zookeeper_on_node_readable{cluster_name=~\"$job\"}",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Is ZK Readable",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "The value is 1 if the ZooKeeper service on the node can be written to. This value is 0 if the ZooKeeper service on the node cannot be written to.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "green",
+                    "index": 0,
+                    "text": "NO"
+                  },
+                  "1": {
+                    "color": "red",
+                    "index": 1,
+                    "text": "YES"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 4,
+          "x": 7,
+          "y": 10
+        },
+        "id": 38,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "9.1.6",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "fid_cluster_info_is_zookeeper_on_node_read_only{clustername=~\"$job\"}\n or fid_cluster_info_is_zookeeper_on_node_read_only{cluster_name=~\"$job\"}",
+            "interval": "",
+            "legendFormat": "",
+            "range": true,
+            "refId": "up_time"
+          }
+        ],
+        "title": "Is ZK ReadOnly",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 1,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 11,
+          "x": 0,
+          "y": 13
+        },
+        "id": 2,
+        "interval": "1m",
+        "maxDataPoints": 5000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.4.0-77765",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_average_system_cpu_utilized_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_average_system_cpu_utilized_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "cpu_used_graph"
+          }
+        ],
+        "title": "CPU Usage",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 1,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 13,
+          "x": 11,
+          "y": 13
+        },
+        "id": 16,
+        "interval": "1m",
+        "maxDataPoints": 1000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.4.0-77765",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_memory_used_max_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_memory_used_max_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "memory_used_graph"
+          }
+        ],
+        "title": "Memory Usage",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 11,
+          "x": 0,
+          "y": 20
+        },
+        "id": 35,
+        "interval": "1m",
+        "maxDataPoints": 5000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.4.0-77765",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_disk_space_used_percent{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_disk_space_used_percent{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "cpu_used_graph"
+          }
+        ],
+        "title": "Disk Usage",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "fillOpacity": 80,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineWidth": 1,
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 13,
+          "x": 11,
+          "y": 20
+        },
+        "id": 34,
+        "interval": "1m",
+        "maxDataPoints": 5000,
+        "options": {
+          "barRadius": 0,
+          "barWidth": 0.97,
+          "fullHighlight": false,
+          "groupWidth": 0.7,
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "showValue": "always",
+          "stacking": "none",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          },
+          "xTickLabelRotation": 0,
+          "xTickLabelSpacing": 100
+        },
+        "pluginVersion": "11.4.0-77765",
+        "targets": [
+          {
+            "datasource": {
+              "uid": "${datasource}"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "label_replace(\n  fid_node_monitor_num_active_connections{cluster_name=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n) or \nlabel_replace(\n  fid_node_monitor_num_active_connections{clustername=~\"$job\", host_name=~\"$node.*\"},\n  \"pod\",\n  \"$1\",\n  \"host_name\",\n  \"(fid-[0-9]+).*\"\n)",
+            "interval": "",
+            "legendFormat": "{{pod}}",
+            "range": true,
+            "refId": "conn_used_graph"
+          }
+        ],
+        "title": "Connection Usage",
+        "type": "barchart"
+      }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 37,
+    "style": "dark",
+    "tags": [
+      "fid",
+      "radiantone",
+      "monitoring"
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "No data sources found",
+            "value": ""
+          },
+          "hide": 2,
+          "includeAll": false,
+          "multi": false,
+          "name": "datasource",
+          "options": [],
+          "query": "prometheus",
+          "refresh": 1,
+          "regex": "/^grafanacloud-rlisaas-prom/",
+          "skipUrlSync": false,
+          "type": "datasource"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "ense-use2-test",
+            "value": "ense-use2-test"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "definition": "label_values(clustername)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "environment",
+          "multi": false,
+          "name": "job",
+          "options": [],
+          "query": {
+            "query": "label_values(clustername)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "definition": "label_values({clustername=~\"$job\", host_name=~\"fid-.*\"},host_name)",
+          "hide": 0,
+          "includeAll": true,
+          "multi": true,
+          "name": "node",
+          "options": [],
+          "query": {
+            "query": "label_values({clustername=~\"$job\", host_name=~\"fid-.*\"},host_name)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "/^(fid-[0-9]+)/",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "IDDM Dashboard",
+    "uid": "sXzlVNsSz",
+    "version": 5,
+    "weekStart": ""
+  }
