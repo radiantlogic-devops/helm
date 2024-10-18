@@ -88,7 +88,7 @@ jobs:
         id: detect-obsolete-resources
         run: |
           helm diff upgrade my-release ./charts/common-services \
-            --set velero.enabled=false > helm-diff-output.txt
+            --set velero.enabled=false --allow-unreleased > helm-diff-output.txt
           grep "DELETED" helm-diff-output.txt | awk '{print $NF}' > obsolete-resources.txt
           cat obsolete-resources.txt
 
