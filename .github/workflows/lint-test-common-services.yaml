@@ -21,6 +21,9 @@ jobs:
         with:
           version: v3.14.4
 
+      - name: Install Helm Diff Plugin
+        run: helm plugin install https://github.com/databus23/helm-diff
+
       - uses: actions/setup-python@v2
         with:
           python-version: 3.7
@@ -65,5 +68,23 @@ jobs:
           kubectl cluster-info --context kind-chart-testing
           kubectl get nodes --context kind-chart-testing
 
-      - name: Run chart-testing (install)
-        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set=zoonavigator.enabled=false --set backupManager.enabled=false --set=grafana.dashboardsConfigMaps.ia-config-webapp=null" --debug --upgrade --skip-missing-values
+      - name: Helm Diff Check
+        run: helm diff upgrade my-release ./charts/common-services --set velero.enabled=false --set pgadmin4.enabled=false --set elasticsearch.replicas=1 --set slamd.enabled=false --set shellinabox.enabled=false --set curator.enabled=false --set elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set zoonavigator.enabled=false --set backupManager.enabled=false
+
+      - name: Detect Obsolete Resources from Helm Diff
+        id: detect-obsolete-resources
+        run: |
+          helm diff upgrade my-release ./charts/common-services --set velero.enabled=false > helm-diff-output.txt
+          grep "DELETED" helm-diff-output.txt | awk '{print $NF}' > obsolete-resources.txt
+          cat obsolete-resources.txt
+
+      - name: Clean Up Obsolete Resources
+        if: steps.detect-obsolete-resources.outputs.changed == 'true'
+        run: |
+          cat obsolete-resources.txt | xargs -I{} kubectl delete {} || true
+
+      - name: Run chart-testing (install/upgrade)
+        run: ct install --charts=charts/common-services \
+          --helm-extra-args="--timeout=15m0s" \
+          --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set=zoonavigator.enabled=false --set backupManager.enabled=false --set=grafana.dashboardsConfigMaps.ia-config-webapp=null" \
+          --debug --upgrade --skip-missing-values --force --recreate-pods
