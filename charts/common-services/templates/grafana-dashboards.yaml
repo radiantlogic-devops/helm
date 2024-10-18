@@ -20,6 +20,15 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: iddm-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+{{ (.Files.Glob "dashboards/iddm-dashboard.json").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: audit-logs-elastic-dashboard
   labels:
     grafana_dashboard: "1"

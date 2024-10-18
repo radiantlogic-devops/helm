@@ -6,28 +6,37 @@ on:
     paths:
       - 'charts/common-services/**'
 
-jobs:
-  lint-test:
-    runs-on: ubuntu-latest
+env:
+  HELM_VERSION: v3.14.4
+  PYTHON_VERSION: 3.9
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.list-changed.outputs.changed }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
         with:
-          version: v3.14.4
-
-      - name: Install Helm Diff Plugin
-        run: helm plugin install https://github.com/databus23/helm-diff
+          version: ${{ env.HELM_VERSION }}
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.7
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Helm plugins
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/helm/plugins
+          key: ${{ runner.os }}-helm-plugins-${{ hashFiles('**/requirements.txt') }}
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.6.1
@@ -35,12 +44,14 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+          changed=$(ct list-changed --target-branch ${{ env.DEFAULT_BRANCH }})
           if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Add Helm Repos
+      - name: Add helm repos
         run: |
           helm repo add prometheus https://prometheus-community.github.io/helm-charts
           helm repo add grafana https://grafana.github.io/helm-charts
@@ -56,11 +67,39 @@ jobs:
           helm repo add cnpg https://cloudnative-pg.github.io/charts
 
       - name: Run chart-testing (lint)
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: ct lint --target-branch ${{ env.DEFAULT_BRANCH }}
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    if: needs.lint.outputs.changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Helm plugins
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/helm/plugins
+          key: ${{ runner.os }}-helm-plugins-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
 
       - name: Create kind cluster
         uses: helm/kind-action@v1
-        if: steps.list-changed.outputs.changed == 'true'
         with:
           config: .config/kind.yaml
 
@@ -69,33 +108,9 @@ jobs:
           kubectl cluster-info --context kind-chart-testing
           kubectl get nodes --context kind-chart-testing
 
-      # Helm Diff Check with --allow-unreleased and escaped parameters
-      - name: Helm Diff Check
+      - name: Run chart-testing (install)
         run: |
-          helm diff upgrade my-release ./charts/common-services \
-            --set velero.enabled=false \
-            --set pgadmin4.enabled=false \
-            --set elasticsearch.replicas=1 \
-            --set slamd.enabled=false \
-            --set shellinabox.enabled=false \
-            --set curator.enabled=false \
-            --set elasticsearch.clusterHealthCheckParams="wait_for_status=yellow&timeout=60s" \
-            --set zoonavigator.enabled=false \
-            --set backupManager.enabled=false \
-            --allow-unreleased
-
-      - name: Detect Obsolete Resources from Helm Diff
-        id: detect-obsolete-resources
-        run: |
-          helm diff upgrade my-release ./charts/common-services \
-            --set velero.enabled=false --allow-unreleased > helm-diff-output.txt
-          grep "DELETED" helm-diff-output.txt | awk '{print $NF}' > obsolete-resources.txt
-          cat obsolete-resources.txt
-
-      - name: Clean Up Obsolete Resources
-        if: steps.detect-obsolete-resources.outputs.changed == 'true'
-        run: |
-          cat obsolete-resources.txt | xargs -I{} kubectl delete {} || true
-
-      - name: Run chart-testing (install/upgrade)
-        run: ct install --charts=charts/common-services --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams='wait_for_status=yellow&timeout=60s' --set=zoonavigator.enabled=false --set=backupManager.enabled=false --set=grafana.dashboardsConfigMaps.ia-config-webapp=null" --debug --upgrade --skip-missing-values
+          ct install --charts=charts/common-services \
+            --helm-extra-args="--timeout=15m0s" \
+            --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set=zoonavigator.enabled=false --set=backupManager.enabled=false " \
+            --debug
