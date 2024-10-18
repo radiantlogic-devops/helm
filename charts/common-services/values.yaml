@@ -757,7 +757,7 @@ slamd:
 # Note: Review and adjust security settings based on your environment's requirements.
 
 shellinabox:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
