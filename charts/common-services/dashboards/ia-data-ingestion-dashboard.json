@@ -26,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 17186,
   "graphTooltip": 0,
-  "id": null,
+  "id": 39,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -103,7 +103,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "avg(process_start_time_seconds{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"})*1000",
+          "expr": "avg(process_start_time_seconds{radiantlogic_io_environment=\"$environment\", app=\"batch\"})*1000",
           "format": "time_series",
           "intervalFactor": 1,
           "range": true,
@@ -187,7 +187,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "time() - max(process_start_time_seconds{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"})",
+          "expr": "time() - max(process_start_time_seconds{radiantlogic_io_environment=\"$environment\", app=\"batch\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "range": true,
@@ -272,7 +272,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "jvm_info{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_info{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "table",
           "instant": false,
           "intervalFactor": 1,
@@ -356,7 +356,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_availableprocessors{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "java_lang_operatingsystem_availableprocessors{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "groupBy": [
             {
@@ -411,6 +411,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 2,
           "mappings": [
             {
               "options": {
@@ -435,7 +436,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -473,7 +474,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_totalphysicalmemorysize{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "java_lang_operatingsystem_totalphysicalmemorysize{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "groupBy": [
             {
@@ -590,7 +591,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_totalswapspacesize{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "java_lang_operatingsystem_totalswapspacesize{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "groupBy": [
             {
@@ -707,7 +708,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg_over_time(java_lang_operatingsystem_systemcpuload{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}[5m]) * 100",
+          "expr": "avg_over_time(java_lang_operatingsystem_systemcpuload{radiantlogic_io_environment=\"$environment\", app=\"batch\"}[5m]) * 100",
           "format": "time_series",
           "groupBy": [
             {
@@ -825,7 +826,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(sum(jvm_memory_bytes_used{area=\"heap\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"})*100) / sum(jvm_memory_bytes_max{area=\"heap\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"})",
+          "expr": "(sum(jvm_memory_bytes_used{area=\"heap\", radiantlogic_io_environment=\"$environment\", app=\"batch\"})*100) / sum(jvm_memory_bytes_max{area=\"heap\", radiantlogic_io_environment=\"$environment\", app=\"batch\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "range": true,
@@ -926,7 +927,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "jvm_memory_bytes_used{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"} / ignoring(area) group_left java_lang_operatingsystem_totalphysicalmemorysize{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"} * 100",
+          "expr": "jvm_memory_bytes_used{radiantlogic_io_environment=\"$environment\", app=\"batch\"} / ignoring(area) group_left java_lang_operatingsystem_totalphysicalmemorysize{radiantlogic_io_environment=\"$environment\", app=\"batch\"} * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1028,7 +1029,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "jvm_memory_pool_bytes_used{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_used{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "groupBy": [
             {
@@ -1164,7 +1165,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_bytes_used{area=\"heap\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_bytes_used{area=\"heap\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Used",
@@ -1177,7 +1178,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": " jvm_memory_bytes_max{area=\"heap\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": " jvm_memory_bytes_max{area=\"heap\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Max",
@@ -1275,7 +1276,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_systemcpuload{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"} * 100",
+          "expr": "java_lang_operatingsystem_systemcpuload{radiantlogic_io_environment=\"$environment\", app=\"batch\"} * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -1292,7 +1293,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_processcpuload{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"} * 100",
+          "expr": "java_lang_operatingsystem_processcpuload{radiantlogic_io_environment=\"$environment\", app=\"batch\"} * 100",
           "format": "time_series",
           "groupBy": [
             {
@@ -1427,7 +1428,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_threads_current{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_threads_current{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "intervalFactor": 5,
           "legendFormat": "Current threads",
@@ -1442,7 +1443,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_threads_daemon{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_threads_daemon{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "intervalFactor": 5,
           "legendFormat": "Daemon threads",
@@ -1457,7 +1458,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_threads_deadlocked{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_threads_deadlocked{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Deadlocked threads",
@@ -1556,7 +1557,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "java_lang_operatingsystem_openfiledescriptorcount{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "java_lang_operatingsystem_openfiledescriptorcount{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "groupBy": [
             {
@@ -1692,7 +1693,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Eden Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Eden Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1708,7 +1709,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_used{pool=\"PS Eden Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_used{pool=\"PS Eden Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1724,7 +1725,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_committed{pool=\"PS Eden Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_committed{pool=\"PS Eden Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1829,7 +1830,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Old Gen\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Old Gen\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1845,7 +1846,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_used{pool=\"PS Old Gen\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_used{pool=\"PS Old Gen\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1861,7 +1862,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_committed{pool=\"PS Old Gen\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_committed{pool=\"PS Old Gen\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -1966,7 +1967,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Survivor Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_max{pool=\"PS Survivor Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2059,8 +2060,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2101,7 +2101,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "jvm_classes_loaded_total{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_classes_loaded_total{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2118,7 +2118,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "jvm_classes_unloaded_total{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_classes_unloaded_total{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "hide": false,
           "instant": false,
           "interval": "",
@@ -2175,8 +2175,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2221,7 +2220,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_max{pool=\"Compressed Class Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_max{pool=\"Compressed Class Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2237,7 +2236,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_used{pool=\"Compressed Class Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_used{pool=\"Compressed Class Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2253,7 +2252,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_committed{pool=\"Compressed Class Space\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_committed{pool=\"Compressed Class Space\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2312,8 +2311,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2358,7 +2356,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_max{pool=\"Metaspace\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_max{pool=\"Metaspace\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2374,7 +2372,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_used{pool=\"Metaspace\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_used{pool=\"Metaspace\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2390,7 +2388,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_memory_pool_bytes_committed{pool=\"Metaspace\", environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_memory_pool_bytes_committed{pool=\"Metaspace\", radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2449,8 +2447,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2494,7 +2491,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(jvm_gc_collection_seconds_sum{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}[5m])",
+          "expr": "rate(jvm_gc_collection_seconds_sum{radiantlogic_io_environment=\"$environment\", app=\"batch\"}[5m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2554,8 +2551,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2599,7 +2595,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "jvm_gc_collection_seconds_count{environment=\"$environment\", app=\"batch\", batch_id=\"$batch_id\"}",
+          "expr": "jvm_gc_collection_seconds_count{radiantlogic_io_environment=\"$environment\", app=\"batch\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 5,
@@ -2620,8 +2616,7 @@
   "tags": [
     "identity-analytics",
     "data-ingestion",
-    "radiantone",
-    "monitoring"
+    "radiantone"
   ],
   "templating": {
     "list": [
@@ -2643,12 +2638,16 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "rli-ops10-jmc01",
+          "value": "rli-ops10-jmc01"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(environment)",
+        "definition": "label_values(radiantlogic_io_environment)",
         "hide": 0,
         "includeAll": false,
         "label": "environment",
@@ -2656,31 +2655,8 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(environment)",
+          "query": "label_values(radiantlogic_io_environment)",
           "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
-        },
-        "definition": "label_values(up{environment=\"$environment\", app=\"batch\"}, batch_id)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Batch Identifier",
-        "multi": false,
-        "name": "batch_id",
-        "options": [],
-        "query": {
-          "query": "label_values(up{environment=\"$environment\", app=\"batch\"}, batch_id)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -2722,6 +2698,6 @@
   "timezone": "",
   "title": "Data Ingestion",
   "uid": "bw-igrc-data-ingestion-20",
-  "version": 20,
+  "version": 6,
   "weekStart": ""
 }
