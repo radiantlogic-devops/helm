@@ -481,6 +481,9 @@ haproxy:
       stats show-node
       stats uri /stats
       monitor-uri /healthz
+      {{- if ((.Values.route).eocui | default false) }}
+      default_backend def_backend
+      {{- end }}
 
       # Remove unnecessary headers
       http-response del-header Server
@@ -610,6 +613,12 @@ haproxy:
     backend opensearch_backend
       http-request set-path %[path,regsub(^/opensearch/?,/)]
       server opensearch opensearch-cluster-master:9200 check
+    {{- end }}
+    {{- if ((.Values.route).eocui | default false) }}
+    # Default backend
+    backend def_backend
+      http-request redirect code 301 location /eoc
+      server eocui eoc-ui-service:80 check
     {{- end }}
 
 # PostgreSQL Database Configuration
