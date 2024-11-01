@@ -114,3 +114,36 @@ jobs:
             --helm-extra-args="--timeout=15m0s" \
             --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set=zoonavigator.enabled=false --set=backupManager.enabled=false" \
             --debug --skip-missing-values
+
+  # Temp Helm Chart hosted as an OCI image on ghcr
+  publish-ghcr:
+    # depending on default permission settings for your org (contents being read-only or read-write for workloads), you will have to add permissions
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: read-yaml-file
+        uses: mikefarah/yq@master
+        id: read_chart
+        with:
+          cmd: yq '.version' charts/common-services/Chart.yaml
+
+      - name: Chart | Push
+        uses: appany/helm-oci-chart-releaser@v0.4.1
+        with:
+          name: common-services
+          repository: helm
+          tag: ${{ steps.read_chart.outputs.result }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          path: charts/common-services
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}          
+          update_dependencies: 'true' # Defaults to false
