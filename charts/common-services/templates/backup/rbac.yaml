@@ -21,6 +21,26 @@ rules:
       - velero.io
     resources: ["*"]
     verbs: ["*"]
+  - apiGroups:
+      - postgresql.cnpg.io
+    resources:
+      - clusters
+    verbs:
+      - get
+      - list
+      - delete
+      - deletecollection
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+      - delete
 
 ---
 
