@@ -1258,7 +1258,7 @@ backupManager:
   enabled: false
   replicas: 1
   image:
-    repository: radiantone/backup-manager
+    repository: radiantone/eoc-backup-manager
     tag: dev
     pullPolicy: Always
   imagePullSecrets: []
