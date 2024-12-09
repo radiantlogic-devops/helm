@@ -1259,7 +1259,7 @@ backupManager:
   replicas: 1
   image:
     repository: radiantone/eoc-backup-manager
-    tag: dev
+    tag: 1.15.0-rc.1
     pullPolicy: Always
   imagePullSecrets: []
   service:
