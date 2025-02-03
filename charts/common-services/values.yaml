@@ -103,6 +103,20 @@ argo-cd:
 
 prometheus:
   enabled: true
+  configmapReload:
+    prometheus:
+      enabled: false
+  nodeExporter:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  alertmanager:
+    enabled: false
+  pushgateway:
+    fullnameOverride: prometheus-pushgateway
+    nodeSelector: {}
+    extraArgs:
+      web.enable-admin-api: true
   server:
     extraFlags:
       - web.enable-lifecycle
@@ -110,26 +124,13 @@ prometheus:
       - web.external-url=http://prometheus-server/prometheus/
       - web.enable-admin-api
     fullnameOverride: prometheus-server
-    configmapReload:
-      enabled: false
     nodeSelector: {}
     # Persistence enabled by default and size to 50Gi
     persistentVolume:
+      # storageClass: "-"
       size: 8Gi
     statefulSet:
       enabled: true
-  nodeExporter:
-    enabled: false
-  kubeStateMetrics:
-    enabled: false
-  alertmanager:
-    enabled: false
-
-  pushgateway:
-    fullnameOverride: prometheus-pushgateway
-    nodeSelector: {}
-    extraArgs:
-      web.enable-admin-api: true
 
 # Grafana Configuration
 # ---------------------
@@ -145,8 +146,6 @@ prometheus:
 # - Email (SMTP) setup for notifications (if enabled)
 #
 # Note: Ensure correct data source URLs and credentials. Place dashboard JSON files in the specified directories.
-
-
 grafana:
   fullnameOverride: grafana
   enabled: true
@@ -157,7 +156,7 @@ grafana:
     size: 8Gi
   grafana.ini:
     server:
-      root_url: "%(protocol)s://%(domain)s/grafana"
+      root_url: "%(protocol)s://%(domain)s/eoc-backend/grafana"
       serve_from_sub_path: true
     auth.anonymous:
       enabled: true
@@ -177,7 +176,8 @@ grafana:
       enabled: true
       host: smtp-server:25
       from_address: saas@radiantlogic.com
-
+    live:
+      allowed_origins: "*"
   # Setup Data Source (prometheus and elastic)
   datasources:
     datasources.yaml:
@@ -238,6 +238,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/zookeeper
+      - name: 'iddm'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/iddm
       - name: 'elasticsearch'
         orgId: 1
         folder: ''
@@ -268,7 +278,7 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-service-status
-      - name: 'ia-config-webapp'
+      - name: 'ida'
         orgId: 1
         folder: ''
         type: file
@@ -277,7 +287,7 @@ grafana:
         allowUiUpdates: true
         editable: true
         options:
-          path: /var/lib/grafana/dashboards/ia-config-webapp
+          path: /var/lib/grafana/dashboards/ida
       - name: ia-controller-beam
         orgId: 1
         folder: ''
@@ -351,10 +361,11 @@ grafana:
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
+    iddm: "iddm-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
     ia-service-status: "ia-service-status-dashboard"
-    ia-config-webapp: "ia-config-webapp-dashboard"
+    ida: "ia-dashboard"
     ia-controller-beam: "ia-controller-beam-dashboard"
     ia-controller-ecto: "ia-controller-ecto-dasboard"
     ia-controller-oban: "ia-controller-oban-dashboard"
@@ -408,12 +419,16 @@ kibana:
   #     value: elastic
   #   - name: ELASTICSEARCH_PASSWORD
   #     value: changeme
+  healthCheckPath: "/eoc-backend/kibana"
   kibanaConfig:
     kibana.yml: |
-      server.basePath: "/kibana"
-      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/kibana
+      server.basePath: "/eoc-backend/kibana"
+      server.publicBaseUrl: http://kibana.{{ .Release.Namespace }}.svc.cluster.local:5601/eoc-backend/kibana
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
+      server.rewriteBasePath: true
+      server.compression.enabled: true
+      server.requestId.allowFromAnyIp: true
 
 # HAProxy Configuration
 # ---------------------
@@ -427,7 +442,6 @@ kibana:
 #   - Fine-grained backend configuration using templating
 #
 # Note: Ensure correct service names and ports in the backend definitions.
-
 haproxy:
   enabled: true
   route:
@@ -467,6 +481,9 @@ haproxy:
       stats show-node
       stats uri /stats
       monitor-uri /healthz
+      {{- if ((.Values.route).eocui | default false) }}
+      default_backend def_backend
+      {{- end }}
 
       # Remove unnecessary headers
       http-response del-header Server
@@ -596,6 +613,12 @@ haproxy:
     backend opensearch_backend
       http-request set-path %[path,regsub(^/opensearch/?,/)]
       server opensearch opensearch-cluster-master:9200 check
+    {{- end }}
+    {{- if ((.Values.route).eocui | default false) }}
+    # Default backend
+    backend def_backend
+      http-request redirect code 301 location /eoc
+      server eocui eoc-ui-service:80 check
     {{- end }}
 
 # PostgreSQL Database Configuration
@@ -754,7 +777,7 @@ slamd:
 # Note: Review and adjust security settings based on your environment's requirements.
 
 shellinabox:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: sspreitzer/shellinabox
@@ -920,30 +943,8 @@ fluent-bit:
   enabled: false
   nodeSelector: {}
     # tenantname:
-  logs:
-    - name: eoc-backend
-      enable: true
-      path: /var/log/containers/eoc-backend-*.log
-      refresh_interval: 10
-    - name: eoc-orchestrator
-      enable: true
-      path: /var/log/containers/eoc-orchestrator-*.log
-      refresh_interval: 10
-    - name: sdc
-      enable: true
-      path: /var/log/containers/sdc-*.log
-      refresh_interval: 10
-    - name: client-router
-      enable: true
-      path: /var/log/containers/client-*.log
-      refresh_interval: 10
-    - name: tunnel
-      enable: true
-      path: /var/log/containers/r1tunnel*.log
-      refresh_interval: 10
-  outputSearchHost: "elasticsearch-master"
   fullnameOverride: "fluent-bit"
-  outputSearchType: "es"
+  existingConfigMap: fluent-bit-config
   flush: 1
   logLevel: info
   metricsPort: 2020
@@ -953,7 +954,67 @@ fluent-bit:
     enabled: false
   serviceMonitor:
     enabled: false
-  existingConfigMap: fluent-bit-config
+# ====== For helm chart version < 1.0.9 =====
+  outputSearchType: "es"
+  outputSearchHost: "elasticsearch-master"
+  # outputSearchPort: 9200
+  # outputSearchTLS: false
+  # outputSearchTLSVerify: true
+  # outputSearchUsername: "elastic"
+  # outputSearchPassword: "changeme"
+# =========================================
+  logs:
+    - name: eoc-backend
+      enable: true
+      path: /var/log/containers/eoc-backend-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: eoc-orchestrator
+      enable: true
+      path: /var/log/containers/eoc-orchestrator-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: sdc
+      enable: true
+      path: /var/log/containers/sdc-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: client-router
+      enable: true
+      path: /var/log/containers/client-*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+    - name: tunnel
+      enable: true
+      path: /var/log/containers/r1tunnel*.log
+      refresh_interval: 10
+      aggregators: ["elasticsearch"]
+# ====== For helm chart version >= 1.0.9 =====
+  aggregators: []
+    # - type: es  # Elasticsearch output plugin
+    #   host: "elasticsearch-master"
+    #   port: 9200
+    #   index_prefix: "es-index"
+    #   tls: false
+    #   name: "elasticsearch"
+    #   username: "elastic"
+    #   password: "changeme"
+    # - type: splunk  # Splunk output plugin
+    #   host: "splunk-master"
+    #   port: 8088
+    #   splunk_token: "your-splunk-token"
+    #   index_prefix: "splunk-index"
+    #   tls: true
+    #   tls_verify: false
+    #   name: "splunk"
+    # - type: opensearch  # OpenSearch output plugin
+    #   host: "opensearch-cluster-master"
+    #   port: 9200
+    #   index_prefix: "opensearch-index"
+    #   tls: false
+    #   name: "opensearch"
+    #   username: "admin"
+    #   password: "admin"
 
 # Curator Configuration
 # --------------------
@@ -1004,11 +1065,24 @@ curator:
     - name: "adap.log"
     - name: "web.log"
     - name: "web_access.log"
-    - name: "event.log"
-    - name: "periodiccahe.log"
+    - name: "vds_events.log"
+    - name: "periodiccache.log"
     - name: "admin_rest_api_access.log"
     - name: "sync_engine.log"
     - name: "alerts.log"
+    - name: "approvals_audit.log"
+    - name: "scim.log"
+    - name: "audit.log"
+    - name: "internal-container.log"
+    - name: "zookeeper.log"
+    - name: "ia_batch_timing.log"
+    - name: "ia_extractor.log"
+    - name: "ia_init_database.log"
+    - name: "ia_portal_access.log"
+    - name: "ia_portal_application.log"
+    - name: "ia_portal_login.log"
+    - name: "ia_portal_monitoring.log"
+    - name: "ia_git_service.log"
     # - name: "close-old-indices"
     #   action: "close"
     #   description: "Close indices older than a year"
@@ -1033,8 +1107,8 @@ curator:
     # Curator Cron Job Settings
     # --------------------------
     # Configure the Kubernetes CronJob that will trigger Curator actions.
-    # Cron schedule (e.g., every minute)
-    schedule: "* * * * *"
+    # Cron schedule (e.g., every day)
+    schedule: "0 0 * * *"
     annotations: {}
     labels: {}
     concurrencyPolicy: ""
@@ -1045,9 +1119,9 @@ curator:
   pod:
     annotations: {}
   rbac:
-    enabled: true
+    enabled: false
   serviceAccount:
-    create: true
+    create: false
     annotations: {}
   hooks:
     install: false
@@ -1106,7 +1180,7 @@ velero:
     volumeSnapshotLocation: nil
   initContainers:
     - name: velero-plugin-for-aws
-      image: "velero/velero-plugin-for-aws:v1.8.2"
+      image: "velero/velero-plugin-for-aws:v1.11.1"
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
@@ -1176,3 +1250,49 @@ cloudnative-pg:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# -----------------------------------------------------------------
+# -- Backup Manager service for Velero
+# -----------------------------------------------------------------
+backupManager:
+  enabled: false
+  replicas: 1
+  image:
+    repository: radiantone/eoc-backup-manager
+    tag: 1.15.0-rc.1
+    pullPolicy: Always
+  imagePullSecrets: []
+  service:
+    port: 80
+    containerPort: 8080
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: "250m"
+      memory: 512Mi
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  log:
+    format: text
+    level: info
+  swagger:
+    enabled: false
+    host: localhost
+    port: 8080
+  webhook:
+    enabled: false
+    syncPeriod: "1m"
+    backup:
+      # Ex. http://eoc-backend-service/webhook/backups
+      url: ""
+      timeout: "1h"
+    restore:
+      # Ex. http://eoc-backend-service/webhook/restores
+      url: ""
+      timeout: "1h"

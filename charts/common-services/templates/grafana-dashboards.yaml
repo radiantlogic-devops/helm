@@ -20,6 +20,15 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: iddm-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+{{ (.Files.Glob "dashboards/iddm-dashboard.json").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: audit-logs-elastic-dashboard
   labels:
     grafana_dashboard: "1"
@@ -52,11 +61,13 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ia-config-webapp-dashboard
+  name: ia-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 data:
-{{ (.Files.Glob "dashboards/ia-config-webapp-dashboard.json").AsConfig | indent 2 }}
+{{ (.Files.Glob "dashboards/ia-dashboard.json").AsConfig | indent 2 }}
 
 ---
 

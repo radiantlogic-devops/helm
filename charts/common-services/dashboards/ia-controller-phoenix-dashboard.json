@@ -30,19 +30,10 @@
         "limit": 100,
         "name": "PromEx service start",
         "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "controller",
-          "radiantone",
-          "start"
-        ],
         "target": {
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "controller",
-            "radiantone",
             "start"
           ],
           "type": "tags"
@@ -60,19 +51,10 @@
         "limit": 100,
         "name": "PromEx service stop",
         "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "controller",
-          "radiantone",
-          "stop"
-        ],
         "target": {
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "controller",
-            "radiantone",
             "stop"
           ],
           "type": "tags"
@@ -85,7 +67,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 17,
+  "id": 34,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -181,7 +163,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"500\", status=~\"2..\"}[24h])) + \n    (sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"1000\", status=~\"2..\"}[24h])) - sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"500\", status=~\"2..\"}[24h]))) / 2\n  ) \n  / \n  sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", status=~\"2..\"}[24h]))\n) * 100",
+          "expr": "(\n  (\n    sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"500\", status=~\"2..\"}[24h])) + \n    (sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"1000\", status=~\"2..\"}[24h])) - sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"500\", status=~\"2..\"}[24h]))) / 2\n  ) \n  / \n  sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", status=~\"2..\"}[24h]))\n) * 100",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -252,7 +234,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\", status=~\"4..|5..\"}[24h])) / sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\"}[24h])) OR on() vector(0)",
+          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", status=~\"4..|5..\"}[24h])) / sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[24h])) OR on() vector(0)",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -313,7 +295,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{environment=\"$environment\", instance=\"$instance\"}[24h]))",
+          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[24h]))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -374,7 +356,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "round(sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\"}[24h])))",
+          "expr": "round(sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[24h])))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -450,7 +432,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"500\", status=~\"2..\"}[1h])) + \n    (sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"1000\", status=~\"2..\"}[1h])) - sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", le=\"500\", status=~\"2..\"}[1h]))) / 2\n  ) \n  / \n  sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", status=~\"2..\"}[1h]))\n) * 100",
+          "expr": "(\n  (\n    sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"500\", status=~\"2..\"}[1h])) + \n    (sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"1000\", status=~\"2..\"}[1h])) - sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", le=\"500\", status=~\"2..\"}[1h]))) / 2\n  ) \n  / \n  sum(increase(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", status=~\"2..\"}[1h]))\n) * 100",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -522,7 +504,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\", status=~\"4..|5..\"}[1h])) / sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\"}[1h])) OR on() vector(0)",
+          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", status=~\"4..|5..\"}[1h])) / sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[1h])) OR on() vector(0)",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -583,7 +565,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{environment=\"$environment\", instance=\"$instance\"}[1h]))",
+          "expr": "sum(increase(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[1h]))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -644,7 +626,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "round(sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\"}[1h])))",
+          "expr": "round(sum(increase(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[1h])))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -757,7 +739,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -871,7 +853,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_bucket{environment=\"$environment\", instance=\"$instance\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -943,7 +925,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -953,7 +936,32 @@
               },
               "unit": "ms"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      " /controller/api/upload :: 200"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 13,
@@ -985,7 +993,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\"}[$interval])) by(path, status) / sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\"}[$interval])) by(path, status)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by(path, status) / sum(irate(bw_controller_prom_ex_phoenix_http_request_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by(path, status)",
               "interval": "",
               "legendFormat": "{{ method }} {{ path }} :: {{ status }}",
               "range": true,
@@ -1042,7 +1050,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1052,7 +1061,32 @@
               },
               "unit": "decbytes"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      " /controller/api/upload :: 200"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 13,
@@ -1084,7 +1118,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{environment=\"$environment\", instance=\"$instance\"}[$interval])) by(path, status) / sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_count{environment=\"$environment\", instance=\"$instance\"}[$interval])) by(path, status)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by(path, status) / sum(irate(bw_controller_prom_ex_phoenix_http_response_size_bytes_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])) by(path, status)",
               "interval": "",
               "legendFormat": "{{ method }} {{ path }} :: {{ status }}",
               "range": true,
@@ -1151,7 +1185,32 @@
               },
               "unit": "locale"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "POST /controller/api/upload :: 200"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 13,
@@ -1182,9 +1241,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "irate(bw_controller_prom_ex_phoenix_http_requests_total{environment=\"$environment\", instance=\"$instance\"}[$interval])",
+              "editorMode": "code",
+              "expr": "irate(bw_controller_prom_ex_phoenix_http_requests_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ method }} {{ path }} :: {{ status }}",
+              "range": true,
               "refId": "A"
             }
           ],
@@ -1280,7 +1341,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"2..\", environment=\"$environment\", instance=\"$instance\"}[$interval]))",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"2..\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval]))",
               "interval": "",
               "legendFormat": "2xx",
               "range": true,
@@ -1291,9 +1352,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"4..\", environment=\"$environment\", instance=\"$instance\"}[$interval]))",
+              "editorMode": "code",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"4..\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval]))",
               "interval": "",
               "legendFormat": "4xx",
+              "range": true,
               "refId": "B"
             },
             {
@@ -1301,9 +1364,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"5..\", environment=\"$environment\", instance=\"$instance\"}[$interval]))",
+              "editorMode": "code",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_http_requests_total{status=~\"5..\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval]))",
               "interval": "",
               "legendFormat": "5xx",
+              "range": true,
               "refId": "C"
             }
           ],
@@ -1426,7 +1491,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_phoenix_channel_joined_total{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_phoenix_channel_joined_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ transport }} :: {{ result }}",
               "range": true,
@@ -1525,7 +1590,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1639,7 +1704,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval]) / irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval]) / irate(bw_controller_prom_ex_phoenix_channel_handled_in_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ transport }} :: {{ result }}",
               "range": true,
@@ -1765,7 +1830,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ transport }} :: {{ result }}",
               "range": true,
@@ -1865,7 +1930,7 @@
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "sum(irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1979,7 +2044,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval]) / irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", endpoint=\"$endpoint\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval]) / irate(bw_controller_prom_ex_phoenix_socket_connected_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", endpoint=\"$endpoint\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ transport }} :: {{ result }}",
               "range": true,
@@ -2033,14 +2098,14 @@
       {
         "current": {
           "selected": false,
-          "text": "dev",
-          "value": "dev"
+          "text": "rli-ops10-jmc01",
+          "value": "rli-ops10-jmc01"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
         "hide": 0,
         "includeAll": false,
         "label": "environment",
@@ -2048,8 +2113,8 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
-          "refId": "Prometheus-environment-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -2062,24 +2127,28 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "10.42.0.21:4000",
-          "value": "10.42.0.21:4000"
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, instance)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment =\"$environment\"}, instance)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Application Instance",
-        "multi": false,
+        "multi": true,
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{environment=\"$environment\"}, instance)",
-          "refId": "Prometheus-instance-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment =\"$environment\"}, instance)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -2178,6 +2247,6 @@
   "timezone": "",
   "title": "Controller - Web",
   "uid": "bw-controller-phoenix-4",
-  "version": 4,
+  "version": 21,
   "weekStart": ""
 }

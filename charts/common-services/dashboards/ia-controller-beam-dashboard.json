@@ -30,21 +30,10 @@
         "limit": 100,
         "name": "PromEx service start",
         "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "radiantone",
-          "monitoring",
-          "controller",
-          "start"
-        ],
         "target": {
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "radiantone",
-            "controller",
-            "monitoring",
             "start"
           ],
           "type": "tags"
@@ -62,21 +51,10 @@
         "limit": 100,
         "name": "PromEx service stop",
         "showIn": 0,
-        "tags": [
-          "identity-analytics",
-          "controller",
-          "radiantone",
-          "monitoring",
-          "stop"
-        ],
         "target": {
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "controller",
-            "radiantone",
-            "monitoring",
             "stop"
           ],
           "type": "tags"
@@ -89,7 +67,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 10,
+  "id": 31,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -127,7 +105,7 @@
       "description": "The amount of time that has passed since the system has started.",
       "fieldConfig": {
         "defaults": {
-          "decimals": 1,
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -171,7 +149,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_stats_uptime_milliseconds_count{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_stats_uptime_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -298,7 +276,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_thread_support_info|bw_controller_prom_ex_beam_system_jit_support_info|bw_controller_prom_ex_beam_system_smp_support_info|bw_controller_prom_ex_beam_system_time_correction_support_info\", environment=\"$environment\", instance=\"$instance\"}",
+          "editorMode": "code",
+          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_thread_support_info|bw_controller_prom_ex_beam_system_jit_support_info|bw_controller_prom_ex_beam_system_smp_support_info|bw_controller_prom_ex_beam_system_time_correction_support_info\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -390,7 +369,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_system_version_info{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_system_version_info{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -459,7 +438,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_stats_process_count{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_stats_process_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -562,6 +541,18 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "app_kubernetes_io_instance"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 165
+              }
+            ]
           }
         ]
       },
@@ -583,7 +574,8 @@
           "show": false
         },
         "frameIndex": 0,
-        "showHeader": true
+        "showHeader": true,
+        "sortBy": []
       },
       "pluginVersion": "9.1.6",
       "targets": [
@@ -593,7 +585,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_dirty_cpu_schedulers_info|bw_controller_prom_ex_beam_system_dirty_cpu_schedulers_online_info|bw_controller_prom_ex_beam_system_dirty_io_schedulers_info|bw_controller_prom_ex_beam_system_schedulers_info|bw_controller_prom_ex_beam_system_schedulers_online_info|bw_controller_prom_ex_beam_system_word_size_bytes_info|bw_controller_prom_ex_beam_system_logical_processors_info|bw_controller_prom_ex_beam_system_logical_processors_available_info|bw_controller_prom_ex_beam_system_logical_processors_online_info\", environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_dirty_cpu_schedulers_info|bw_controller_prom_ex_beam_system_dirty_cpu_schedulers_online_info|bw_controller_prom_ex_beam_system_dirty_io_schedulers_info|bw_controller_prom_ex_beam_system_schedulers_info|bw_controller_prom_ex_beam_system_schedulers_online_info|bw_controller_prom_ex_beam_system_word_size_bytes_info|bw_controller_prom_ex_beam_system_logical_processors_info|bw_controller_prom_ex_beam_system_logical_processors_available_info|bw_controller_prom_ex_beam_system_logical_processors_online_info\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -610,13 +602,19 @@
               "Time": true,
               "app": true,
               "app_kubernetes_io_component": true,
+              "app_kubernetes_io_instance": true,
+              "app_kubernetes_io_managed_by": true,
               "app_kubernetes_io_name": true,
+              "app_kubernetes_io_version": true,
+              "apps_kubernetes_io_pod_index": true,
               "controller_revision_hash": true,
               "environment": true,
+              "helm_sh_chart": true,
               "instance": true,
               "job": true,
               "namespace": true,
               "pod": true,
+              "radiantlogic_io_environment": true,
               "statefulset_kubernetes_io_pod_name": true
             },
             "indexByName": {
@@ -694,7 +692,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_stats_port_count{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_stats_port_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -763,7 +761,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_stats_ets_count{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_stats_ets_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -876,7 +874,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_ets_limit_info|bw_controller_prom_ex_beam_system_port_limit_info|bw_controller_prom_ex_beam_system_process_limit_info|bw_controller_prom_ex_beam_system_atom_limit_info\", environment=\"$environment\", instance=\"$instance\"}",
+          "editorMode": "code",
+          "expr": "{__name__=~\"bw_controller_prom_ex_beam_system_ets_limit_info|bw_controller_prom_ex_beam_system_port_limit_info|bw_controller_prom_ex_beam_system_process_limit_info|bw_controller_prom_ex_beam_system_atom_limit_info\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -893,13 +892,19 @@
               "Time": true,
               "app": true,
               "app_kubernetes_io_component": true,
+              "app_kubernetes_io_instance": true,
+              "app_kubernetes_io_managed_by": true,
               "app_kubernetes_io_name": true,
+              "app_kubernetes_io_version": true,
+              "apps_kubernetes_io_pod_index": true,
               "controller_revision_hash": true,
               "environment": true,
+              "helm_sh_chart": true,
               "instance": true,
               "job": true,
               "namespace": true,
               "pod": true,
+              "radiantlogic_io_environment": true,
               "statefulset_kubernetes_io_pod_name": true
             },
             "indexByName": {
@@ -977,7 +982,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_memory_allocated_bytes{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_memory_allocated_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1046,7 +1051,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_beam_stats_atom_count{environment=\"$environment\", instance=\"$instance\"}",
+          "expr": "bw_controller_prom_ex_beam_stats_atom_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1157,7 +1162,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_beam_memory_allocated_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "expr": "bw_controller_prom_ex_beam_memory_allocated_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Total Usage",
               "range": true,
@@ -1168,9 +1173,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_atom_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_atom_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Atoms",
+              "range": true,
               "refId": "B"
             },
             {
@@ -1178,9 +1185,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_binary_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_binary_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Binaries",
+              "range": true,
               "refId": "C"
             },
             {
@@ -1188,9 +1197,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_code_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_code_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Code",
+              "range": true,
               "refId": "D"
             },
             {
@@ -1198,9 +1209,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_ets_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_ets_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "ETS",
+              "range": true,
               "refId": "E"
             },
             {
@@ -1208,9 +1221,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_processes_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_processes_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Processes",
+              "range": true,
               "refId": "F"
             },
             {
@@ -1218,9 +1233,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_memory_persistent_term_total_bytes{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_memory_persistent_term_total_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Persistent Term",
+              "range": true,
               "refId": "G"
             }
           ],
@@ -1336,9 +1353,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "irate(bw_controller_prom_ex_beam_stats_gc_count{environment=\"$environment\", instance=\"$instance\"}[$interval])",
+              "editorMode": "code",
+              "expr": "irate(bw_controller_prom_ex_beam_stats_gc_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])",
               "interval": "",
               "legendFormat": "Garbage Collections",
+              "range": true,
               "refId": "A"
             },
             {
@@ -1346,7 +1365,8 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "irate(bw_controller_prom_ex_beam_stats_gc_reclaimed_bytes{environment=\"$environment\", instance=\"$instance\"}[$interval])",
+              "editorMode": "code",
+              "expr": "irate(bw_controller_prom_ex_beam_stats_gc_reclaimed_bytes{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])",
               "instant": false,
               "interval": "",
               "legendFormat": "Bytes Reclaimed",
@@ -1442,7 +1462,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_beam_stats_active_task_count{environment=\"$environment\", instance=\"$instance\", type=\"normal\"}",
+              "expr": "bw_controller_prom_ex_beam_stats_active_task_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", type=\"normal\"}",
               "interval": "",
               "legendFormat": "Normal Tasks",
               "range": true,
@@ -1453,7 +1473,8 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "0 - bw_controller_prom_ex_beam_stats_run_queue_count{environment=\"$environment\", instance=\"$instance\", type=\"normal\"}",
+              "editorMode": "code",
+              "expr": "0 - bw_controller_prom_ex_beam_stats_run_queue_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", type=\"normal\"}",
               "instant": false,
               "interval": "",
               "legendFormat": "Normal Run Queue",
@@ -1549,7 +1570,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_beam_stats_active_task_count{environment=\"$environment\", instance=\"$instance\", type=\"dirty\"}",
+              "expr": "bw_controller_prom_ex_beam_stats_active_task_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", type=\"dirty\"}",
               "interval": "",
               "legendFormat": "Dirty Tasks",
               "range": true,
@@ -1560,7 +1581,8 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "0 - bw_controller_prom_ex_beam_stats_run_queue_count{environment=\"$environment\", instance=\"$instance\", type=\"dirty\"}",
+              "editorMode": "code",
+              "expr": "0 - bw_controller_prom_ex_beam_stats_run_queue_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", type=\"dirty\"}",
               "instant": false,
               "interval": "",
               "legendFormat": "Dirty Run Queue",
@@ -1616,8 +1638,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1669,7 +1690,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_beam_stats_reduction_count{environment=\"$environment\", instance=\"$instance\"}[$interval]) / 1000000",
+              "expr": "irate(bw_controller_prom_ex_beam_stats_reduction_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval]) / 1000000",
               "interval": "",
               "legendFormat": "Reductions",
               "range": true,
@@ -1680,7 +1701,8 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "irate(bw_controller_prom_ex_beam_stats_context_switch_count{environment=\"$environment\", instance=\"$instance\"}[$interval])",
+              "editorMode": "code",
+              "expr": "irate(bw_controller_prom_ex_beam_stats_context_switch_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}[$interval])",
               "instant": false,
               "interval": "",
               "legendFormat": "Context Switches",
@@ -1737,8 +1759,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1777,7 +1798,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_beam_stats_process_count{environment=\"$environment\", instance=\"$instance\"}",
+              "expr": "bw_controller_prom_ex_beam_stats_process_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Active Processes",
               "range": true,
@@ -1834,8 +1855,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1873,9 +1893,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_stats_atom_count{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_stats_atom_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Active ports",
+              "range": true,
               "refId": "A"
             }
           ],
@@ -1928,8 +1950,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1967,9 +1988,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "0 - irate(bw_controller_prom_ex_beam_stats_port_io_byte_count{environment=\"$environment\", instance=\"$instance\", type=\"input\"}[$interval])",
+              "editorMode": "code",
+              "expr": "0 - irate(bw_controller_prom_ex_beam_stats_port_io_byte_count{radiantlogic_io_environment=\"$environment\", type=\"input\"}[$interval])",
               "interval": "",
               "legendFormat": "Data Received",
+              "range": true,
               "refId": "A"
             },
             {
@@ -1977,9 +2000,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "irate(bw_controller_prom_ex_beam_stats_port_io_byte_count{environment=\"$environment\", instance=\"$instance\", type=\"output\"}[$interval])",
+              "editorMode": "code",
+              "expr": "irate(bw_controller_prom_ex_beam_stats_port_io_byte_count{radiantlogic_io_environment=\"$environment\", type=\"output\"}[$interval])",
               "interval": "",
               "legendFormat": "Data Sent",
+              "range": true,
               "refId": "B"
             }
           ],
@@ -2033,8 +2058,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -2073,7 +2097,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_beam_stats_ets_count{environment=\"$environment\", instance=\"$instance\"}",
+              "expr": "bw_controller_prom_ex_beam_stats_ets_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Active ETS Tables",
               "range": true,
@@ -2130,8 +2154,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -2169,9 +2192,11 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "bw_controller_prom_ex_beam_stats_port_count{environment=\"$environment\", instance=\"$instance\"}",
+              "editorMode": "code",
+              "expr": "bw_controller_prom_ex_beam_stats_port_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\"}",
               "interval": "",
               "legendFormat": "Active Ports",
+              "range": true,
               "refId": "A"
             }
           ],
@@ -2198,8 +2223,7 @@
   "tags": [
     "identity-analytics",
     "radiantone",
-    "controller",
-    "monitoring"
+    "controller"
   ],
   "templating": {
     "list": [
@@ -2223,14 +2247,14 @@
       {
         "current": {
           "selected": false,
-          "text": "dev",
-          "value": "dev"
+          "text": "rli-ops10-jmc01",
+          "value": "rli-ops10-jmc01"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info,  radiantlogic_io_environment)",
         "hide": 0,
         "includeAll": false,
         "label": "environment",
@@ -2238,43 +2262,13 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
-          "refId": "Prometheus-environment-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info,  radiantlogic_io_environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 6,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "10.42.0.21:4000",
-          "value": "10.42.0.21:4000"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
-        },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, instance)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Application Instance",
-        "multi": false,
-        "name": "instance",
-        "options": [],
-        "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{environment=\"$environment\"}, instance)",
-          "refId": "Prometheus-instance-Variable-Query"
-        },
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "tagValuesQuery": "",
         "tagsQuery": "",
         "type": "query",
@@ -2319,6 +2313,37 @@
         "refresh": 2,
         "skipUrlSync": false,
         "type": "interval"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment=\"$environment\"}, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment=\"$environment\"}, instance)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -2338,6 +2363,6 @@
   "timezone": "",
   "title": "Controller - Virtual Machine",
   "uid": "bw-controller-beam-4",
-  "version": 4,
+  "version": 16,
   "weekStart": ""
 }

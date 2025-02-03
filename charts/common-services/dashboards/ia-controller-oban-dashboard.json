@@ -40,9 +40,6 @@
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "controller",
-            "radiantone",
             "start"
           ],
           "type": "tags"
@@ -70,9 +67,6 @@
           "limit": 100,
           "matchAny": false,
           "tags": [
-            "identity-analytics",
-            "controller",
-            "radiantone",
             "stop"
           ],
           "type": "tags"
@@ -81,11 +75,11 @@
       }
     ]
   },
-  "description": "All the data that is presented here is captured by the PromEx Oban plugin (https://github.com/akoutmos/prom_ex/blob/master/lib/prom_ex/plugins/oban.ex)",
+  "description": "",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 14,
+  "id": 33,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -197,7 +191,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "{__name__=~\"bw_controller_prom_ex_oban_init_shutdown_grace_period_milliseconds|bw_controller_prom_ex_oban_init_poll_interval_milliseconds|bw_controller_prom_ex_oban_init_dispatch_cooldown_milliseconds\", environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}",
+          "editorMode": "code",
+          "expr": "{__name__=~\"bw_controller_prom_ex_oban_init_shutdown_grace_period_milliseconds|bw_controller_prom_ex_oban_init_poll_interval_milliseconds|bw_controller_prom_ex_oban_init_dispatch_cooldown_milliseconds\", radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -215,14 +210,20 @@
               "__name__": false,
               "app": true,
               "app_kubernetes_io_component": true,
+              "app_kubernetes_io_instance": true,
+              "app_kubernetes_io_managed_by": true,
               "app_kubernetes_io_name": true,
+              "app_kubernetes_io_version": true,
+              "apps_kubernetes_io_pod_index": true,
               "controller_revision_hash": true,
               "environment": true,
-              "instance": true,
+              "helm_sh_chart": true,
+              "instance": false,
               "job": true,
               "name": true,
               "namespace": true,
               "pod": true,
+              "radiantlogic_io_environment": true,
               "statefulset_kubernetes_io_pod_name": true
             },
             "indexByName": {},
@@ -245,7 +246,7 @@
         "defaults": {
           "mappings": [],
           "max": 500,
-          "noValue": "NA",
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -297,7 +298,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "bw_controller_prom_ex_oban_queue_length_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\", state=\"available\"}",
+          "expr": "bw_controller_prom_ex_oban_queue_length_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\", state=\"available\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "{{ queue }}",
@@ -340,7 +341,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 175
+                "value": 233
               }
             ]
           },
@@ -353,6 +354,18 @@
               {
                 "id": "custom.width",
                 "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 119
               }
             ]
           }
@@ -386,7 +399,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "{__name__=\"bw_controller_prom_ex_oban_init_status_info\", environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}",
+          "expr": "{__name__=\"bw_controller_prom_ex_oban_init_status_info\", radiantlogic_io_environment=\"$environment\", name=\"$oban\", instance=~\"$instance\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -405,20 +418,51 @@
               "__name__": true,
               "app": true,
               "app_kubernetes_io_component": true,
+              "app_kubernetes_io_instance": true,
+              "app_kubernetes_io_managed_by": true,
               "app_kubernetes_io_name": true,
+              "app_kubernetes_io_version": true,
+              "apps_kubernetes_io_pod_index": true,
               "controller_revision_hash": true,
               "environment": true,
+              "helm_sh_chart": true,
               "instance": true,
               "job": true,
               "name": true,
               "namespace": true,
               "plugins": true,
-              "pod": true,
+              "pod": false,
               "prefix": false,
+              "radiantlogic_io_environment": true,
               "repo": true,
               "statefulset_kubernetes_io_pod_name": true
             },
-            "indexByName": {},
+            "indexByName": {
+              "Time": 0,
+              "Value": 23,
+              "__name__": 1,
+              "app": 2,
+              "app_kubernetes_io_component": 3,
+              "app_kubernetes_io_instance": 4,
+              "app_kubernetes_io_managed_by": 5,
+              "app_kubernetes_io_name": 6,
+              "app_kubernetes_io_version": 7,
+              "apps_kubernetes_io_pod_index": 8,
+              "controller_revision_hash": 9,
+              "helm_sh_chart": 10,
+              "instance": 11,
+              "job": 12,
+              "name": 13,
+              "namespace": 14,
+              "node": 17,
+              "plugins": 15,
+              "pod": 16,
+              "prefix": 18,
+              "queues": 19,
+              "radiantlogic_io_environment": 20,
+              "repo": 21,
+              "statefulset_kubernetes_io_pod_name": 22
+            },
             "renameByName": {
               "name": "Oban Instance",
               "node": "Node",
@@ -500,7 +544,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "bw_controller_prom_ex_oban_init_queue_concurrency_limit{instance=\"$instance\", environment=\"$environment\", name=\"$oban\"}",
+          "editorMode": "code",
+          "expr": "bw_controller_prom_ex_oban_init_queue_concurrency_limit{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", name=\"$oban\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -518,14 +563,20 @@
               "__name__": true,
               "app": true,
               "app_kubernetes_io_component": true,
+              "app_kubernetes_io_instance": true,
+              "app_kubernetes_io_managed_by": true,
               "app_kubernetes_io_name": true,
+              "app_kubernetes_io_version": true,
+              "apps_kubernetes_io_pod_index": true,
               "controller_revision_hash": true,
               "environment": true,
+              "helm_sh_chart": true,
               "instance": true,
               "job": true,
               "name": true,
               "namespace": true,
               "pod": true,
+              "radiantlogic_io_environment": true,
               "statefulset_kubernetes_io_pod_name": true
             },
             "indexByName": {},
@@ -570,7 +621,7 @@
       "id": 45,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
@@ -590,7 +641,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "round(sum(increase(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_count{instance=\"$instance\", environment=\"$environment\", name=\"$oban\"}[$interval])))",
+          "expr": "round(sum(increase(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", name=\"$oban\"}[$interval])))",
           "format": "table",
           "interval": "",
           "legendFormat": "",
@@ -611,6 +662,7 @@
         "defaults": {
           "decimals": 1,
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -653,7 +705,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "round(sum(increase(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_count{instance=\"$instance\", environment=\"$environment\", name=\"$oban\"}[$interval])))",
+          "expr": "round(sum(increase(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", name=\"$oban\"}[$interval])))",
           "format": "table",
           "interval": "",
           "legendFormat": "",
@@ -696,7 +748,7 @@
       "id": 47,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
@@ -716,7 +768,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "round(sum(increase(bw_controller_prom_ex_oban_producer_dispatched_count_count{instance=\"$instance\", environment=\"$environment\", name=\"$oban\"}[$interval])))",
+          "expr": "round(sum(increase(bw_controller_prom_ex_oban_producer_dispatched_count_count{instance=~\"$instance\", radiantlogic_io_environment=\"$environment\", name=\"$oban\"}[$interval])))",
           "format": "table",
           "interval": "",
           "legendFormat": "",
@@ -830,7 +882,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -944,7 +996,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1039,7 +1091,7 @@
             "legend": {
               "calcs": [],
               "displayMode": "table",
-              "placement": "right",
+              "placement": "bottom",
               "showLegend": true
             },
             "tooltip": {
@@ -1055,7 +1107,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_processing_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ state }}) {{ name }} :: {{ worker }}",
               "range": true,
@@ -1135,7 +1187,7 @@
             "legend": {
               "calcs": [],
               "displayMode": "table",
-              "placement": "right",
+              "placement": "bottom",
               "showLegend": true
             },
             "tooltip": {
@@ -1151,7 +1203,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_queue_time_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ state }}) {{ name }} :: {{ worker }}",
               "range": true,
@@ -1231,7 +1283,7 @@
             "legend": {
               "calcs": [],
               "displayMode": "table",
-              "placement": "right",
+              "placement": "bottom",
               "showLegend": true
             },
             "tooltip": {
@@ -1247,7 +1299,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_complete_attempts_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_complete_attempts_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_complete_attempts_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_complete_attempts_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ state }}) {{ name }} :: {{ worker }}",
               "range": true,
@@ -1373,7 +1425,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1487,7 +1539,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -1513,53 +1565,84 @@
           "yBucketBound": "auto"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
           "description": "The average time it took to process jobs per queue that resulted in an error.",
-          "fill": 1,
-          "fillGradient": 0,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "Execution Time",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "ms"
+            },
+            "overrides": []
+          },
           "gridPos": {
             "h": 13,
             "w": 12,
             "x": 0,
             "y": 28
           },
-          "hiddenSeries": false,
           "id": 57,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null as zero",
           "options": {
-            "alertThreshold": true
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
-          "percentage": false,
           "pluginVersion": "9.1.6",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
           "targets": [
             {
               "datasource": {
@@ -1567,93 +1650,95 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ error }}) {{ name }} :: {{ worker }}",
               "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": [],
-          "timeRegions": [],
           "title": "Average Job Execution Time",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ms",
-              "label": "Execution Time",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
+          "type": "timeseries"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
           "description": "The average time a job waited in queue for processing prior to resulting in an error.",
-          "fill": 1,
-          "fillGradient": 0,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "In Queue Time",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "ms"
+            },
+            "overrides": []
+          },
           "gridPos": {
             "h": 13,
             "w": 12,
             "x": 12,
             "y": 28
           },
-          "hiddenSeries": false,
           "id": 58,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null as zero",
           "options": {
-            "alertThreshold": true
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
-          "percentage": false,
           "pluginVersion": "9.1.6",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
           "targets": [
             {
               "datasource": {
@@ -1661,93 +1746,95 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_queue_time_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ error }}) {{ name }} :: {{ worker }}",
               "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": [],
-          "timeRegions": [],
           "title": "Average Job Queue Time",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ms",
-              "label": "In Queue Time",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
+          "type": "timeseries"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
           "description": "The average time it took to process jobs per queue that resulted in an error.",
-          "fill": 1,
-          "fillGradient": 0,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "Job Attempts",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "locale"
+            },
+            "overrides": []
+          },
           "gridPos": {
             "h": 13,
             "w": 12,
             "x": 0,
             "y": 41
           },
-          "hiddenSeries": false,
           "id": 52,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null as zero",
           "options": {
-            "alertThreshold": true
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
-          "percentage": false,
           "pluginVersion": "9.1.6",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
           "targets": [
             {
               "datasource": {
@@ -1755,44 +1842,15 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_job_exception_attempts_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_attempts_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_job_exception_attempts_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_job_exception_attempts_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "({{ state }}) {{ name }} :: {{ worker }}",
               "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": [],
-          "timeRegions": [],
           "title": "Average Job Failure Attempts",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "locale",
-              "label": "Job Attempts",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
+          "type": "timeseries"
         }
       ],
       "targets": [
@@ -1868,7 +1926,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1907,7 +1966,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_queue_length_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\", state=\"available\"}",
+              "expr": "bw_controller_prom_ex_oban_queue_length_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\", state=\"available\"}",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -1964,7 +2023,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2003,7 +2063,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_queue_length_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\", state=\"completed\"}",
+              "expr": "bw_controller_prom_ex_oban_queue_length_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\", state=\"completed\"}",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2060,7 +2120,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2099,7 +2160,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_queue_length_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\", state=\"executing\"}",
+              "expr": "bw_controller_prom_ex_oban_queue_length_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\", state=\"executing\"}",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2156,7 +2217,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2195,7 +2257,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_queue_length_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\", state=\"retryable\"}",
+              "expr": "bw_controller_prom_ex_oban_queue_length_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\", state=\"retryable\"}",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2321,7 +2383,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -2435,7 +2497,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(irate(bw_controller_prom_ex_oban_producer_dispatched_count_bucket{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])) by (le)",
+              "expr": "sum(irate(bw_controller_prom_ex_oban_producer_dispatched_count_bucket{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])) by (le)",
               "format": "heatmap",
               "hide": false,
               "interval": "",
@@ -2545,7 +2607,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2640,7 +2702,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_producer_dispatched_count_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_dispatched_count_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_producer_dispatched_count_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_dispatched_count_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2735,7 +2797,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "irate(bw_controller_prom_ex_oban_producer_exception_duration_milliseconds_sum{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_exception_duration_milliseconds_count{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "irate(bw_controller_prom_ex_oban_producer_exception_duration_milliseconds_sum{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval]) / irate(bw_controller_prom_ex_oban_producer_exception_duration_milliseconds_count{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ queue }}",
               "range": true,
@@ -2827,7 +2889,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "increase(bw_controller_prom_ex_oban_circuit_trip_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[1h])",
+              "expr": "increase(bw_controller_prom_ex_oban_circuit_trip_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[1h])",
               "interval": "",
               "legendFormat": "",
               "range": true,
@@ -2892,7 +2954,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_circuit_trip_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}",
+              "expr": "bw_controller_prom_ex_oban_circuit_trip_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}",
               "interval": "",
               "legendFormat": "",
               "range": true,
@@ -2957,7 +3019,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "increase(bw_controller_prom_ex_oban_circuit_open_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[1h])",
+              "expr": "increase(bw_controller_prom_ex_oban_circuit_open_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[1h])",
               "interval": "",
               "legendFormat": "",
               "range": true,
@@ -3022,7 +3084,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "bw_controller_prom_ex_oban_circuit_open_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}",
+              "expr": "bw_controller_prom_ex_oban_circuit_open_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}",
               "interval": "",
               "legendFormat": "",
               "range": true,
@@ -3118,7 +3180,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "increase(bw_controller_prom_ex_oban_circuit_trip_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "increase(bw_controller_prom_ex_oban_circuit_trip_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ circuit_breaker }}",
               "range": true,
@@ -3214,7 +3276,7 @@
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "increase(bw_controller_prom_ex_oban_circuit_open_total{environment=\"$environment\", instance=\"$instance\", name=\"$oban\"}[$interval])",
+              "expr": "increase(bw_controller_prom_ex_oban_circuit_open_total{radiantlogic_io_environment=\"$environment\", instance=~\"$instance\", name=\"$oban\"}[$interval])",
               "interval": "",
               "legendFormat": "{{ circuit_breaker }}",
               "range": true,
@@ -3268,14 +3330,14 @@
       {
         "current": {
           "selected": false,
-          "text": "dev",
-          "value": "dev"
+          "text": "rli-ops10-jmc01",
+          "value": "rli-ops10-jmc01"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
         "hide": 0,
         "includeAll": false,
         "label": "environment",
@@ -3283,8 +3345,8 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, environment)",
-          "refId": "Prometheus-environment-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info, radiantlogic_io_environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -3298,23 +3360,23 @@
       {
         "current": {
           "selected": false,
-          "text": "10.42.0.21:4000",
-          "value": "10.42.0.21:4000"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info, instance)",
+        "definition": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment =\"$environment\"}, instance)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Application Instance",
-        "multi": false,
+        "multi": true,
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{environment=\"$environment\"}, instance)",
-          "refId": "Prometheus-instance-Variable-Query"
+          "query": "label_values(bw_controller_prom_ex_prom_ex_status_info{radiantlogic_io_environment =\"$environment\"}, instance)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 2,
         "regex": "",
@@ -3413,6 +3475,6 @@
   "timezone": "",
   "title": "Controller - Queue Manager",
   "uid": "bw-controller-oban-5",
-  "version": 5,
+  "version": 20,
   "weekStart": ""
 }

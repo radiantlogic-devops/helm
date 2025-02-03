@@ -10,7 +10,7 @@ type: application
 # Chart Version
 # -------------
 # This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
-version: 1.0.8
+version: 1.0.9
 
 # Application Version (Informational)
 # -----------------------------------
@@ -88,7 +88,7 @@ dependencies:
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
 - name: velero
-  version: 5.2.2
+  version: 8.0.0
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
 - name: cloudnative-pg
