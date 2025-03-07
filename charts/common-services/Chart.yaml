@@ -10,7 +10,7 @@ type: application
 # Chart Version
 # -------------
 # This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
-version: 1.0.9
+version: 1.0.10
 
 # Application Version (Informational)
 # -----------------------------------
