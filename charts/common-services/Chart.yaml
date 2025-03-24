@@ -93,5 +93,9 @@ dependencies:
   condition: velero.enabled
 - name: cloudnative-pg
   repository: https://cloudnative-pg.github.io/charts
-  version: 0.21.4
+  version: 0.23.2 # 0.21.4
   condition: cloudnative-pg.enabled
+- name: velero-ui
+  version: x.x.x
+  repository: https://helm.otwld.com
+  condition: velero-ui.enabled

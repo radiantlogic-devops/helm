@@ -548,6 +548,9 @@ haproxy:
       {{- if ((.Values.route).opensearch | default false) }}
       use_backend opensearch_backend if { path /opensearch } or { path_beg /opensearch/ }
       {{- end }}
+      {{- if ((.Values.route).velero | default false) }}
+      use_backend velero_backend if { path /velero } or { path_beg /velero/ }
+      {{- end }}
 
     # backends
     {{- if ((.Values.route).argocd | default false) }}
@@ -613,6 +616,11 @@ haproxy:
     backend opensearch_backend
       http-request set-path %[path,regsub(^/opensearch/?,/)]
       server opensearch opensearch-cluster-master:9200 check
+    {{- end }}
+    {{- if ((.Values.route).velero | default false) }}
+    backend velero_backend
+      http-request set-path %[path,regsub(^/velero/?,/)]
+      server velero velero-ui:3000 check
     {{- end }}
     {{- if ((.Values.route).eocui | default false) }}
     # Default backend
@@ -1296,3 +1304,19 @@ backupManager:
       # Ex. http://eoc-backend-service/webhook/restores
       url: ""
       timeout: "1h"
+
+# -----------------------------------------------------------------
+# -- Velero UI -- from https://github.com/otwld/velero-ui
+# -----------------------------------------------------------------
+velero-ui:
+  enabled: false
+  env:
+    - name: BASIC_AUTH_PASSWORD
+      value: "eLm0p#u6Fk"
+  fullnameOverride: "velero-ui"
+  nodeSelector: {}
+  service:
+    type: NodePort
+  configuration:
+    general: {}
+      # veleroNamespace: velero
