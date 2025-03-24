@@ -65,6 +65,7 @@ jobs:
           helm repo add fluent https://fluent.github.io/helm-charts
           helm repo add velero https://vmware-tanzu.github.io/helm-charts
           helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add velero-ui https://helm.otwld.com
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ env.DEFAULT_BRANCH }}
