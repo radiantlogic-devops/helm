@@ -44,7 +44,7 @@ dependencies:
   repository: https://argoproj.github.io/argo-helm
   condition: argo-cd.enabled
 - name: prometheus
-  version: 19.7.0 # 15.13.0
+  version: 19.7.2 # 15.13.0
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
 - name: grafana
