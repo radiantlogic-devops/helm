@@ -91,9 +91,7 @@ argo-cd:
     enabled: false
   # New required settings for 7.8.0
   redisSecretInit:
-    enabled: true  # This is needed for Redis to work properly in 7.8.0
-
-
+    enabled: true  #  This is needed for Redis to work properly in 7.8.0
 
 # Prometheus Monitoring Stack Configuration
 # ----------------------------------------
