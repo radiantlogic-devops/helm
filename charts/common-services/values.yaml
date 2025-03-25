@@ -10,6 +10,9 @@
 
 # Note: Adjust individual component settings to match your specific environment and requirements.
 
+global:
+  hibernate: false
+
 nodeSelector: {}
 
 # Ingress Configuration for Load Balancing
