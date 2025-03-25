@@ -126,7 +126,7 @@ jobs:
             --set=argo-cd.configs.clusterCredentials={} \
             --set=prometheus.alertmanager.extraEnv=[] \
             --set=fluent-bit.outputSearchType=null \
-            --set=fluent-bit.outputSearchHost=null \
+            --set=fluent-bit.outputSearchHost=null" \
             --debug --skip-missing-values --upgrade
 
   # Temp Helm Chart hosted as an OCI image on ghcr
