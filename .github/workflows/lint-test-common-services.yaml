@@ -121,7 +121,12 @@ jobs:
             --set=shellinabox.enabled=false \
             --set=curator.enabled=false \
             --set=zoonavigator.enabled=false \
-            --set=backupManager.enabled=false" \
+            --set=backupManager.enabled=false \
+            --set grafana.testFramework.enabled=false \
+            --set \"argo-cd.configs.clusterCredentials={}\" \
+            --set \"prometheus.alertmanager.extraEnv=[]\" \
+            --set \"fluent-bit.outputSearchType=null\" \
+            --set \"fluent-bit.outputSearchHost=null\"" \
             --debug --skip-missing-values --upgrade
 
   # Temp Helm Chart hosted as an OCI image on ghcr
@@ -154,5 +159,5 @@ jobs:
           registry: ghcr.io/${{ github.repository_owner }}
           path: charts/common-services
           registry_username: ${{ github.actor }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}          
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
           update_dependencies: 'true' # Defaults to false
