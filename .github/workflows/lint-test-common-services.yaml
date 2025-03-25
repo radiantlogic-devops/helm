@@ -121,9 +121,7 @@ jobs:
             --set=shellinabox.enabled=false \
             --set=curator.enabled=false \
             --set=zoonavigator.enabled=false \
-            --set=backupManager.enabled=false \
-            --set=argo-cd.configs.clusterCredentials=[] \
-            --set=argo-cd.redisSecretInit.enabled=true" \
+            --set=backupManager.enabled=false" \
             --debug --skip-missing-values --upgrade
 
   # Temp Helm Chart hosted as an OCI image on ghcr
