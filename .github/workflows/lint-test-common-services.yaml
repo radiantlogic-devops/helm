@@ -122,11 +122,8 @@ jobs:
             --set=curator.enabled=false \
             --set=zoonavigator.enabled=false \
             --set=backupManager.enabled=false \
-            --set=grafana.testFramework.enabled=false \
-            --set=argo-cd.configs.clusterCredentials={} \
-            --set=prometheus.alertmanager.extraEnv=[] \
-            --set=fluent-bit.outputSearchType=null \
-            --set=fluent-bit.outputSearchHost=null" \
+            --set=argo-cd.configs.clusterCredentials=[] \
+            --set=argo-cd.redisSecretInit.enabled=true" \
             --debug --skip-missing-values --upgrade
 
   # Temp Helm Chart hosted as an OCI image on ghcr
