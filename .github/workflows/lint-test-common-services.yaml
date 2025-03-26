@@ -122,7 +122,7 @@ jobs:
             --set=curator.enabled=false \
             --set=zoonavigator.enabled=false \
             --set=backupManager.enabled=false" \
-            --debug --skip-missing-values --upgrade
+            --debug --skip-missing-values
 
   # Temp Helm Chart hosted as an OCI image on ghcr
   publish-ghcr:
