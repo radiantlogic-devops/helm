@@ -43,7 +43,7 @@ data:
           <store>
             @type {{ $aggregator.type }}
             {{- range $key, $value := $aggregator }}
-            {{- if and (ne $key "type") (ne $key "source") (ne $key "sourcetype") }}
+            {{- if and (ne $key "type") (ne $key "name") (ne $key "source") (ne $key "sourcetype") }}
             {{ $key }} {{ $value }}
             {{- end }}
             {{- end }}
@@ -59,7 +59,7 @@ data:
             {{- else if $aggregator.sourcetype }}
             sourcetype {{ $aggregator.sourcetype }}
             {{- end }}
-            {{- else }}
+            {{- else if or (eq $aggregator.type "elasticsearch") (eq $aggregator.type "opensearch") }}
             logstash_prefix {{ $index }}
             logstash_format true
             {{- end }}

@@ -365,7 +365,7 @@ spec:
               name: {{ template "fid.fullname" . }}
               key: ZK_CLUSTER
         - name: BIND_DN
-{{- if hasKey .Values.metrics "binddn" }}  
+{{- if hasKey .Values.metrics "binddn" }}
           value: {{ .Values.metrics.binddn | quote }}
 {{- else }}
           value: "uid=operator,ou=globalusers,cn=config"
