@@ -40,6 +40,20 @@ data:
           @type copy
           {{- if gt (len $aggregators) 0 }}
           {{- range $aggregator := $aggregators }}
+          {{- /* Check if this log should use this aggregator */ -}}
+          {{- $useAggregator := true }}
+          {{- if hasKey $val "aggregators" }}
+            {{- /* Look for this aggregator's name in the log's list */ -}}
+            {{- if hasKey $aggregator "name" }}
+              {{- $useAggregator = false }}
+              {{- range $aggName := $val.aggregators }}
+                {{- if eq $aggName $aggregator.name }}
+                  {{- $useAggregator = true }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if $useAggregator }}
           <store>
             @type {{ $aggregator.type }}
             {{- range $key, $value := $aggregator }}
@@ -65,7 +79,19 @@ data:
             {{- end }}
           </store>
           {{- end }}
+          {{- end }}
           {{- else if $elasticSearchHost }}
+          {{- $useElasticsearch := true }}
+          {{- if hasKey $val "aggregators" }}
+            {{- /* Check if 'elasticsearch' is in the log's aggregators list */ -}}
+            {{- $useElasticsearch = false }}
+            {{- range $aggName := $val.aggregators }}
+              {{- if eq $aggName "elasticsearch" }}
+                {{- $useElasticsearch = true }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if $useElasticsearch }}
           <store>
             @type elasticsearch
             host {{ $elasticSearchHost }}
@@ -73,6 +99,7 @@ data:
             logstash_format true
             logstash_prefix {{ $index }}
           </store>
+          {{- end }}
           {{- end }}
         </match>
       {{- end }}
