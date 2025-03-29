@@ -39,21 +39,23 @@ data:
         <match {{ $logName }}.log>
           @type copy
           {{- if gt (len $aggregators) 0 }}
+          {{- $storeCount := 0 }}
           {{- range $aggregator := $aggregators }}
-          {{- /* Check if this log should use this aggregator */ -}}
-          {{- $useAggregator := true }}
-          {{- if hasKey $val "aggregators" }}
-            {{- /* Look for this aggregator's name in the log's list */ -}}
-            {{- if hasKey $aggregator "name" }}
-              {{- $useAggregator = false }}
+          {{- /* Check if this aggregator has a name */ -}}
+          {{- if hasKey $aggregator "name" }}
+            {{- /* Named aggregator: Only use if explicitly listed */ -}}
+            {{- $useAggregator := false }}
+            {{- if hasKey $val "aggregators" }}
               {{- range $aggName := $val.aggregators }}
                 {{- if eq $aggName $aggregator.name }}
                   {{- $useAggregator = true }}
                 {{- end }}
               {{- end }}
             {{- end }}
+            {{- if $useAggregator }}
+          {{- if gt $storeCount 0 }}
+
           {{- end }}
-          {{- if $useAggregator }}
           <store>
             @type {{ $aggregator.type }}
             {{- range $key, $value := $aggregator }}
@@ -78,20 +80,42 @@ data:
             logstash_format true
             {{- end }}
           </store>
+              {{- $storeCount = add $storeCount 1 }}
+            {{- end }}
+          {{- else }}
+            {{- /* Unnamed aggregator: Use for all logs */ -}}
+          {{- if gt $storeCount 0 }}
+
+          {{- end }}
+          <store>
+            @type {{ $aggregator.type }}
+            {{- range $key, $value := $aggregator }}
+            {{- if and (ne $key "type") (ne $key "name") (ne $key "source") (ne $key "sourcetype") }}
+            {{ $key }} {{ $value }}
+            {{- end }}
+            {{- end }}
+            {{- if eq $aggregator.type "splunk_hec" }}
+            index {{ $splunkIndex }}
+            {{- if $val.splunk_source }}
+            source {{ $val.splunk_source }}
+            {{- else if $aggregator.source }}
+            source {{ $aggregator.source }}
+            {{- end }}
+            {{- if $val.splunk_sourcetype }}
+            sourcetype {{ $val.splunk_sourcetype }}
+            {{- else if $aggregator.sourcetype }}
+            sourcetype {{ $aggregator.sourcetype }}
+            {{- end }}
+            {{- else if or (eq $aggregator.type "elasticsearch") (eq $aggregator.type "opensearch") }}
+            logstash_prefix {{ $index }}
+            logstash_format true
+            {{- end }}
+          </store>
+              {{- $storeCount = add $storeCount 1 }}
           {{- end }}
           {{- end }}
           {{- else if $elasticSearchHost }}
-          {{- $useElasticsearch := true }}
-          {{- if hasKey $val "aggregators" }}
-            {{- /* Check if 'elasticsearch' is in the log's aggregators list */ -}}
-            {{- $useElasticsearch = false }}
-            {{- range $aggName := $val.aggregators }}
-              {{- if eq $aggName "elasticsearch" }}
-                {{- $useElasticsearch = true }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-          {{- if $useElasticsearch }}
+          {{- /* Use elasticSearchHost as an unnamed destination */ -}}
           <store>
             @type elasticsearch
             host {{ $elasticSearchHost }}
@@ -99,7 +123,6 @@ data:
             logstash_format true
             logstash_prefix {{ $index }}
           </store>
-          {{- end }}
           {{- end }}
         </match>
       {{- end }}

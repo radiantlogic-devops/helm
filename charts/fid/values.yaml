@@ -188,7 +188,6 @@ metrics:
         enabled: true
         path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
         index: vds_server.log
-        aggregators: []
         # custom_index: vds_server_testing.log
         # splunk_index: vds_server_splunk_testing.log
         # splunk_source: testingsource
@@ -273,11 +272,11 @@ metrics:
         # splunk_sourcetype
     configFile: /fluentd/etc/fluent.conf
     aggregators: []
-      # - name: "elastic"
-      #   type: "elasticsearch"
+      # - type: "elasticsearch"
       #   host: "elasticsearch-master"
       #   port: "9200"
-      # - type: "elasticsearch"
+      # - name: "elastic-prod"
+      #   type: "elasticsearch"
       #   host: "elasticsearch-master"
       #   port: "9200"
       #   scheme: "https"
@@ -288,7 +287,8 @@ metrics:
       #   port: "9200"
       #   user: "admin"
       #   password: "admin"
-      # - type: "opensearch"
+      # - name: "opensearch-prod"
+      #   type: "opensearch"
       #   host: "opensearch-cluster-master"
       #   port: "9200"
       #   scheme: "https"
