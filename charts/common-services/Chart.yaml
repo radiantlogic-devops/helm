@@ -10,13 +10,13 @@ type: application
 # Chart Version
 # -------------
 # This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
-version: 1.0.9
+version: 1.0.10
 
 # Application Version (Informational)
 # -----------------------------------
 # This represents the version of the RadiantOne Common Services software itself, not the Helm chart version.
 # Follow Semantic Versioning (https://semver.org/)
-appVersion: "1.3"
+appVersion: "2.0"
 
 # Required Kubernetes Version
 # --------------------------
@@ -40,15 +40,18 @@ maintainers:
 #   - condition: A conditional expression that determines whether the dependency is to be enabled or not.
 dependencies:
 - name: argo-cd
-  version: 5.6.0
+  version: 7.8.0
+  # version: 5.6.0
   repository: https://argoproj.github.io/argo-helm
   condition: argo-cd.enabled
 - name: prometheus
-  version: 15.13.0
+  version: 19.7.2
+  # version: 15.13.0
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
 - name: grafana
-  version: 6.40.0
+  version: 8.10.0
+  # version: 6.40.0
   repository: https://grafana.github.io/helm-charts
   condition: grafana.enabled
 - name: elasticsearch
@@ -60,7 +63,8 @@ dependencies:
   repository: https://helm.elastic.co
   condition: kibana.enabled
 - name: haproxy
-  version: 1.17.3
+  version: 1.24.0
+  # version: 1.17.3
   repository: https://haproxytech.github.io/helm-charts
   condition: haproxy.enabled
 - name: postgresql
@@ -84,14 +88,21 @@ dependencies:
   repository: https://opensearch-project.github.io/helm-charts
   condition: opensearch-dashboards.enabled
 - name: fluent-bit
-  version: 0.39.0
+  version: 0.48.0
+  # version: 0.39.0
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
 - name: velero
-  version: 8.0.0
+  version: 8.6.0
+  # version: 8.0.0
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
 - name: cloudnative-pg
   repository: https://cloudnative-pg.github.io/charts
-  version: 0.21.4
+  version: 0.23.2
+  # version: 0.21.4
   condition: cloudnative-pg.enabled
+- name: velero-ui
+  version: x.x.x
+  repository: https://helm.otwld.com
+  condition: velero-ui.enabled

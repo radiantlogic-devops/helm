@@ -39,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-helm-plugins-${{ hashFiles('**/requirements.txt') }}
 
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.6.1
+        uses: helm/chart-testing-action@v2.7.0
 
       - name: Run chart-testing (list-changed)
         id: list-changed
@@ -65,6 +65,7 @@ jobs:
           helm repo add fluent https://fluent.github.io/helm-charts
           helm repo add velero https://vmware-tanzu.github.io/helm-charts
           helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add velero-ui https://helm.otwld.com
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ env.DEFAULT_BRANCH }}
@@ -112,7 +113,15 @@ jobs:
         run: |
           ct install --charts=charts/common-services \
             --helm-extra-args="--timeout=15m0s" \
-            --helm-extra-set-args="--set=velero.enabled=false --set=pgadmin4.enabled=false --set=elasticsearch.replicas=1 --set=slamd.enabled=false --set=shellinabox.enabled=false --set=curator.enabled=false --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s --set=zoonavigator.enabled=false --set=backupManager.enabled=false" \
+            --helm-extra-set-args="--set=velero-ui.enabled=false \
+            --set=elasticsearch.replicas=1 \
+            --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s \
+            --set=pgadmin4.enabled=false \
+            --set=slamd.enabled=false \
+            --set=shellinabox.enabled=false \
+            --set=curator.enabled=false \
+            --set=zoonavigator.enabled=false \
+            --set=backupManager.enabled=false" \
             --debug --skip-missing-values
 
   # Temp Helm Chart hosted as an OCI image on ghcr
@@ -145,5 +154,5 @@ jobs:
           registry: ghcr.io/${{ github.repository_owner }}
           path: charts/common-services
           registry_username: ${{ github.actor }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}          
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
           update_dependencies: 'true' # Defaults to false
