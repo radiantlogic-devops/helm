@@ -30,7 +30,7 @@ spec:
               memory: 256Mi
           env:
             - name: CNPG_VERSION
-              value: {{ .Values.cnpg.version | quote }}
+              value: {{ index .Values "cloudnative-pg" "version" | quote }}
           command:
             - /bin/sh
             - -c
