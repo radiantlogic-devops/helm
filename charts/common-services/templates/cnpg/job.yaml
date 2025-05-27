@@ -1,0 +1,51 @@
+{{- if index .Values "cloudnative-pg" "enabled" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cnpg-crds-installer
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      serviceAccountName: cnpg-crd-job
+      restartPolicy: OnFailure
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: install-crds
+          image: alpine:3.20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          env:
+            - name: CNPG_VERSION
+              value: {{ .Values.cnpg.version | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache curl tar helm kubectl yq-go
+              helm repo add cnpg https://cloudnative-pg.github.io/charts
+              helm repo update
+              # 'helm show crds' is not working with CNPG because CRDs are located in the templates/crds directory
+              # helm show crds cloudnative-pg/cloudnative-pg --version $CNPG_VERSION > crds.yaml
+              helm template cnpg cnpg/cloudnative-pg --include-crds --version $CNPG_VERSION > /tmp/rendered.yaml
+              yq e 'select(.kind == "CustomResourceDefinition")' /tmp/rendered.yaml > /tmp/crds.yaml
+              # remove the last-applied-configuration annotation from the CRDs
+              for crd in $(kubectl get crd -o name | grep '\.postgresql\.cnpg\.io'); do
+                kubectl annotate $crd kubectl.kubernetes.io/last-applied-configuration- || true
+              done
+              kubectl --server-side --force-conflicts apply -f /tmp/crds.yaml
+{{- end }}
