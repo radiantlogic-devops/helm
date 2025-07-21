@@ -103,6 +103,6 @@ dependencies:
   version: 0.24.0
   condition: cloudnative-pg.enabled
 - name: velero-ui
-  version: x.x.x
+  version: 0.x.x
   repository: https://helm.otwld.com
   condition: velero-ui.enabled
