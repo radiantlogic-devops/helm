@@ -119,7 +119,7 @@ prometheus:
     enabled: false
   kubeStateMetrics:
     enabled: false
-  kube-state-metrics:      
+  kube-state-metrics:
     enabled: false
   prometheus-node-exporter:
     enabled: false
