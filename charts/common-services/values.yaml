@@ -115,17 +115,18 @@ prometheus:
   configmapReload:
     prometheus:
       enabled: false
-  nodeExporter:
-    enabled: false
-  kubeStateMetrics:
-    enabled: false
+  # nodeExporter:
+  #   enabled: false
+  # kubeStateMetrics:
+  #   enabled: false
   kube-state-metrics:
     enabled: false
   prometheus-node-exporter:
     enabled: false
   alertmanager:
     enabled: false
-  pushgateway:
+  # pushgateway:
+  prometheus-pushgateway:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
     extraArgs:
