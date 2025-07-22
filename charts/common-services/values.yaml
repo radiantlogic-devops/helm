@@ -130,7 +130,7 @@ prometheus:
     fullnameOverride: prometheus-pushgateway
     nodeSelector: {}
     extraArgs:
-      web.enable-admin-api: true
+      - "--web.enable-admin-api"
   server:
     extraFlags:
       - web.enable-lifecycle
