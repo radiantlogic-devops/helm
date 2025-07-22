@@ -1197,13 +1197,13 @@ velero:
     # the frequency of the reconciliation loop that garbage the expired backups
     garbageCollectionFrequency: 1h
     # avoid default Backup Storage Location to be created by Velero chart
-    backupStorageLocation: nil
+    backupStorageLocation: []
     # avoid default Volume Storage Location to be created by Velero chart
-    volumeSnapshotLocation: nil
+    volumeSnapshotLocation: []
   initContainers:
     - name: velero-plugin-for-aws
-      image: "velero/velero-plugin-for-aws:v1.11.1"
-      # image: "velero/velero-plugin-for-aws:v1.12.1"
+      # image: "velero/velero-plugin-for-aws:v1.11.1"
+      image: "velero/velero-plugin-for-aws:v1.12.1"
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
