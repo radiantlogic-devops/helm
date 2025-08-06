@@ -5,7 +5,9 @@ metadata:
   name: cnpg-crds-installer
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 300
