@@ -17,10 +17,12 @@ metadata:
     {{- include "common-services.labels" . | nindent 4 }}
     app.kubernetes.io/component: backup-manager
 rules:
+  # Velero permissions
   - apiGroups:
       - velero.io
     resources: ["*"]
     verbs: ["*"]
+  # PostgreSQL CNPG permissions
   - apiGroups:
       - postgresql.cnpg.io
     resources:
@@ -30,6 +32,7 @@ rules:
       - list
       - delete
       - deletecollection
+  # Apps permissions (Deployments, StatefulSets)
   - apiGroups:
       - apps
     resources:
@@ -41,7 +44,68 @@ rules:
       - update
       - patch
       - delete
-
+  # Batch permissions (Jobs, CronJobs)
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+      - cronjobs
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+      - delete
+  # Core permissions (Pods, PVCs)
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - delete
+  # Custom Resource Definitions permissions (for dynamic discovery)
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+  # Custom resources - Nebula Graph
+  - apiGroups:
+      - apps.nebula-graph.io
+    resources:
+      - nebulaclusters
+    verbs:
+      - get
+      - list
+      - delete
+      - deletecollection
+  # Custom resources - Flink
+  - apiGroups:
+      - flink.apache.org
+    resources:
+      - flinkdeployments
+    verbs:
+      - get
+      - list
+      - delete
+      - deletecollection
+  # Custom resources - Argo Events
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - eventbuses
+      - eventsources
+      - sensors
+    verbs:
+      - get
+      - list
+      - delete
+      - deletecollection   
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
