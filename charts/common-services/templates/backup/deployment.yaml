@@ -39,6 +39,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: backup-manager-config
       containers:
         - name: velero-api
           image: {{ .Values.backupManager.image.repository }}:{{ .Values.backupManager.image.tag | default .Chart.AppVersion }}
@@ -56,6 +60,10 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.backupManager.resources | nindent 12 }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+              readOnly: true
           env:
             - name: LISTEN_PORT
               value: {{ .Values.backupManager.containerPort | default 8080 | quote }}
@@ -75,6 +83,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: APPLICATIONS_CONFIG
+              value: /etc/config/applications.json
             - name: GOMAXPROCS
               valueFrom:
                 resourceFieldRef:

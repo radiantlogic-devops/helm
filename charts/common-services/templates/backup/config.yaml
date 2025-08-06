@@ -1,0 +1,22 @@
+kind: ConfigMap
+metadata:
+  name: backup-manager-config
+  labels:
+    {{- include "common-services.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-manager
+data:
+  applications.json: |
+    {
+      "ida": {
+        "name": "identity-analytics",
+        "suffix": "ia"
+      },
+      "ido": {
+        "name": "identity-observability",
+        "suffix": "obs"
+      },
+      "iddm": {
+        "name": "fid",
+        "suffix": "fid"
+      }
+    }
