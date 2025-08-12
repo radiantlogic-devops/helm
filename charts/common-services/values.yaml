@@ -1276,8 +1276,6 @@ cloudnative-pg:
   # CRDs are installed by a dedicated job
   crds:
     create: false
-  # this value is used to install the CRDs by a dedicated job and must be the same as the version of the chart
-  version: 0.24.0
 
 # -----------------------------------------------------------------
 # -- Backup Manager service for Velero

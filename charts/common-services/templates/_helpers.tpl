@@ -134,3 +134,22 @@ Backup Manager Selector labels
 app.kubernetes.io/name: backup-manager
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Get dependency information by name
+Usage: {{ include "common-services.getDependency" (dict "name" "cloudnative-pg" "context" .) }}
+*/}}
+{{- define "common-services.getDependency" -}}
+{{- $name := .name -}}
+{{- $context := .context -}}
+{{- $result := dict -}}
+{{- range $context.Chart.Dependencies -}}
+{{- if eq .Name $name -}}
+{{- $_ := set $result "name" .Name -}}
+{{- $_ := set $result "version" .Version -}}
+{{- $_ := set $result "repository" .Repository -}}
+{{- $_ := set $result "condition" .Condition -}}
+{{- end -}}
+{{- end -}}
+{{- $result | toJson -}}
+{{- end }}
