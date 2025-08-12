@@ -25,7 +25,7 @@ data:
       repository: {{ $veleroDependency.repository | quote}}
       version: {{ $veleroDependency.version | quote }}
       chart_name: velero
-      crd_pattern: "velero\\.io"
+      crd_pattern: "\\.velero\\.io"
       enabled: {{ index .Values "velero" "enabled" }}
     - name: nebula-operator
       repository: {{ $nebulaDependency.repository | quote }}
@@ -37,5 +37,5 @@ data:
       repository: {{ $flinkDependency.repository | quote }}
       version: {{ $flinkDependency.version | quote }}
       chart_name: flink-kubernetes-operator
-      crd_pattern: "flink\\.apache\\.org"
+      crd_pattern: "\\.flink\\.apache\\.org"
       enabled: {{ index .Values "flink-kubernetes-operator" "enabled" }}

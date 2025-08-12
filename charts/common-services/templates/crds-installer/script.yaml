@@ -59,6 +59,7 @@ data:
       echo "🧹  Removing 'last-applied-configuration' annotation from existing CRDs..."
       for crd in $(kubectl get crd -o name | grep "$crd_pattern" || true); do
         kubectl annotate "$crd" kubectl.kubernetes.io/last-applied-configuration- >/dev/null 2>&1 || true
+        echo "✅ 'last-applied-configuration' annotation removed from $crd successfully"
       done
       echo "✅ 'last-applied-configuration' annotation removed from existing CRDs successfully"
       
