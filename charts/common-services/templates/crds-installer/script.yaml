@@ -63,6 +63,11 @@ data:
       done
       echo "✅ 'last-applied-configuration' annotation removed from existing CRDs successfully"
       
+      # Fix ArgoCD OutOfSync on CRDs regarding the attribute "priority" with default value 0 removed by Kubernetes
+      echo "🔍 Fixing ArgoCD OutOfSync on CRDs regarding the attribute 'priority' with default value 0 removed by Kubernetes..."
+      yq -i 'del(.. | select(tag == "!!map" and .priority == 0).priority)' "/tmp/${name}_crds.yaml"
+      echo "✅ ArgoCD OutOfSync on CRDs regarding the attribute 'priority' with default value 0 removed by Kubernetes fixed successfully"
+
       # Apply CRDs
       echo "📋 Applying $name CRDs..."
       kubectl --server-side --force-conflicts apply -f "/tmp/${name}_crds.yaml" >/dev/null 2>&1
