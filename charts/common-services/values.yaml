@@ -1286,6 +1286,18 @@ nebula-operator:
   nameOverride: nebula
   imagePullSecrets: []
 
+  controllerManager:
+    replicas: 1
+
+  scheduler:
+    replicas: 1
+
+  admissionWebhook:
+    contollerManagerAdmissionWebhook:
+      create: false
+    autoscalerAdmissionWebhook:
+      create: false
+
   # -- don't use Nebula provided job to avoid any issue with ArgoCD
   upgradeCRD: false
 
