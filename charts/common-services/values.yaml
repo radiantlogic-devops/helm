@@ -1188,7 +1188,7 @@ velero:
   credentials:
     useSecret: false
   cleanUpCRDs: true
-  upgradeCRD: false
+  upgradeCRDs: false
   nodeSelector: {}
   configuration:
     # defaultBackupStorageLocation: common-bsl
