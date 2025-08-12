@@ -1188,6 +1188,7 @@ velero:
   credentials:
     useSecret: false
   cleanUpCRDs: true
+  upgradeCRD: false
   nodeSelector: {}
   configuration:
     # defaultBackupStorageLocation: common-bsl
@@ -1203,7 +1204,7 @@ velero:
   initContainers:
     - name: velero-plugin-for-aws
       # image: "velero/velero-plugin-for-aws:v1.11.1"
-      image: "velero/velero-plugin-for-aws:v1.12.1"
+      image: "velero/velero-plugin-for-aws:v1.12.2"
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
@@ -1276,6 +1277,42 @@ cloudnative-pg:
   # CRDs are installed by a dedicated job
   crds:
     create: false
+
+# -----------------------------------------------------------------
+# -- Identity Observability - Nebula Operator for Graph Database
+# -----------------------------------------------------------------
+nebula-operator:
+  enabled: false
+  nameOverride: nebula
+  imagePullSecrets: []
+
+  # -- don't use Nebula provided job to avoid any issue with ArgoCD
+  upgradeCRD: false
+
+  nodeSelector: {}
+  tolerations: [ ]
+  affinity: { }
+
+# -----------------------------------------------------------------
+# -- Identity Observability - Flink Operator for Apache Flink data processor
+# -----------------------------------------------------------------
+flink-kubernetes-operator:
+  enabled: false
+  fullnameOverride: flink-operator
+  nameOverride: flink-operator
+  imagePullSecrets: []
+  operatorPod:
+    nodeSelector: {}
+
+  webhook:
+    create: false
+
+  jobServiceAccount:
+    create: true
+    annotations: {}
+    name: "flink"
+
+
 
 # -----------------------------------------------------------------
 # -- Backup Manager service for Velero

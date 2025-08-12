@@ -1,0 +1,41 @@
+{{- $cnpgDependency := include "common-services.getDependency" (dict "name" "cloudnative-pg" "context" .) | fromJson -}}
+{{- $nebulaDependency := include "common-services.getDependency" (dict "name" "nebula-operator" "context" .) | fromJson -}}
+{{- $flinkDependency := include "common-services.getDependency" (dict "name" "flink-kubernetes-operator" "context" .) | fromJson -}}
+{{- $veleroDependency := include "common-services.getDependency" (dict "name" "velero" "context" .) | fromJson -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common-services.name" . }}-crds-installer-config
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
+data:
+  crds-installer-config.yaml: |
+    - name: cnpg
+      repository: {{ $cnpgDependency.repository | quote}}
+      version: {{ $cnpgDependency.version | quote }}
+      chart_name: cloudnative-pg
+      crd_pattern: "\\.postgresql\\.cnpg\\.io"
+      enabled: {{ index .Values "cloudnative-pg" "enabled" }}
+    - name: velero
+      repository: {{ $veleroDependency.repository | quote}}
+      version: {{ $veleroDependency.version | quote }}
+      chart_name: velero
+      crd_pattern: "velero\\.io"
+      enabled: {{ index .Values "velero" "enabled" }}
+    - name: nebula-operator
+      repository: {{ $nebulaDependency.repository | quote }}
+      version: {{ $nebulaDependency.version | quote }}
+      chart_name: nebula-operator
+      crd_pattern: "\\.nebula-graph\\.io"
+      enabled: {{ index .Values "nebula-operator" "enabled" }}
+    - name: flink-kubernetes-operator
+      repository: {{ $flinkDependency.repository | quote }}
+      version: {{ $flinkDependency.version | quote }}
+      chart_name: flink-kubernetes-operator
+      crd_pattern: "flink\\.apache\\.org"
+      enabled: {{ index .Values "flink-kubernetes-operator" "enabled" }}

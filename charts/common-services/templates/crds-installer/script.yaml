@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common-services.name" . }}-crds-installer-scripts
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
+data:  
+  install-crds.sh: |
+    #!/bin/sh
+
+    set -euo pipefail
+    
+    # Cleanup function
+    cleanup() {
+      echo "🧹 Cleaning up temporary files..."
+      rm -f /tmp/*_rendered.yaml /tmp/*_crds.yaml
+      echo
+    }
+    
+    # Trap to ensure cleanup on exit
+    trap cleanup EXIT
+
+    # Function to install CRDs for a given chart
+    install_crds() {
+      local name=$1
+      local repository=$2
+      local version=$3
+      local crd_pattern=$4
+      local chart_name=$5
+      local enabled=$6
+
+      echo "🚀 === Installing CRDs for $name ==="
+      echo "   ℹ️  Repository: $repository"
+      echo "   ℹ️  Version: $version"
+      echo "   ℹ️  CRD Pattern: $crd_pattern"
+      echo "   ℹ️  Chart Name: $chart_name"
+      
+      # Add repository
+      echo "⬇️ Adding $name repository..."
+      helm repo add "$name" "$repository" >/dev/null 2>&1
+      
+      # Update repositories
+      echo "🔄 Updating helm repositories..."
+      helm repo update >/dev/null 2>&1
+      
+      # Render CRDs
+      echo "⚙️ Rendering $name CRDs version $version..."
+      helm template "$name" "$name/$chart_name" --include-crds --version "$version" > "/tmp/${name}_rendered.yaml"
+      
+      # Filter CRDs
+      echo "🔍 Filtering $name CRDs..."
+      yq e 'select(.kind == "CustomResourceDefinition")' "/tmp/${name}_rendered.yaml" > "/tmp/${name}_crds.yaml"
+      
+      # Remove last-applied-configuration annotation
+      echo "🧹  Removing 'last-applied-configuration' annotation from existing CRDs..."
+      for crd in $(kubectl get crd -o name | grep "$crd_pattern" || true); do
+        kubectl annotate "$crd" kubectl.kubernetes.io/last-applied-configuration- >/dev/null 2>&1 || true
+      done
+      echo "✅ 'last-applied-configuration' annotation removed from existing CRDs successfully"
+      
+      # Apply CRDs
+      echo "📋 Applying $name CRDs..."
+      kubectl --server-side --force-conflicts apply -f "/tmp/${name}_crds.yaml" >/dev/null 2>&1
+      echo "✅ === $name CRDs installation completed ==="
+      echo
+    }
+  
+    # Read CRDs configuration from ConfigMap
+    echo "📄 Reading CRDs configuration from ConfigMap..."
+    CONFIG_FILE="/etc/config/crds-installer-config.yaml"
+    
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "❌ Error: CRDs configuration file not found at $CONFIG_FILE"
+      exit 1
+    fi
+    
+    # Parse YAML and install CRDs for each enabled chart
+    echo "🔍 Parsing CRDs configuration..."
+    
+    # Validate YAML syntax first
+    if ! yq e '.' "$CONFIG_FILE" > /dev/null 2>&1; then
+      echo "❌ Error: Invalid YAML syntax in configuration file"
+      exit 1
+    fi
+    echo "✅ Configuration file validated successfully"
+    echo
+    
+    # Check if there are any enabled CRDs to install
+    if [ ! -n "$(yq eval -r '.[] | select(.enabled == true)' "$CONFIG_FILE")" ]; then
+      echo "⚠️ No CRDs to install or update, probably because charts with CRDs are disabled or not part of this process"
+      exit 0
+    fi
+        
+    # Read and execute CRDs configuration
+    while IFS=$'\t' read -r name repository version crd_pattern chart_name enabled; do
+        install_crds "$name" "$repository" "$version" "$crd_pattern" "$chart_name" "$enabled"
+    done < <(
+        yq eval -r '.[] | select(.enabled == true) | [.name, .repository, .version, .crd_pattern, .chart_name, .enabled] | @tsv' "$CONFIG_FILE"
+    )
+    
+    echo "✅ All CRDs installations completed successfully!"

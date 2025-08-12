@@ -8,6 +8,12 @@ metadata:
     app.kubernetes.io/name: {{ .Values.velero.fullnameOverride }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    # "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PostSync
+    # "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
 spec:
   provider: aws
   config:

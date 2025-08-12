@@ -148,7 +148,6 @@ Usage: {{ include "common-services.getDependency" (dict "name" "cloudnative-pg" 
 {{- $_ := set $result "name" .Name -}}
 {{- $_ := set $result "version" .Version -}}
 {{- $_ := set $result "repository" .Repository -}}
-{{- $_ := set $result "condition" .Condition -}}
 {{- end -}}
 {{- end -}}
 {{- $result | toJson -}}
