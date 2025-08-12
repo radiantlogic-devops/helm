@@ -1290,8 +1290,8 @@ nebula-operator:
   upgradeCRD: false
 
   nodeSelector: {}
-  tolerations: [ ]
-  affinity: { }
+  tolerations: []
+  affinity: {}
 
 # -----------------------------------------------------------------
 # -- Identity Observability - Flink Operator for Apache Flink data processor
@@ -1311,8 +1311,6 @@ flink-kubernetes-operator:
     create: true
     annotations: {}
     name: "flink"
-
-
 
 # -----------------------------------------------------------------
 # -- Backup Manager service for Velero
