@@ -1,0 +1,34 @@
+{{- if (index .Values "nebula-operator" "enabled") }}
+{{- $nebulaChart := index .Subcharts "nebula-operator" -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "controller-manager.name" $nebulaChart }}-patch-role
+  labels:
+    {{- include "controller-manager.labels" $nebulaChart | nindent 4 }}
+rules:
+  - apiGroups:
+      - storage.k8s.io
+    resources:
+      - storageclasses
+    verbs:
+      - list
+      - get
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "controller-manager.name" $nebulaChart }}-patch-rolebinding
+  labels:
+    {{- include "controller-manager.labels" $nebulaChart | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "controller-manager.name" $nebulaChart }}-patch-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "controller-manager.name" $nebulaChart }}-sa
+    namespace: {{ .Release.Namespace }}
+{{- end }}
