@@ -1625,6 +1625,11 @@ alloy:
           }
 
           rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_version"]
+            target_label = "version"
+          }
+
+          rule {
             source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_component", "__meta_kubernetes_pod_label_component"]
             regex         = "^;*([^;]+)(;.*)?$"
             target_label  = "component"
@@ -1702,9 +1707,14 @@ alloy:
               "tenant",
               "environment_type",
               "app",
+              "instance",
+              "version",
               "component",
               "pod",
               "container",
+              "node_name",
+              "namespace",
+              "job",
               {{- range $key, $value := .Values.staticLabels }}
               "{{ $key }}",
               {{- end }}
