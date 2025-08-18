@@ -1466,15 +1466,6 @@ loki:
     compactor:
       retention_enabled: true
       delete_request_store: s3
-      # check every 10 min (default)
-      compaction_interval: 10m
-      # Delay between detection and deletion
-      retention_delete_delay: 2h
-      # Deletion threads
-      # between 50 and 200, too high can cause AWS S3 throttling
-      retention_delete_worker_count: 50
-      # between 1 and 4, too high can cause AWS S3 throttling
-      max_compaction_concurrency: 2
 
     storage:
       type: s3
