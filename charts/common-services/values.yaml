@@ -1594,7 +1594,7 @@ alloy:
 
         discovery.relabel "filtered_pods" {
           targets = discovery.kubernetes.tenant_pods.targets
- 
+
           // ========== tenant = value of radiantlogic.io/environment label
           rule {
             source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_environment"]
@@ -1692,7 +1692,7 @@ alloy:
             }
           }
           {{- end }}
-          
+
           // ========== Cardinality optimization
           stage.label_keep {
             // Optimisation: remove all labels except those listed
@@ -1703,7 +1703,7 @@ alloy:
               "environment_type",
               "app",
               "component",
-              "pod", 
+              "pod",
               "container",
               {{- range $key, $value := .Values.staticLabels }}
               "{{ $key }}",
@@ -1723,7 +1723,7 @@ alloy:
             // Effective log text (without JSON metadata)
             source = "message"
           }
-          
+
           forward_to = [loki.write.centralized.receiver]
         }
 
@@ -1740,13 +1740,13 @@ alloy:
             // Retry configuration - if Loki is down or overloaded
             // Initial backoff time between retries
             min_backoff_period = "100ms"
-            
+
             // Maximum backoff time between retries
             max_backoff_period = "5m"
-            
+
             // Max number of retries
             max_backoff_retries = 10
-            
+
             // Timeout requête HTTP
             remote_timeout = "10s"
           }
