@@ -113,3 +113,11 @@ dependencies:
   version: 1.12.1
   repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.12.1
   condition: flink-kubernetes-operator.enabled
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.35.1
+  condition: loki.enabled
+- name: alloy
+  repository: https://grafana.github.io/helm-charts
+  version: 1.2.1
+  condition: alloy.enabled
