@@ -231,7 +231,7 @@ grafana:
           type: loki
           url: http://loki-gateway
           access: proxy
-          isDefault: true
+          isDefault: false
           # jsonData:
           #   timeout: 60
           #   maxLines: 1000
