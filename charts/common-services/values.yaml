@@ -227,6 +227,14 @@ grafana:
             timeField: "@timestamp"
             interval: Daily
           readonly: true
+        - name: Loki
+          type: loki
+          url: http://loki-gateway
+          access: proxy
+          isDefault: true
+          # jsonData:
+          #   timeout: 60
+          #   maxLines: 1000
 
   dashboardProviders:
     dashboardproviders.yaml:
