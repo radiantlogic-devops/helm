@@ -1277,7 +1277,7 @@ cloudnative-pg:
     create: true
     name: cnpg-controller-manager-config
     data:
-      INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*
+      INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*, *.radiantlogic.io/*
       INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*
   nodeSelector: {}
   tolerations: []
