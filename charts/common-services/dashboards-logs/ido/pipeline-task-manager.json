@@ -1,0 +1,367 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    },
+    {
+      "name": "VAR_APPLICATION",
+      "type": "constant",
+      "label": "Application",
+      "value": "identity-observability",
+      "description": ""
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.1.0"
+    },
+    {
+      "type": "datasource",
+      "id": "loki",
+      "name": "Loki",
+      "version": "12.1.0"
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Graph Pipeline - Task Manager logs",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "identity-observability",
+        "logging",
+        "flink-pipeline-jm"
+      ],
+      "targetBlank": false,
+      "title": "Job",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "Show all logs from Graph Pipeline - Task Manager",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "DEBUG": {
+                  "color": "transparent",
+                  "index": 2
+                },
+                "ERROR": {
+                  "color": "red",
+                  "index": 0
+                },
+                "INFO": {
+                  "color": "transparent",
+                  "index": 3
+                },
+                "WARN": {
+                  "color": "yellow",
+                  "index": 1
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "No data - check time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 197
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 99
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": true,
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Logger"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 269
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "direction": "forward",
+          "editorMode": "code",
+          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"graph-pipeline-task-manager\"} | json | __error__ != \"JSONParserErr\"",
+          "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
+          "queryType": "range",
+          "refId": "logs"
+        }
+      ],
+      "title": "Graph Pipeline - Task Manager",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels"
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "delimiter": ",",
+            "format": "regexp",
+            "keepTime": false,
+            "regExp": "/(?<shortLogger>[^.]+)$/",
+            "replace": false,
+            "source": "loggerName"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "Time": true,
+              "app": false,
+              "level": true,
+              "loggerName": false,
+              "loggerName 2": false,
+              "message": true,
+              "portalInstance": false,
+              "shortLogger": true,
+              "tenant": false
+            },
+            "indexByName": {
+              "Line": 9,
+              "Time": 0,
+              "app": 2,
+              "component": 13,
+              "container": 14,
+              "detected_level": 15,
+              "endOfBatch": 16,
+              "id": 12,
+              "instance": 17,
+              "job": 18,
+              "labelTypes": 11,
+              "labels": 8,
+              "level": 3,
+              "loggerFqcn": 19,
+              "loggerName": 5,
+              "message": 7,
+              "namespace": 20,
+              "node_name": 21,
+              "pod": 22,
+              "portalInstance": 4,
+              "service_name": 23,
+              "shortLogger": 6,
+              "tenant": 1,
+              "thread": 24,
+              "threadId": 25,
+              "threadPriority": 26,
+              "timeMillis": 27,
+              "tsNs": 10,
+              "version": 28
+            },
+            "renameByName": {
+              "level": "Level",
+              "loggerName": "Logger",
+              "message": "Message",
+              "shortLogger": "Logger"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": [
+    "identity-observability",
+    "logging",
+    "flink-pipeline-tm"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_LOKI}"
+        },
+        "definition": "",
+        "description": "",
+        "label": "Tenant",
+        "name": "tenant",
+        "options": [],
+        "query": {
+          "label": "tenant",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Application",
+        "name": "application",
+        "query": "${VAR_APPLICATION}",
+        "skipUrlSync": true,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_APPLICATION}",
+          "text": "${VAR_APPLICATION}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_APPLICATION}",
+            "text": "${VAR_APPLICATION}",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "30m",
+      "1h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Logs - Graph Pipeline - Task Manager",
+  "uid": "ido-logs-pipeline-task-manager",
+  "version": 3,
+  "weekStart": ""
+}

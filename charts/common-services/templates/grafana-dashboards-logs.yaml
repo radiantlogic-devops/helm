@@ -1,0 +1,46 @@
+{{- if eq .Values.grafana.enabled true }}
+{{- range $path, $_ := .Files.Glob (printf "dashboards-logs/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ido-logs-{{ $name }}-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  {{ $name }}.json: |-
+{{ $.Files.Get $path | indent 4 }}
+
+
+
+---
+{{- end }}
+{{- end }}
+
+{{- if eq .Values.grafana.enabled true }}
+# -- TODO Add to values.yaml
+  # dashboardProviders:
+  #   dashboardproviders.yaml:
+  #     apiVersion: 1
+  #     providers:
+{{- range $path, $_ := .Files.Glob (printf "dashboards-logs/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+      # - name: 'ido-logs-{{ $name }}'
+      #   orgId: 1
+      #   folder: ''
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/ido-logs-{{ $name }}
+{{- end }}
+
+# -- TODO Add to values.yaml
+#  dashboardsConfigMaps:
+{{- range $path, $_ := .Files.Glob (printf "dashboards-logs/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+#    ido-logs-{{ $name }}: "ido-logs-{{ $name }}-dashboard"
+{{- end }}
+{{- end }}

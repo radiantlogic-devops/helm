@@ -380,6 +380,297 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-governance-portal
+      - name: 'ido-logs-alert-center'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-alert-center
+      - name: 'ido-logs-analytics-db'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-analytics-db
+      - name: 'ido-logs-api-umbrella'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-api-umbrella
+      - name: 'ido-logs-environment-setup'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-environment-setup
+      - name: 'ido-logs-global-scheduler'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-global-scheduler
+      - name: 'ido-logs-iddm-api-gateway'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-api-gateway
+      - name: 'ido-logs-iddm-authentication-service'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-authentication-service
+      - name: 'ido-logs-iddm-core'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-core
+      - name: 'ido-logs-iddm-data-catalog'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-data-catalog
+      - name: 'ido-logs-iddm-directory-browser'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-browser
+      - name: 'ido-logs-iddm-directory-namespace'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-namespace
+      - name: 'ido-logs-iddm-directory-schema'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-schema
+      - name: 'ido-logs-iddm-proxy'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-proxy
+      - name: 'ido-logs-iddm-settings'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-settings
+      - name: 'ido-logs-iddm-system-administration'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-system-administration
+      - name: 'ido-logs-iddm-ui'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-iddm-ui
+      - name: 'ido-logs-ido-dashboard'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-ido-dashboard
+      - name: 'ido-logs-ledger-operations'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-ledger-operations
+      - name: 'ido-logs-nats'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-nats
+      - name: 'ido-logs-nebula-graphd'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-nebula-graphd
+      - name: 'ido-logs-nebula-metad'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-nebula-metad
+      - name: 'ido-logs-nebula-storaged'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-nebula-storaged
+      - name: 'ido-logs-observation-supervisor'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-observation-supervisor
+      - name: 'ido-logs-pipeline-job-manager'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-pipeline-job-manager
+      - name: 'ido-logs-pipeline-orchestrator'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-pipeline-orchestrator
+      - name: 'ido-logs-pipeline-task-manager'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-pipeline-task-manager
+      - name: 'ido-logs-schema-manager'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-schema-manager
+      - name: 'ido-logs-secret-manager'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-secret-manager
+      - name: 'ido-logs-writeback'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-writeback
+
   dashboardsConfigMaps:
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
@@ -395,6 +686,35 @@ grafana:
     ia-data-ingestion: "ia-data-ingestion-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
+    ido-logs-alert-center: "ido-logs-alert-center-dashboard"
+    ido-logs-analytics-db: "ido-logs-analytics-db-dashboard"
+    ido-logs-api-umbrella: "ido-logs-api-umbrella-dashboard"
+    ido-logs-environment-setup: "ido-logs-environment-setup-dashboard"
+    ido-logs-global-scheduler: "ido-logs-global-scheduler-dashboard"
+    ido-logs-iddm-api-gateway: "ido-logs-iddm-api-gateway-dashboard"
+    ido-logs-iddm-authentication-service: "ido-logs-iddm-authentication-service-dashboard"
+    ido-logs-iddm-core: "ido-logs-iddm-core-dashboard"
+    ido-logs-iddm-data-catalog: "ido-logs-iddm-data-catalog-dashboard"
+    ido-logs-iddm-directory-browser: "ido-logs-iddm-directory-browser-dashboard"
+    ido-logs-iddm-directory-namespace: "ido-logs-iddm-directory-namespace-dashboard"
+    ido-logs-iddm-directory-schema: "ido-logs-iddm-directory-schema-dashboard"
+    ido-logs-iddm-proxy: "ido-logs-iddm-proxy-dashboard"
+    ido-logs-iddm-settings: "ido-logs-iddm-settings-dashboard"
+    ido-logs-iddm-system-administration: "ido-logs-iddm-system-administration-dashboard"
+    ido-logs-iddm-ui: "ido-logs-iddm-ui-dashboard"
+    ido-logs-ido-dashboard: "ido-logs-ido-dashboard-dashboard"
+    ido-logs-ledger-operations: "ido-logs-ledger-operations-dashboard"
+    ido-logs-nats: "ido-logs-nats-dashboard"
+    ido-logs-nebula-graphd: "ido-logs-nebula-graphd-dashboard"
+    ido-logs-nebula-metad: "ido-logs-nebula-metad-dashboard"
+    ido-logs-nebula-storaged: "ido-logs-nebula-storaged-dashboard"
+    ido-logs-observation-supervisor: "ido-logs-observation-supervisor-dashboard"
+    ido-logs-pipeline-job-manager: "ido-logs-pipeline-job-manager-dashboard"
+    ido-logs-pipeline-orchestrator: "ido-logs-pipeline-orchestrator-dashboard"
+    ido-logs-pipeline-task-manager: "ido-logs-pipeline-task-manager-dashboard"
+    ido-logs-schema-manager: "ido-logs-schema-manager-dashboard"
+    ido-logs-secret-manager: "ido-logs-secret-manager-dashboard"
+    ido-logs-writeback: "ido-logs-writeback-dashboard"
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
