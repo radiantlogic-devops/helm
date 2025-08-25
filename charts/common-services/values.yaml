@@ -1686,6 +1686,11 @@ alloy:
           // raw format: {"log":"Hello World\n","stream":"stdout","time":"2025-08-14T10:59:00.123456789Z"}
           stage.cri {}
 
+          // ========== Drop noisy system logs
+          stage.drop {
+            expression = "unable to retrieve container logs for containerd://"
+          }
+
           {{- if not (empty .Values.staticLabels) }}
           // ========== Example - Optional static Labels
           stage.static_labels {
