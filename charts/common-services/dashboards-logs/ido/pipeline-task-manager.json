@@ -208,7 +208,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "direction": "forward",
+          "direction": "backward",
           "editorMode": "code",
           "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"graph-pipeline-task-manager\"} | json | __error__ != \"JSONParserErr\"",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",

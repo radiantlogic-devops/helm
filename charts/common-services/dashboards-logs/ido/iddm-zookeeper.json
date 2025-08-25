@@ -53,12 +53,29 @@
       }
     ]
   },
-  "description": "Writeback Service logs",
+  "description": "Alert Center logs",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "identity-observability",
+        "logging",
+        "iddm"
+      ],
+      "targetBlank": false,
+      "title": "ID Sync Config",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
   "liveNow": true,
   "panels": [
     {
@@ -66,7 +83,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from Writeback Service",
+      "description": "Show all logs from IDDM Zookeeper",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -81,19 +98,23 @@
           "mappings": [
             {
               "options": {
-                "debug": {
-                  "color": "transparent",
-                  "index": 2
-                },
-                "error": {
-                  "color": "dark-red",
-                  "index": 0
-                },
-                "info": {
+                "DEBUG": {
                   "color": "transparent",
                   "index": 3
                 },
-                "warn": {
+                "ERROR": {
+                  "color": "dark-red",
+                  "index": 0
+                },
+                "INFO": {
+                  "color": "transparent",
+                  "index": 2
+                },
+                "TRACE": {
+                  "color": "transparent",
+                  "index": 4
+                },
+                "WARN": {
                   "color": "dark-yellow",
                   "index": 1
                 }
@@ -125,7 +146,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 214
+                "value": 197
               }
             ]
           },
@@ -164,24 +185,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "level"
+              "options": "Component"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 101
+                "value": 251
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "logger"
+              "options": "pod"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 167
+                "value": 133
               }
             ]
           }
@@ -217,69 +238,80 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"writeback\"} | json | __error__ != `JSONParserErr`",
+          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"zookeeper\"}",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",
           "refId": "logs"
         }
       ],
-      "title": "Writeback Service",
+      "title": "Alert Center",
       "transformations": [
         {
           "id": "extractFields",
           "options": {
-            "delimiter": ",",
-            "format": "auto",
-            "jsonPaths": [
-              {
-                "path": "message"
-              },
-              {
-                "path": "level"
-              }
-            ],
             "source": "labels"
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "delimiter": ",",
+            "format": "regexp",
+            "regExp": "/(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2},\\d+)\\s+\\[myid:(?<myid>\\d+)\\]\\s+-\\s+(?<level>\\w+)\\s+\\[(?<source>[^\\]]+)\\]\\s+-\\s+(?<message>.+)/",
+            "source": "Line"
           }
         },
         {
           "id": "organize",
           "options": {
-            "excludeByName": {
-              "Line": true,
-              "app": true,
-              "color_message": true,
-              "component": true,
-              "container": true,
-              "current_schema_endpoint": true,
-              "detected_level": false,
-              "exception_message": true,
-              "exception_traceback": true,
-              "exception_type": true,
-              "id": true,
-              "instance": true,
-              "job": true,
-              "labelTypes": true,
-              "labels": true,
+            "excludeByName": {},
+            "includeByName": {
+              "Line": false,
+              "Time": true,
+              "app": false,
+              "component": false,
+              "component_extracted": true,
               "level": true,
-              "logger": false,
-              "namespace": true,
-              "node_name": true,
-              "orchestrator_config_endpoint": true,
+              "loggerName": false,
+              "loggerName 2": false,
+              "message": true,
               "pod": true,
-              "service_name": true,
-              "taskName": true,
-              "tenant": true,
-              "timestamp": true,
-              "tsNs": true,
-              "version": true
+              "portalInstance": false,
+              "shortLogger": true,
+              "source": false,
+              "tenant": false
             },
-            "includeByName": {},
-            "indexByName": {},
+            "indexByName": {
+              "Line": 6,
+              "Time": 0,
+              "app": 4,
+              "component": 10,
+              "container": 11,
+              "detected_level": 12,
+              "id": 9,
+              "instance": 13,
+              "job": 14,
+              "labelTypes": 8,
+              "labels": 5,
+              "level": 2,
+              "message": 22,
+              "myid": 20,
+              "namespace": 15,
+              "node_name": 16,
+              "pod": 1,
+              "service_name": 17,
+              "source": 21,
+              "tenant": 3,
+              "timestamp": 19,
+              "tsNs": 7,
+              "version": 18
+            },
             "renameByName": {
-              "detected_level": "Level",
+              "component_extracted": "Component",
               "level": "Level",
-              "logger": "Logger",
-              "message": "Message"
+              "loggerName": "Logger",
+              "message": "Message",
+              "shortLogger": "Logger"
             }
           }
         }
@@ -291,7 +323,8 @@
   "tags": [
     "identity-observability",
     "logging",
-    "writeback"
+    "iddm",
+    "zookeeper"
   ],
   "templating": {
     "list": [
@@ -353,9 +386,9 @@
       "1h"
     ]
   },
-  "timezone": "browser",
-  "title": "Logs - Writeback Service",
-  "uid": "ido-logs-writeback-service",
-  "version": 9,
+  "timezone": "Europe/Paris",
+  "title": "Logs - IDDM Zookeeper",
+  "uid": "ido-logs-iddm-zookeeper",
+  "version": 4,
   "weekStart": ""
 }
