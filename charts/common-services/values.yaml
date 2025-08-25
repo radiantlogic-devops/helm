@@ -1720,6 +1720,9 @@ alloy:
             ]
           }
 
+          // ========== Strip ANSI color codes
+          stage.decolorize {}
+
           // ========== Tenant assignment
           stage.tenant {
             // Use "tenant" label previously created
