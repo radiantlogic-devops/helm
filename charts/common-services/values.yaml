@@ -2040,6 +2040,7 @@ alloy:
             // Rule: Keep only labels used in your queries
             values = [
               "tenant",
+              "environment",
               "environment_type",
               "app",
               "instance",
