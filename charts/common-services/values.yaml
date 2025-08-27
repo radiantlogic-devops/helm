@@ -2043,6 +2043,7 @@ alloy:
               "environment",
               "environment_type",
               "app",
+              "file",
               "instance",
               "version",
               "component",
