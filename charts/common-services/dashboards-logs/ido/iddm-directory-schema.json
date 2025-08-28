@@ -45,7 +45,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from IDDM Directory Schema",
+      "description": "Show all logs from ID Sync Config Directory Schema",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -287,11 +287,11 @@
         },
         "definition": "",
         "description": "",
-        "label": "Tenant",
-        "name": "tenant",
+        "label": "Environment",
+        "name": "environment",
         "options": [],
         "query": {
-          "label": "tenant",
+          "label": "environment",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -337,7 +337,7 @@
     ]
   },
   "timezone": "Europe/Paris",
-  "title": "Logs - IDDM Directory Schema",
+  "title": "Logs - ID Sync Config Directory Schema",
   "uid": "ido-logs-iddm-directory-schema",
   "version": 4,
   "weekStart": ""

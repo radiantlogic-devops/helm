@@ -45,7 +45,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from IDDM Zookeeper",
+      "description": "Show all logs from ID Sync Config Zookeeper",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -308,11 +308,11 @@
         },
         "definition": "",
         "description": "",
-        "label": "Tenant",
-        "name": "tenant",
+        "label": "Environment",
+        "name": "environment",
         "options": [],
         "query": {
-          "label": "tenant",
+          "label": "environment",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -358,7 +358,7 @@
     ]
   },
   "timezone": "Europe/Paris",
-  "title": "Logs - IDDM Zookeeper",
+  "title": "Logs - ID Sync Config Zookeeper",
   "uid": "ido-logs-iddm-zookeeper",
   "version": 4,
   "weekStart": ""

@@ -1,3 +1,6 @@
+# ----
+# This is a workaround to fix the bug I opened (https://github.com/vesoft-inc/nebula-operator/issues/574)
+# ----
 {{- if (index .Values "nebula-operator" "enabled") }}
 {{- $nebulaChart := index .Subcharts "nebula-operator" -}}
 apiVersion: rbac.authorization.k8s.io/v1

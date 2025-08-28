@@ -333,11 +333,11 @@
         },
         "definition": "",
         "description": "",
-        "label": "Tenant",
-        "name": "tenant",
+        "label": "Environment",
+        "name": "environment",
         "options": [],
         "query": {
-          "label": "tenant",
+          "label": "environment",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1

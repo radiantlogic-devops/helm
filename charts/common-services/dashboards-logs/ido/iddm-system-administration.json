@@ -45,7 +45,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from IDDM System Administration",
+      "description": "Show all logs from ID Sync Config System Administration",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -287,11 +287,11 @@
         },
         "definition": "",
         "description": "",
-        "label": "Tenant",
-        "name": "tenant",
+        "label": "Environment",
+        "name": "environment",
         "options": [],
         "query": {
-          "label": "tenant",
+          "label": "environment",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -337,7 +337,7 @@
     ]
   },
   "timezone": "Europe/Paris",
-  "title": "Logs - IDDM System Administration",
+  "title": "Logs - ID Sync Config System Administration",
   "uid": "ido-logs-iddm-system-administration",
   "version": 3,
   "weekStart": ""

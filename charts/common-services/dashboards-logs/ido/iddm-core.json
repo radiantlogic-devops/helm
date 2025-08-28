@@ -45,7 +45,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from IDDM Core",
+      "description": "Show all logs from ID Sync Config Core",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -216,7 +216,7 @@
           "refId": "logs"
         }
       ],
-      "title": "IDDM Core",
+      "title": "ID Sync Config Core",
       "transformations": [
         {
           "id": "extractFields",
@@ -328,11 +328,11 @@
         },
         "definition": "",
         "description": "",
-        "label": "Tenant",
-        "name": "tenant",
+        "label": "Environment",
+        "name": "environment",
         "options": [],
         "query": {
-          "label": "tenant",
+          "label": "environment",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -378,7 +378,7 @@
     ]
   },
   "timezone": "Europe/Paris",
-  "title": "Logs - IDDM Core",
+  "title": "Logs - ID Sync Config Core",
   "uid": "ido-logs-iddm-core",
   "version": 6,
   "weekStart": ""
