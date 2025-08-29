@@ -1999,14 +1999,15 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(clustername)",
+        "definition": "label_values({radiantlogic_io_app=\"identity-observability\"},clustername)",
         "includeAll": false,
         "label": "environment",
         "name": "job",
         "options": [],
         "query": {
-          "query": "label_values(clustername)",
-          "refId": "StandardVariableQuery"
+          "qryType": 1,
+          "query": "label_values({radiantlogic_io_app=\"identity-observability\"},clustername)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -2043,6 +2044,6 @@
   "timezone": "",
   "title": "IDO - ID Sync Config",
   "uid": "ido-metrics-iddm-core",
-  "version": 5,
+  "version": 7,
   "weekStart": ""
 }
