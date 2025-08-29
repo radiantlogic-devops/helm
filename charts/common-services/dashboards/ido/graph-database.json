@@ -877,9 +877,9 @@
   "schemaVersion": 37,
   "style": "dark",
   "tags": [
-    "Nebula",
-    "radiantone",
-    "observability"
+    "nebula",
+    "monitoring",
+    "identity-observability"
   ],
   "templating": {
     "list": [

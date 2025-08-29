@@ -763,6 +763,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ido-metrics-observations-timings
+      - name: 'ido-metrics-system'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-system
       - name: 'ido-metrics-writeback-service'
         orgId: 1
         folder: ''
@@ -831,6 +841,7 @@ grafana:
     ido-metrics-observations-functional: "ido-metrics-observations-functional-dashboard"
     ido-metrics-observations-process: "ido-metrics-observations-process-dashboard"
     ido-metrics-observations-timings: "ido-metrics-observations-timings-dashboard"
+    ido-metrics-system: "ido-metrics-system-dashboard"
     ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
 
 # Elasticsearch & Kibana Configuration
