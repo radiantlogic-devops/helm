@@ -1194,14 +1194,15 @@
   "templating": {
     "list": [
       {
+        "allowCustomValue": false,
         "current": {},
-        "definition": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\"},radiantlogic_io_environment)",
+        "definition": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
         "label": "Environment",
         "name": "environment",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\"},radiantlogic_io_environment)",
+          "query": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -1225,6 +1226,18 @@
         "refresh": 2,
         "regex": "",
         "type": "query"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "hide": 2,
+        "label": "Prometheus",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
       }
     ]
   },
@@ -1236,6 +1249,6 @@
   "timezone": "browser",
   "title": "IDO - Observations - Timings",
   "uid": "ido-metrics-obs-timings",
-  "version": 5,
+  "version": 3,
   "weekStart": ""
 }

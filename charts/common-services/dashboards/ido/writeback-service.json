@@ -1473,25 +1473,39 @@
   "templating": {
     "list": [
       {
+        "allowCustomValue": false,
         "current": {},
         "datasource": {
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(up{app_kubernetes_io_component=\"writeback\"}, radiantlogic_io_environment)",
+        "definition": "label_values(up{app_kubernetes_io_component=\"writeback\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
         "description": "Environment name",
         "includeAll": false,
         "label": "environment",
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(up{app_kubernetes_io_component=\"writeback\"}, radiantlogic_io_environment)",
-          "refId": "StandardVariableQuery"
+          "qryType": 1,
+          "query": "label_values(up{app_kubernetes_io_component=\"writeback\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
         "regex": "",
         "sort": 1,
         "type": "query"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "hide": 2,
+        "label": "Prometheus",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
       }
     ]
   },
@@ -1503,6 +1517,6 @@
   "timezone": "browser",
   "title": "IDO - Writeback service",
   "uid": "ido-metrics-writeback-service",
-  "version": 14,
+  "version": 2,
   "weekStart": ""
 }

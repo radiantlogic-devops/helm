@@ -539,19 +539,32 @@
   "templating": {
     "list": [
       {
+        "allowCustomValue": false,
+        "current": {},
+        "hide": 2,
+        "label": "Prometheus",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
         "current": {},
         "datasource": {
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\"}, radiantlogic_io_environment)",
+        "definition": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
         "includeAll": false,
         "label": "Environment",
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\"}, radiantlogic_io_environment)",
-          "refId": "StandardVariableQuery"
+          "qryType": 1,
+          "query": "label_values(go_memstats_alloc_bytes{app_kubernetes_io_component=\"observation-supervisor\", radiantlogic_io_app=\"identity-observability\"},radiantlogic_io_environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -568,6 +581,6 @@
   "timezone": "browser",
   "title": "IDO - Observations - Channels contention",
   "uid": "ido-metrics-obs-channels-contention",
-  "version": 6,
+  "version": 2,
   "weekStart": ""
 }
