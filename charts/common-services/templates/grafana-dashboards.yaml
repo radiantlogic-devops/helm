@@ -147,3 +147,53 @@ data:
 {{ (.Files.Glob "dashboards/ia-governance-portal-dashboard.json").AsConfig | indent 2 }}
 
 {{- end }}
+
+---
+
+{{- if eq .Values.grafana.enabled true }}
+{{- range $path, $_ := .Files.Glob (printf "dashboards/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ido-metrics-{{ $name }}-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  {{ $name }}.json: |-
+{{ $.Files.Get $path | indent 4 }}
+
+
+
+---
+{{- end }}
+{{- end }}
+
+{{- if eq .Values.grafana.enabled true }}
+# -- TODO Add IDO Metrics Dashboards to values.yaml
+  # dashboardProviders:
+  #   dashboardproviders.yaml:
+  #     apiVersion: 1
+  #     providers:
+{{- range $path, $_ := .Files.Glob (printf "dashboards/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+      # - name: 'ido-metrics-{{ $name }}'
+      #   orgId: 1
+      #   folder: ''
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/ido-metrics-{{ $name }}
+{{- end }}
+
+# -- TODO Add to values.yaml
+#  dashboardsConfigMaps:
+{{- range $path, $_ := .Files.Glob (printf "dashboards/ido/*.json") }}
+{{- $name := base $path | trimSuffix ".json" }}
+#    ido-metrics-{{ $name }}: "ido-metrics-{{ $name }}-dashboard"
+{{- end }}
+{{- end }}
+

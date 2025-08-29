@@ -290,6 +290,7 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/service-status
+      # -- IDA Metrics Dashboards
       - name: 'ia-service-status'
         orgId: 1
         folder: ''
@@ -380,6 +381,7 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ia-governance-portal
+      # -- IDO Logs Dashboards
       - name: 'ido-logs-alert-center'
         orgId: 1
         folder: ''
@@ -680,13 +682,106 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ido-logs-writeback
+      # -- IDO Metrics Dashboards
+      - name: 'ido-metrics-alert-center'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-alert-center
+      - name: 'ido-metrics-graph-database'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-graph-database
+      - name: 'ido-metrics-iddm-core'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-iddm-core
+      - name: 'ido-metrics-ido-dashboard'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-ido-dashboard
+      - name: 'ido-metrics-observations-channels-contention'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-observations-channels-contention
+      - name: 'ido-metrics-observations-functional'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-observations-functional
+      - name: 'ido-metrics-observations-process'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-observations-process
+      - name: 'ido-metrics-observations-timings'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-observations-timings
+      - name: 'ido-metrics-writeback-service'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-metrics-writeback-service
 
   dashboardsConfigMaps:
+    # -- FID Dashboards
     fid: "fid-dashboard"
     zookeeper: "zookeeper-dashboard"
     iddm: "iddm-dashboard"
     elasticsearch: "audit-logs-elastic-dashboard"
     service-status: "service-status-dashboard"
+    # -- IDA Metrics Dashboards
     ia-service-status: "ia-service-status-dashboard"
     ida: "ia-dashboard"
     ia-controller-beam: "ia-controller-beam-dashboard"
@@ -696,6 +791,7 @@ grafana:
     ia-data-ingestion: "ia-data-ingestion-dashboard"
     ia-extractor-webapp: "ia-extractor-webapp-dashboard"
     ia-governance-portal: "ia-governance-portal-dashboard"
+    # -- IDO Logs Dashboards
     ido-logs-alert-center: "ido-logs-alert-center-dashboard"
     ido-logs-analytics-db: "ido-logs-analytics-db-dashboard"
     ido-logs-api-umbrella: "ido-logs-api-umbrella-dashboard"
@@ -726,6 +822,16 @@ grafana:
     ido-logs-schema-manager: "ido-logs-schema-manager-dashboard"
     ido-logs-secret-manager: "ido-logs-secret-manager-dashboard"
     ido-logs-writeback: "ido-logs-writeback-dashboard"
+    # -- IDO Metrics Dashboards
+    ido-metrics-alert-center: "ido-metrics-alert-center-dashboard"
+    ido-metrics-graph-database: "ido-metrics-graph-database-dashboard"
+    ido-metrics-iddm-core: "ido-metrics-iddm-core-dashboard"
+    ido-metrics-ido-dashboard: "ido-metrics-ido-dashboard-dashboard"
+    ido-metrics-observations-channels-contention: "ido-metrics-observations-channels-contention-dashboard"
+    ido-metrics-observations-functional: "ido-metrics-observations-functional-dashboard"
+    ido-metrics-observations-process: "ido-metrics-observations-process-dashboard"
+    ido-metrics-observations-timings: "ido-metrics-observations-timings-dashboard"
+    ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
