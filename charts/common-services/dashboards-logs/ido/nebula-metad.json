@@ -197,7 +197,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"metad\", container=\"metad\"}",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"metad\", container=\"metad\"}",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",
           "refId": "logs"

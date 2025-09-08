@@ -162,7 +162,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"iddm-ui\"}\n",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"iddm-ui\"}\n",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",
           "refId": "logs"

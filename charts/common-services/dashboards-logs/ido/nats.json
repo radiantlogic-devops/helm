@@ -167,7 +167,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"nats\", container=\"nats\"} | regexp `\\[(?P<pid>\\d+)\\] (?P<timestamp>\\d{4}\\/\\d{2}\\/\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d+) \\[(?P<level>\\w+)\\] (?P<message>.*)` | label_format level=\"{{.level}}\" | label_format message=\"{{.message}}\"",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"nats\", container=\"nats\"} | regexp `\\[(?P<pid>\\d+)\\] (?P<timestamp>\\d{4}\\/\\d{2}\\/\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d+) \\[(?P<level>\\w+)\\] (?P<message>.*)` | label_format level=\"{{.level}}\" | label_format message=\"{{.message}}\"",
           "hide": false,
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",

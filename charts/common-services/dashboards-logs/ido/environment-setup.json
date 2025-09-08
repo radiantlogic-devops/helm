@@ -144,7 +144,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"environment-setup\"} | json | __error__ != \"JSONParserErr\"",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"environment-setup\"} | json | __error__ != \"JSONParserErr\"",
           "queryType": "range",
           "refId": "A"
         }

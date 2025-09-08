@@ -188,7 +188,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"directory-namespace\"} | json | __error__ != \"JSONParserErr\"",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"directory-namespace\"} | json | __error__ != \"JSONParserErr\"",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",
           "refId": "logs"

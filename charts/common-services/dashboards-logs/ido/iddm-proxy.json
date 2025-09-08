@@ -282,7 +282,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", tenant=\"$tenant\", component=\"iddm-proxy\"}\n| regexp `^(?P<client_ip>\\S+):(?P<client_port>\\d+) \\[(?P<accept_date>[^]]+)\\] (?P<frontend>\\S+) (?P<backend>\\S+)\\/(?P<server>\\S+) (?P<Tq>\\d+)\\/(?P<Tw>\\d+)\\/(?P<Tc>\\d+)\\/(?P<Tr>\\d+)\\/(?P<Tt>\\d+) (?P<status>\\d{3}) (?P<bytes_read>\\d+) .* \"(?P<http_method>\\S+) (?P<http_uri>\\S+) (?P<http_version>[^\"]+)\"`\n| line_format \"status={{.status}} method={{.http_method}} uri={{.http_uri}}\"\n",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"iddm-proxy\"}\n| regexp `^(?P<client_ip>\\S+):(?P<client_port>\\d+) \\[(?P<accept_date>[^]]+)\\] (?P<frontend>\\S+) (?P<backend>\\S+)\\/(?P<server>\\S+) (?P<Tq>\\d+)\\/(?P<Tw>\\d+)\\/(?P<Tc>\\d+)\\/(?P<Tr>\\d+)\\/(?P<Tt>\\d+) (?P<status>\\d{3}) (?P<bytes_read>\\d+) .* \"(?P<http_method>\\S+) (?P<http_uri>\\S+) (?P<http_version>[^\"]+)\"`\n| line_format \"status={{.status}} method={{.http_method}} uri={{.http_uri}}\"\n",
           "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
           "queryType": "range",
           "refId": "logs"
