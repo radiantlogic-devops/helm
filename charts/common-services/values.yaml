@@ -1933,6 +1933,10 @@ loki:
         # region: eu-west-3
         # s3forcepathstyle: true
 
+  chunksCache:
+    replicas: 1
+    nodeSelector: {}
+
   gateway:
     replicas: 1
     # Disable logging of 2xx and 3xx HTTP requests
