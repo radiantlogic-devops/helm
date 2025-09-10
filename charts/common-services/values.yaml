@@ -71,7 +71,7 @@ argo-cd:
     rbac:
       policy.default: 'role:readonly'
       policy.csv: |
-        g, devops, role:admin     
+        g, devops, role:admin
   dex:
     enabled: false
   applicationSet:
