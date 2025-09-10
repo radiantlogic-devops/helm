@@ -40,8 +40,8 @@ maintainers:
 #   - condition: A conditional expression that determines whether the dependency is to be enabled or not.
 dependencies:
 - name: argo-cd
-  # version: 7.8.0
-  version: 5.6.0
+  version: 7.8.0
+  # version: 5.6.0
   repository: https://argoproj.github.io/argo-helm
   condition: argo-cd.enabled
 - name: prometheus
