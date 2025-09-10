@@ -68,6 +68,10 @@ argo-cd:
     params:
       server.rootpath: "/argocd"
       server.insecure: true
+    rbac:
+      policy.default: 'role:readonly'
+      policy.csv: |
+        g, devops, role:admin     
   dex:
     enabled: false
   applicationSet:
@@ -122,7 +126,7 @@ prometheus:
   kube-state-metrics:
     enabled: false
   prometheus-node-exporter:
-    enabled: false
+    enabled: true
   alertmanager:
     enabled: false
   # pushgateway:
