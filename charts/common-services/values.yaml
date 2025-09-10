@@ -552,7 +552,7 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ido-logs-iddm-zookeeper
-      - name: 'ido-logs-ido-dashboard'
+      - name: 'ido-logs-portal'
         orgId: 1
         folder: ''
         type: file
@@ -561,7 +561,17 @@ grafana:
         allowUiUpdates: true
         editable: true
         options:
-          path: /var/lib/grafana/dashboards/ido-logs-ido-dashboard
+          path: /var/lib/grafana/dashboards/ido-logs-portal
+      - name: 'ido-logs-portal-setup'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/ido-logs-portal-setup
       - name: 'ido-logs-ledger-operations'
         orgId: 1
         folder: ''
@@ -819,7 +829,8 @@ grafana:
     ido-logs-iddm-system-administration: "ido-logs-iddm-system-administration-dashboard"
     ido-logs-iddm-ui: "ido-logs-iddm-ui-dashboard"
     ido-logs-iddm-zookeeper: "ido-logs-iddm-zookeeper-dashboard"
-    ido-logs-ido-dashboard: "ido-logs-ido-dashboard-dashboard"
+    ido-logs-portal: "ido-logs-portal-dashboard"
+    ido-logs-portal-setup: "ido-logs-portal-setup-dashboard"
     ido-logs-ledger-operations: "ido-logs-ledger-operations-dashboard"
     ido-logs-nats: "ido-logs-nats-dashboard"
     ido-logs-nebula-graphd: "ido-logs-nebula-graphd-dashboard"
