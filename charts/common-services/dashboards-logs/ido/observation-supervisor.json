@@ -170,7 +170,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Observation Supervisor",
       "transformations": [
         {
           "id": "extractFields",

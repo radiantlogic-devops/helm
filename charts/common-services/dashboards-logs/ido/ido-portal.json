@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 168,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -87,7 +87,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 197
+                "value": 190
               }
             ]
           },
@@ -99,7 +99,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 99
+                "value": 84
               },
               {
                 "id": "custom.cellOptions",
@@ -119,7 +119,31 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 269
+                "value": 216
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 121
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 208
               }
             ]
           }
@@ -161,7 +185,6 @@
           "refId": "logs"
         }
       ],
-      "title": "IDO Dashboard",
       "transformations": [
         {
           "id": "extractFields",
@@ -187,214 +210,55 @@
             "includeByName": {
               "Time": true,
               "app": false,
+              "container": false,
+              "instance": false,
               "level": true,
               "loggerName": false,
               "loggerName 2": false,
               "message": true,
+              "pod": true,
               "portalInstance": false,
               "shortLogger": true,
               "tenant": false
             },
             "indexByName": {
-              "Line": 9,
+              "Line": 11,
               "Time": 0,
-              "app": 2,
-              "component": 13,
-              "container": 14,
-              "detected_level": 15,
-              "endOfBatch": 16,
-              "id": 12,
-              "instance": 17,
-              "job": 18,
-              "labelTypes": 11,
-              "labels": 8,
-              "level": 3,
-              "loggerFqcn": 19,
-              "loggerName": 5,
-              "message": 7,
-              "namespace": 20,
-              "node_name": 21,
-              "pod": 22,
-              "portalInstance": 4,
+              "app": 4,
+              "component": 15,
+              "container": 1,
+              "detected_level": 16,
+              "endOfBatch": 17,
+              "environment": 29,
+              "id": 14,
+              "instance": 18,
+              "job": 19,
+              "labelTypes": 13,
+              "labels": 10,
+              "level": 6,
+              "loggerFqcn": 20,
+              "loggerName": 8,
+              "message": 9,
+              "namespace": 21,
+              "node_name": 22,
+              "pod": 2,
+              "portalInstance": 7,
               "service_name": 23,
-              "shortLogger": 6,
-              "tenant": 1,
+              "shortLogger": 5,
+              "tenant": 3,
               "thread": 24,
               "threadId": 25,
               "threadPriority": 26,
               "timeMillis": 27,
-              "tsNs": 10,
+              "tsNs": 12,
               "version": 28
             },
             "renameByName": {
               "level": "Level",
               "loggerName": "Logger",
               "message": "Message",
+              "pod": "Pod",
               "shortLogger": "Logger"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [
-            {
-              "options": {
-                "ERROR": {
-                  "color": "red",
-                  "index": 0
-                },
-                "INFO": {
-                  "color": "transparent",
-                  "index": 2
-                },
-                "WARN": {
-                  "color": "yellow",
-                  "index": 1
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "noValue": "No data - check time range",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Time"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 199
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Level"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 89
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      },
-      "id": 2,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "enablePagination": true,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "12.1.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "direction": "backward",
-          "editorMode": "code",
-          "expr": "{app=\"$application\", environment=\"$environment\", component=\"portal\", container=\"portal-setup\"} | json | __error__ != \"JSONParserErr\"",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "New panel",
-      "transformations": [
-        {
-          "id": "extractFields",
-          "options": {
-            "delimiter": ",",
-            "source": "labels"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Line": true,
-              "app": true,
-              "component": true,
-              "container": true,
-              "detected_level": true,
-              "exc_info": true,
-              "file": true,
-              "id": true,
-              "instance": true,
-              "job": true,
-              "labelTypes": true,
-              "labels": true,
-              "level": false,
-              "namespace": true,
-              "node_name": true,
-              "pod": true,
-              "retry_interval": true,
-              "service_name": true,
-              "service_name_extracted": true,
-              "template": true,
-              "tenant": true,
-              "timeout": true,
-              "timestamp": true,
-              "tsNs": true,
-              "version": true
-            },
-            "includeByName": {},
-            "indexByName": {},
-            "renameByName": {
-              "level": "Level",
-              "message": "Message"
             }
           }
         }
@@ -402,6 +266,7 @@
       "type": "table"
     }
   ],
+  "preload": false,
   "schemaVersion": 41,
   "tags": [
     "identity-observability",
@@ -421,7 +286,6 @@
       },
       {
         "allowCustomValue": false,
-        "current": {},
         "datasource": {
           "type": "loki",
           "uid": "${DS_LOKI}"
@@ -443,29 +307,21 @@
         "type": "query"
       },
       {
+        "current": {
+          "text": "identity-observability",
+          "value": "identity-observability"
+        },
         "hide": 2,
         "label": "Application",
         "name": "application",
         "query": "identity-observability",
         "skipUrlSync": true,
-        "type": "constant",
-        "current": {
-          "value": "identity-observability",
-          "text": "identity-observability",
-          "selected": false
-        },
-        "options": [
-          {
-            "value": "identity-observability",
-            "text": "identity-observability",
-            "selected": false
-          }
-        ]
+        "type": "constant"
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -478,8 +334,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Logs - IDO Dashboard",
+  "title": "Logs - Portal",
   "uid": "ido-logs-portal",
-  "version": 11,
-  "weekStart": ""
+  "version": 9
 }

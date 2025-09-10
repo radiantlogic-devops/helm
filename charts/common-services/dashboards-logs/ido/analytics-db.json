@@ -161,7 +161,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Analytics Database",
       "transformations": [
         {
           "id": "extractFields",

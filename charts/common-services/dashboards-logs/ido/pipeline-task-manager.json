@@ -178,7 +178,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Graph Pipeline - Task Manager",
       "transformations": [
         {
           "id": "extractFields",

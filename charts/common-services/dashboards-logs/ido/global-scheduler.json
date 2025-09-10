@@ -182,7 +182,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Global Scheduler",
       "transformations": [
         {
           "id": "extractFields",

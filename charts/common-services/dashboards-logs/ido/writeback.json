@@ -185,7 +185,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Writeback Service",
       "transformations": [
         {
           "id": "extractFields",

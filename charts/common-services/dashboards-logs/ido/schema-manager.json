@@ -197,7 +197,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Schema Manager",
       "transformations": [
         {
           "id": "extractFields",

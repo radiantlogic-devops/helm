@@ -216,7 +216,6 @@
           "refId": "logs"
         }
       ],
-      "title": "ID Sync Config Core",
       "transformations": [
         {
           "id": "extractFields",

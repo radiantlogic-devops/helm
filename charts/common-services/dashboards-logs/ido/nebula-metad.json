@@ -203,7 +203,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Nebula - Metad",
       "transformations": [
         {
           "id": "extractFields",

@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 166,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -149,7 +149,6 @@
           "refId": "A"
         }
       ],
-      "title": "Environment setup",
       "transformations": [
         {
           "id": "extractFields",
@@ -171,6 +170,7 @@
               "container": true,
               "description": true,
               "detected_level": true,
+              "environment": true,
               "exc_info": true,
               "expression": true,
               "file": true,
@@ -186,6 +186,13 @@
               "node_name": true,
               "override": true,
               "path": true,
+              "payload_authorizationEndpointUri": true,
+              "payload_clientAuthenticationMethod": true,
+              "payload_clientId": true,
+              "payload_configurationName": true,
+              "payload_discoveryUrl": true,
+              "payload_providerName": true,
+              "payload_tokenEndpointUri": true,
               "pod": true,
               "realm": true,
               "realm_name": true,
@@ -264,6 +271,7 @@
       "type": "table"
     }
   ],
+  "preload": false,
   "schemaVersion": 41,
   "tags": [
     "identity-observability",

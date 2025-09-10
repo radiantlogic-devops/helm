@@ -190,7 +190,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Graph Pipeline - Job Manager",
       "transformations": [
         {
           "id": "extractFields",

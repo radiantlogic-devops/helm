@@ -204,7 +204,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Nebula - Graphd",
       "transformations": [
         {
           "id": "extractFields",

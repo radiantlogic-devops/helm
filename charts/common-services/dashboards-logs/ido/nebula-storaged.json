@@ -216,7 +216,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Nebula - Storaged",
       "transformations": [
         {
           "id": "extractFields",

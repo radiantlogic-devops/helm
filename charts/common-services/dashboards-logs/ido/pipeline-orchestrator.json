@@ -161,7 +161,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Pipeline Orchestrator",
       "transformations": [
         {
           "id": "extractFields",

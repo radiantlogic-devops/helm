@@ -174,7 +174,6 @@
           "refId": "logs"
         }
       ],
-      "title": "NATS",
       "transformations": [
         {
           "id": "extractFields",

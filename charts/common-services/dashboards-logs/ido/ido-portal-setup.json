@@ -15,11 +15,11 @@
       }
     ]
   },
-  "description": "Alert Center logs",
+  "description": "Portal setup logs",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 212,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -28,51 +28,39 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "description": "Show all logs from Alert Center",
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "auto",
-              "wrapText": true
+              "type": "auto"
             },
             "filterable": true,
             "inspect": false
           },
           "mappings": [
             {
-              "type": "value",
               "options": {
-                "fatal": {
-                  "text": "FATAL",
-                  "color": "dark-red",
+                "ERROR": {
+                  "color": "red",
                   "index": 0
                 },
-                "error": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "ERROR"
+                "INFO": {
+                  "color": "transparent",
+                  "index": 2
                 },
-                "warn": {
+                "WARNING": {
                   "color": "yellow",
-                  "index": 2,
-                  "text": "WARN"
-                },
-                "info": {
-                  "color": "transparent",
-                  "index": 3,
-                  "text": "INFO"
-                },
-                "debug": {
-                  "color": "transparent",
-                  "index": 4,
-                  "text": "DEBUG"
+                  "index": 1
                 }
-              }
+              },
+              "type": "value"
             }
           ],
-              "noValue": "No data - check time range",
+          "noValue": "No data - check time range",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -96,7 +84,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 197
+                "value": 199
               }
             ]
           },
@@ -108,13 +96,12 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 99
+                "value": 89
               },
               {
                 "id": "custom.cellOptions",
                 "value": {
                   "applyToRow": true,
-                  "mode": "gradient",
                   "type": "color-background"
                 }
               }
@@ -123,36 +110,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Logger"
+              "options": "container"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 269
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Component"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 251
+                "value": 127
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 23,
+        "h": 25,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 2,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -176,68 +151,93 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"$application\", environment=\"$environment\", component=\"alert-center\"} | json | __error__ != \"JSONParserErr\"",
-          "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"portal\", container=\"portal-setup\"} | json | __error__ != \"JSONParserErr\"",
           "queryType": "range",
-          "refId": "logs"
+          "refId": "A"
         }
       ],
       "transformations": [
         {
           "id": "extractFields",
           "options": {
+            "delimiter": ",",
             "source": "labels"
           }
         },
         {
           "id": "organize",
           "options": {
-            "excludeByName": {},
-            "includeByName": {
-              "Line": false,
-              "Time": true,
-              "app": false,
-              "component": false,
-              "component_extracted": true,
-              "level": true,
+            "excludeByName": {
+              "Line": true,
+              "app": true,
+              "component": true,
+              "container": true,
+              "detected_level": true,
+              "endOfBatch": true,
+              "environment": true,
+              "exc_info": true,
+              "file": true,
+              "id": true,
+              "instance": true,
+              "job": true,
+              "labelTypes": true,
+              "labels": true,
+              "level": false,
+              "loggerFqcn": true,
               "loggerName": false,
-              "loggerName 2": false,
-              "message": true,
-              "portalInstance": false,
-              "shortLogger": true,
-              "tenant": false
+              "namespace": true,
+              "node_name": true,
+              "pod": true,
+              "portalInstance": true,
+              "retry_interval": true,
+              "service_name": true,
+              "service_name_extracted": true,
+              "template": true,
+              "tenant": true,
+              "thread": true,
+              "threadId": true,
+              "threadPriority": true,
+              "timeMillis": true,
+              "timeout": true,
+              "timestamp": true,
+              "tsNs": true,
+              "version": true
             },
+            "includeByName": {},
             "indexByName": {
-              "Line": 7,
-              "Time": 0,
-              "app": 2,
-              "build": 21,
-              "component": 11,
-              "component_extracted": 4,
-              "container": 12,
-              "detected_level": 13,
-              "id": 10,
-              "instance": 14,
-              "job": 15,
-              "labelTypes": 9,
-              "labels": 6,
-              "level": 3,
-              "message": 5,
-              "namespace": 16,
-              "node_name": 17,
-              "phase": 24,
-              "pod": 18,
-              "service_name": 19,
-              "tenant": 1,
-              "time": 22,
-              "tsNs": 8,
-              "version": 20,
-              "version_extracted": 23
+              "Line": 2,
+              "Time": 1,
+              "app": 6,
+              "component": 7,
+              "container": 8,
+              "detected_level": 10,
+              "endOfBatch": 11,
+              "environment": 12,
+              "id": 5,
+              "instance": 13,
+              "job": 14,
+              "labelTypes": 4,
+              "labels": 0,
+              "level": 15,
+              "loggerFqcn": 16,
+              "loggerName": 17,
+              "message": 18,
+              "namespace": 19,
+              "node_name": 20,
+              "pod": 21,
+              "portalInstance": 22,
+              "service_name": 23,
+              "shortLogger": 9,
+              "tenant": 24,
+              "thread": 25,
+              "threadId": 26,
+              "threadPriority": 27,
+              "timeMillis": 28,
+              "tsNs": 3,
+              "version": 29
             },
             "renameByName": {
-              "component_extracted": "Component",
               "level": "Level",
-              "loggerName": "Logger",
               "message": "Message",
               "shortLogger": "Logger"
             }
@@ -247,11 +247,12 @@
       "type": "table"
     }
   ],
+  "preload": false,
   "schemaVersion": 41,
   "tags": [
     "identity-observability",
     "logging",
-    "alert-center"
+    "ido-dashboard"
   ],
   "templating": {
     "list": [
@@ -263,10 +264,13 @@
         "refresh": 1,
         "regex": "",
         "type": "datasource"
-      },      
+      },
       {
         "allowCustomValue": false,
-        "current": {},
+        "current": {
+          "text": "rli-ops10-100",
+          "value": "rli-ops10-100"
+        },
         "datasource": {
           "type": "loki",
           "uid": "${DS_LOKI}"
@@ -288,29 +292,21 @@
         "type": "query"
       },
       {
+        "current": {
+          "text": "identity-observability",
+          "value": "identity-observability"
+        },
         "hide": 2,
         "label": "Application",
         "name": "application",
         "query": "identity-observability",
         "skipUrlSync": true,
-        "type": "constant",
-        "current": {
-          "value": "identity-observability",
-          "text": "identity-observability",
-          "selected": false
-        },
-        "options": [
-          {
-            "value": "identity-observability",
-            "text": "identity-observability",
-            "selected": false
-          }
-        ]
+        "type": "constant"
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -323,8 +319,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Logs - Alert Center",
-  "uid": "ido-logs-alert-center",
-  "version": 5,
-  "weekStart": ""
+  "title": "Logs - Portal Setup",
+  "uid": "ido-logs-portal-setup",
+  "version": 3
 }

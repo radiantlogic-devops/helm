@@ -168,7 +168,6 @@
           "refId": "logs"
         }
       ],
-      "title": "Alert Center",
       "transformations": [
         {
           "id": "extractFields",
