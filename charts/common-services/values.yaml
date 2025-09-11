@@ -1741,7 +1741,7 @@ cloudnative-pg:
     name: cnpg-controller-manager-config
     data:
       INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*, *.radiantlogic.io/*
-      INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*
+      INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*, radiantlogic.io/*, *.radiantlogic.io/*
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -2051,20 +2051,56 @@ alloy:
             // Only application pods (with label "radiantlogic.io/environment")
             label = "radiantlogic.io/environment"
           }
-          selectors {
-            role = "pod"
-            // Only application pods (with label "logging.radiantlogic.io/enabled=true")
-            label = "logging.radiantlogic.io/enabled=true"
-          }
+          // selectors {
+          //   role = "pod"
+          //   // Only application pods (with label "logging.radiantlogic.io/enabled=true")
+          //   label = "logging.radiantlogic.io/enabled=true"
+          // }
         }
 
         discovery.relabel "filtered_pods" {
           targets = discovery.kubernetes.tenant_pods.targets
 
-          // ========== tenant = value of radiantlogic.io/environment label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_logging_radiantlogic_io_enabled"]
+            regex = "true"
+            action = "keep"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_logging_radiantlogic_io_retention_policy"]
+            regex = "(1d|7d|30d|90d|1y)"
+            target_label = "retention_policy"
+          }
+
+          rule {
+            source_labels = ["retention_policy"]
+            regex = "^$"
+            replacement = "7d"
+            target_label = "retention_policy"
+          }
+
           rule {
             source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_environment"]
             target_label = "tenant"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_environment"]
+            target_label  = "environment"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_environment_type"]
+            regex = "(ephemeral|dev|qa|non-prod|prod)"
+            target_label = "environment_type"
+          }
+
+          rule {
+            source_labels = ["environment_type"]
+            regex = "^$"
+            replacement = "non-prod"
+            target_label = "environment_type"
           }
 
           rule {
@@ -2077,11 +2113,6 @@ alloy:
             source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_app", "__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app", "__tmp_controller_name", "__meta_kubernetes_pod_name"]
             regex         = "^;*([^;]+)(;.*)?$"
             target_label  = "app"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_label_radiantlogic_io_environment"]
-            target_label  = "environment"
           }
 
           rule {
@@ -2176,6 +2207,7 @@ alloy:
             // Rule: Keep only labels used in your queries
             values = [
               "tenant",
+              "retention_policy",
               "environment",
               "environment_type",
               "app",
