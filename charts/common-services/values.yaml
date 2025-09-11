@@ -1141,7 +1141,20 @@ haproxy:
 
 postgresql:
   enabled: true
+  volumePermissions:
+    enabled: false
+    #image:
+    #  repository: radiantone/bitnami-shell
+    #  tag: 11-debian-11-r57
+  metrics:
+    enabled: false
+    #image:
+    #  repository: radiantone/postgres-exporter
+    #  tag: 0.11.1-debian-11-r34
   fullnameOverride: postgresql
+  image:
+    repository: radiantone/postgresql
+    tag: 15.1.0-debian-11-r7
   primary:
     nodeSelector: {}
     service:
