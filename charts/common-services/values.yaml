@@ -45,7 +45,7 @@ zookeeper:
   enabled: false
   volumePermissions:
     enabled: false
-    #image:
+    # image:
     #  repository: radiantone/bitnami-shell
     #  tag: 11-debian-11-r51
   image:
@@ -1151,12 +1151,12 @@ postgresql:
   enabled: true
   volumePermissions:
     enabled: false
-    #image:
+    # image:
     #  repository: radiantone/bitnami-shell
     #  tag: 11-debian-11-r57
   metrics:
     enabled: false
-    #image:
+    # image:
     #  repository: radiantone/postgres-exporter
     #  tag: 0.11.1-debian-11-r34
   fullnameOverride: postgresql
