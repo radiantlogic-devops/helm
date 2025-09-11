@@ -149,6 +149,8 @@ prometheus:
       size: 8Gi
     statefulSet:
       enabled: true
+    service:
+      type: ClusterIP
 
 # Grafana Configuration
 # ---------------------
@@ -168,6 +170,8 @@ grafana:
   fullnameOverride: grafana
   enabled: true
   nodeSelector: {}
+  service:
+    type: ClusterIP
   # Persistence enabled by default
   persistence:
     enabled: true
@@ -878,6 +882,8 @@ elasticsearch:
   enabled: true
   replicas: 1
   nodeSelector: {}
+  service:
+    type: ClusterIP
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
     resources:
@@ -899,6 +905,8 @@ kibana:
   enabled: true
   fullnameOverride: kibana
   nodeSelector: {}
+  service:
+    type: ClusterIP
   # extraEnvs:
   #   - name: ELASTICSEARCH_USERNAME
   #     value: elastic
@@ -1136,6 +1144,8 @@ postgresql:
   fullnameOverride: postgresql
   primary:
     nodeSelector: {}
+    service:
+      type: ClusterIP
     # Persistence enabled by default and size to 50Gi
     persistence:
       size: 10Gi
@@ -1175,6 +1185,8 @@ pgadmin4:
   enabled: true
   fullnameOverride: pgadmin4
   nodeSelector: {}
+  service:
+    type: ClusterIP
   persistentVolume:
     enabled: false
   env:
