@@ -43,6 +43,14 @@ ingress:
 
 zookeeper:
   enabled: false
+  volumePermissions:
+    enabled: false
+    #image:
+    #  repository: radiantone/bitnami-shell
+    #  tag: 11-debian-11-r51
+  image:
+    repository: radiantone/zookeeper
+    tag: 3.8.0-debian-11-r56
   fullnameOverride: zookeeper
   nodeSelector: {}
 
