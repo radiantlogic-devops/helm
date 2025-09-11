@@ -1699,6 +1699,9 @@ velero:
   cleanUpCRDs: true
   upgradeCRDs: false
   nodeSelector: {}
+  kubectl:
+    image:
+      repository: docker.io/radiantone/kubectl
   configuration:
     # defaultBackupStorageLocation: common-bsl
     # defaultVolumeSnapshotLocations: common-vsl
