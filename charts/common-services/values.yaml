@@ -1515,6 +1515,11 @@ fluent-bit:
 # Curator can perform actions like deleting, closing, or creating indices based on configured filters.
 
 curator:
+  image:
+    repository: radiantone/elasticsearch-curator-archived
+    pullPolicy: Always
+    tag: 5.8.4-debian-10-r253
+  imagePullSecrets: []
   enabled: true
   dryrun: false
   # Elasticsearch Client Settings

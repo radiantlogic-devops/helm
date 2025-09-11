@@ -48,10 +48,14 @@ spec:
           {{- if .Values.curator.rbac.enabled }}
           serviceAccountName: curator-sa
           {{- end }}
+          {{- with .Values.curator.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           containers:
             - name: {{ .Chart.Name }}
-              image: "bitnami/elasticsearch-curator-archived:5.8.4-debian-10-r253"
-              imagePullPolicy: Always
+              image: "{{ .Values.curator.image.repository }}:{{ .Values.curator.image.tag }}"
+              imagePullPolicy: {{ .Values.curator.image.pullPolicy }}
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/es-curator
