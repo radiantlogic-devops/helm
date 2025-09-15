@@ -1977,6 +1977,7 @@ loki:
 
     compactor:
       retention_enabled: true
+      retention_delete_delay: 1h
       delete_request_store: s3
 
     storage:
