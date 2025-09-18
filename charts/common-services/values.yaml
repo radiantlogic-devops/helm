@@ -1844,7 +1844,7 @@ backupManager:
   replicas: 1
   image:
     repository: radiantone/eoc-backup-manager
-    tag: "1.15.0"
+    tag: "1.16.0"
     pullPolicy: Always
   imagePullSecrets: []
   service:
@@ -1870,6 +1870,7 @@ backupManager:
     enabled: false
     host: localhost
     port: 8080
+  podsWaitTimeout: "5m"
   webhook:
     enabled: false
     syncPeriod: "1m"

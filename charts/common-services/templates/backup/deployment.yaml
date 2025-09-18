@@ -85,10 +85,6 @@ spec:
                   fieldPath: metadata.namespace
             - name: APPLICATIONS_CONFIG
               value: /etc/config/applications.json
-            - name: GOMAXPROCS
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.cpu
             - name: GOMEMLIMIT
               valueFrom:
                 resourceFieldRef:
@@ -105,6 +101,8 @@ spec:
               value: {{ .Values.backupManager.webhook.restore.url | quote }}
             - name: RESTORE_WAIT_TIMEOUT
               value: {{ .Values.backupManager.webhook.restore.timeout | default "1h" | quote }}
+            - name: PODS_WAIT_TIMEOUT
+              value: {{ .Values.backupManager.podsWaitTimeout | default "5m" | quote }}
           livenessProbe:
             initialDelaySeconds: 5
             periodSeconds: 5
