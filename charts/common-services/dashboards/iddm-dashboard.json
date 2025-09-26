@@ -1912,7 +1912,8 @@
     "tags": [
       "fid",
       "radiantone",
-      "monitoring"
+      "monitoring",
+      "default"
     ],
     "templating": {
       "list": [
