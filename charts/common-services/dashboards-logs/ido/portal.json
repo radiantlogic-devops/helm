@@ -271,7 +271,8 @@
   "tags": [
     "identity-observability",
     "logging",
-    "ido-dashboard"
+    "ido-dashboard",
+    "default"
   ],
   "templating": {
     "list": [

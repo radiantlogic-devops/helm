@@ -3259,7 +3259,8 @@
   "tags": [
     "monitoring",
     "identity-observability",
-    "ido-dashboard"
+    "ido-dashboard",
+    "default"
   ],
   "templating": {
     "list": [

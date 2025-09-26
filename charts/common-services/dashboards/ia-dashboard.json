@@ -9579,7 +9579,8 @@
   "schemaVersion": 41,
   "tags": [
     "monitoring",
-    "identity-analytics"
+    "identity-analytics",
+    "default"
   ],
   "templating": {
     "list": [
