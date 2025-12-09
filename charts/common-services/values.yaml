@@ -1783,6 +1783,12 @@ cloudnative-pg:
     data:
       INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*, *.radiantlogic.io/*
       INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*, radiantlogic.io/*, *.radiantlogic.io/*
+  imageCatalog:
+    enabled: false
+    images: []
+    # images:
+    #   - major: 18
+    #     image: ghcr.io/cloudnative-pg/postgresql:18.1
   nodeSelector: {}
   tolerations: []
   affinity: {}

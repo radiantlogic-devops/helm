@@ -1,8 +1,11 @@
-{{- if index .Values "cloudnative-pg" "enabled" }}
+{{- if and (index .Values "cloudnative-pg" "enabled") (index .Values "cloudnative-pg" "imageCatalog" "enabled") (.Capabilities.APIVersions.Has "postgresql.cnpg.io/v1/ClusterImageCatalog") }}
 apiVersion: postgresql.cnpg.io/v1
 kind: ClusterImageCatalog
 metadata:
   name: postgresql
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
 spec:
   images:
     - major: 15
@@ -11,4 +14,7 @@ spec:
       image: ghcr.io/cloudnative-pg/postgresql:16.8
     - major: 17
       image: ghcr.io/cloudnative-pg/postgresql:17.5
+  {{- with (index .Values "cloudnative-pg" "imageCatalog" "images") }}
+  {{ . | toYaml | nindent 4 }}
+  {{- end }}
 {{- end }}
