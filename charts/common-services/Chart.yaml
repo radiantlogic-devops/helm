@@ -120,3 +120,7 @@ dependencies:
   repository: https://grafana.github.io/helm-charts
   version: 1.2.1
   condition: alloy.enabled
+- name: prometheus-elasticsearch-exporter
+  version: 6.6.0
+  repository: https://prometheus-community.github.io/helm-charts
+  condition: prometheus-elasticsearch-exporter.enabled

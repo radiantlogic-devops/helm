@@ -1,0 +1,449 @@
+# Override values for duploservices-qaibtest namespace
+# This file only enables services with metrics and dashboards configured
+
+# Global nodeSelector - for EKS cluster (tenantname label)
+nodeSelector:
+  tenantname: duploservices-qaibtest
+
+# ==========================================
+# ENABLED SERVICES (with metrics/dashboards)
+# ==========================================
+
+# 1. Argo CD - Metrics: 8082, 8083, 8084, Dashboard: ID 14584
+argo-cd:
+  enabled: true
+  fullnameOverride: argocd
+  controller:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: prometheus
+  server:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: prometheus
+  repoServer:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: prometheus
+
+# 2. PostgreSQL - Metrics: 9187, Dashboard: ID 9628
+postgresql:
+  enabled: true
+  fullnameOverride: postgresql
+  auth:
+    postgresPassword: "testpassword123"
+    database: "postgres"
+  primary:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      labels:
+        release: prometheus
+
+# 3. HAProxy - Metrics: 8404, Dashboard: ID 12030
+haproxy:
+  enabled: true
+  fullnameOverride: haproxy
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  serviceMonitor:
+    enabled: true
+
+# 4. ZooKeeper - Metrics: 9141, Dashboard: ID 11442
+zookeeper:
+  enabled: true
+  fullnameOverride: zookeeper
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+# 5. Fluent Bit - Metrics: 2020, Dashboard: ID 18855
+fluent-bit:
+  enabled: true
+  fullnameOverride: fluent-bit
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  serviceMonitor:
+    enabled: true
+  dashboards:
+    enabled: true
+
+# 6. Velero - Metrics: 8085, Dashboard: ID 16829
+velero:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# 7. Loki - Metrics: 3100, Dashboard: ID 13639
+loki:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  monitoring:
+    serviceMonitor:
+      enabled: true
+
+# 8. CloudNative PG - Dashboard: ID 20417
+cloudnative-pg:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+
+# 9. OpenSearch - Metrics: 9200, Dashboard: ID 20827
+opensearch:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# 10. Flink Kubernetes Operator - Metrics: 9999, Dashboard: ID 14911
+flink-kubernetes-operator:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+
+# 11. Alloy - Metrics: 12345
+alloy:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+  monitoring:
+    serviceMonitor:
+      enabled: true
+
+# 12. Elasticsearch - Metrics: via exporter 9108, Dashboard: ID 266
+elasticsearch:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+
+# 13. Kibana - Metrics: via sidecar 9684, Dashboard: ID 21420
+kibana:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+  service:
+    type: ClusterIP
+
+# ==========================================
+# DISABLED SERVICES (no metrics or UI only)
+# ==========================================
+
+prometheus:
+  enabled: false  # Assuming Prometheus Operator already installed
+
+grafana:
+  enabled: true
+  fullnameOverride: grafana
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: false  # Disable for testing
+
+pgadmin4:
+  enabled: false
+
+slamd:
+  enabled: false
+
+shellinabox:
+  enabled: false
+
+smtp:
+  enabled: false
+
+curator:
+  enabled: false
+
+zoonavigator:
+  enabled: false
+
+nebula-operator:
+  enabled: false
+
+backupManager:
+  enabled: false
+
+velero-ui:
+  enabled: false
+
+# ==========================================
+# PROMETHEUS EXPORTERS
+# ==========================================
+
+# Prometheus Elasticsearch Exporter - for Elasticsearch metrics
+prometheus-elasticsearch-exporter:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+
+# ==========================================
+# GRAFANA CONFIGURATION
+# ==========================================
+
+grafana:
+  enabled: true
+  fullnameOverride: grafana
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: false
+  
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-server.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+  
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'argo-cd'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/argo-cd
+        - name: 'postgresql'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/postgresql
+        - name: 'haproxy'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/haproxy
+        - name: 'zookeeper'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/zookeeper
+        - name: 'fluent-bit'
+          orgId: 1
+          folder: 'Logging'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/fluent-bit
+        - name: 'velero'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/velero
+        - name: 'loki'
+          orgId: 1
+          folder: 'Logging'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/loki
+        - name: 'cloudnative-pg'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/cloudnative-pg
+        - name: 'opensearch'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/opensearch
+        - name: 'flink'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/flink
+        - name: 'alloy'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/alloy
+        - name: 'elasticsearch'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/elasticsearch
+        - name: 'kibana'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/kibana
+  
+  dashboardsConfigMaps:
+    argo-cd: "argo-cd-dashboard"
+    postgresql: "postgresql-dashboard"
+    haproxy: "haproxy-dashboard"
+    zookeeper: "zookeeper-metrics-dashboard"
+    fluent-bit: "fluent-bit-dashboard"
+    # Dashboards for all enabled services
+    flink: "flink-dashboard"
+    kibana: "kibana-dashboard"
+    loki: "loki-dashboard"
+    opensearch: "opensearch-dashboard"
+    cloudnative-pg: "cloudnative-pg-dashboard"
+    elasticsearch-metrics: "elasticsearch-dashboard"
+    velero: "velero-dashboard"
+    alloy: "alloy-dashboard"
+argo-cd:
+  server:
+    service:
+      type: ClusterIP
+
+haproxy:
+  service:
+    type: ClusterIP
+
+# Fix HAProxy routes - disable kibana since it's not enabled
+haproxy:
+  enabled: true
+  fullnameOverride: haproxy
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  service:
+    type: ClusterIP
+  serviceMonitor:
+    enabled: true
+  route:
+    argocd: true
+    grafana: true
+    prometheus: false
+    pushgateway: false
+    elasticsearch: true
+    kibana: true
+    pgadmin4: false
+    slamd: false
+    shellinabox: false
+    eocui: false
+    eocapi: false
+    sdcapi: false
+    opensearch: true
+    opensearchdashboards: true
+    velero: false
+
+# Fix PostgreSQL metrics image
+postgresql:
+  enabled: true
+  fullnameOverride: postgresql
+  auth:
+    postgresPassword: "testpassword123"
+    database: "postgres"
+  primary:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+  metrics:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/postgres-exporter
+      tag: 0.15.0-debian-11-r2
+    serviceMonitor:
+      enabled: true
+      labels:
+        release: prometheus

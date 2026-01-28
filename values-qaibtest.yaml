@@ -1,0 +1,133 @@
+# Overrides for duploservices-qaibtest deployment
+global:
+  hibernate: false
+  postgresql:
+    auth:
+      database: eocdb
+
+nodeSelector: 
+  tenantname: duploservices-qaibtest
+
+# ----------------------------------------------------------------------------
+# Core Services with Metrics/Dashboards
+# ----------------------------------------------------------------------------
+
+zookeeper:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels: { release: prometheus }
+
+postgresql:
+  enabled: true
+  primary:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      labels: { release: prometheus }
+
+argo-cd:
+  enabled: true
+  crds:
+    install: false
+  controller:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  server:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  repoServer:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  redis:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+
+haproxy:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+
+elasticsearch:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+
+kibana:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+
+prometheus-elasticsearch-exporter:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+    labels: { release: prometheus }
+
+cloudnative-pg:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  monitoring:
+    podMonitorEnabled: true
+    podMonitorAdditionalLabels: { release: prometheus }
+
+fluent-bit:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+
+# ----------------------------------------------------------------------------
+# Grafana Configuration
+# ----------------------------------------------------------------------------
+grafana:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  # Ensure dashboards are created
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+
+# ----------------------------------------------------------------------------
+# Services to Skip/Disable if problematic (Loki, Velero, OpenSearch)
+# ----------------------------------------------------------------------------
+# Loki had issues with storage validation in SimpleScalable mode
+loki:
+  enabled: false
+
+# Velero often needs cloud-specific backup storage (S3) which might not be ready
+velero:
+  enabled: false
+
+# OpenSearch can be heavy/slow to start in small test clusters
+opensearch:
+  enabled: false
+
+flink-kubernetes-operator:
+  enabled: false
+
+nebula-operator:
+  enabled: false

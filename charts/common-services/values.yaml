@@ -12,6 +12,9 @@
 
 global:
   hibernate: false
+  postgresql:
+    auth:
+      database: eocdb
 
 nodeSelector: {}
 
@@ -42,17 +45,29 @@ ingress:
   #      - chart-example.local
 
 zookeeper:
-  enabled: false
+  enabled: true
   volumePermissions:
     enabled: false
-    # image:
-    #  repository: radiantone/bitnami-shell
-    #  tag: 11-debian-11-r51
   image:
     repository: radiantone/zookeeper
     tag: 3.8.0-debian-11-r56
   fullnameOverride: zookeeper
   nodeSelector: {}
+  metrics:
+    enabled: true
+    containerPort: 9141
+    service:
+      type: ClusterIP
+      port: 9141
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9141"
+        prometheus.io/path: "/metrics"
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      additionalLabels:
+        release: prometheus
 
 # Argo CD Configuration
 # ---------------------
@@ -88,14 +103,52 @@ argo-cd:
     enabled: false
   controller:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8082
+        portName: http-metrics
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+        additionalLabels:
+          release: prometheus
+      rules:
+        enabled: false
   redis:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: prometheus
   server:
     nodeSelector: {}
     service:
       type: NodePort
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8083
+        portName: http-metrics
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+        additionalLabels:
+          release: prometheus
   repoServer:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8084
+        portName: http-metrics
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+        additionalLabels:
+          release: prometheus
   crds:
     keep: false
   # Disabling new components that didn't exist in 5.6.0
@@ -810,6 +863,137 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/ido-metrics-writeback-service
+      # -- Metrics Dashboards (Infrastructure)
+      - name: 'argo-cd'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/argo-cd
+      - name: 'elasticsearch-metrics'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/elasticsearch-metrics
+      - name: 'haproxy'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/haproxy
+      - name: 'postgresql'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/postgresql
+      - name: 'zookeeper-metrics'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/zookeeper-metrics
+      - name: 'opensearch'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/opensearch
+      - name: 'fluent-bit'
+        orgId: 1
+        folder: 'Logging'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/fluent-bit
+      - name: 'velero'
+        orgId: 1
+        folder: 'Backup'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/velero
+      - name: 'cloudnative-pg'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/cloudnative-pg
+      - name: 'loki'
+        orgId: 1
+        folder: 'Logging'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/loki
+      - name: 'flink'
+        orgId: 1
+        folder: 'Data Processing'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/flink
+      - name: 'kibana'
+        orgId: 1
+        folder: 'Logging'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/kibana
+      - name: 'alloy'
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/alloy
 
   dashboardsConfigMaps:
     # -- FID Dashboards
@@ -871,6 +1055,20 @@ grafana:
     ido-metrics-observations-timings: "ido-metrics-observations-timings-dashboard"
     ido-metrics-system: "ido-metrics-system-dashboard"
     ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
+    # -- Metrics Dashboards (Infrastructure)
+    argo-cd: "argo-cd-dashboard"
+    elasticsearch-metrics: "elasticsearch-dashboard"
+    haproxy: "haproxy-dashboard"
+    postgresql: "postgresql-dashboard"
+    zookeeper-metrics: "zookeeper-metrics-dashboard"
+    opensearch: "opensearch-dashboard"
+    fluent-bit: "fluent-bit-dashboard"
+    velero: "velero-dashboard"
+    cloudnative-pg: "cloudnative-pg-dashboard"
+    loki: "loki-dashboard"
+    flink: "flink-dashboard"
+    kibana: "kibana-dashboard"
+    alloy: "alloy-dashboard"
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
@@ -916,11 +1114,10 @@ kibana:
   nodeSelector: {}
   service:
     type: ClusterIP
-  # extraEnvs:
-  #   - name: ELASTICSEARCH_USERNAME
-  #     value: elastic
-  #   - name: ELASTICSEARCH_PASSWORD
-  #     value: changeme
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9684"
+      prometheus.io/path: "/metrics"
   healthCheckPath: "/eoc-backend/kibana"
   kibanaConfig:
     kibana.yml: |
@@ -931,6 +1128,30 @@ kibana:
       server.rewriteBasePath: true
       server.compression.enabled: true
       server.requestId.allowFromAnyIp: true
+  # Add exporter sidecar for metrics
+  extraContainers:
+    - name: kibana-exporter
+      image: chamilad/kibana-prometheus-exporter:v7.17.x.2
+      args:
+        - -kibana.uri=http://localhost:5601
+        - -kibana.username=$(ELASTICSEARCH_USERNAME)
+        - -kibana.password=$(ELASTICSEARCH_PASSWORD)
+        - -web.listen-address=:9684
+      env:
+        - name: ELASTICSEARCH_USERNAME
+          value: ""
+        - name: ELASTICSEARCH_PASSWORD
+          value: ""
+      ports:
+        - containerPort: 9684
+          name: metrics
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 50m
+          memory: 64Mi
 
 # HAProxy Configuration
 # ---------------------
@@ -966,6 +1187,14 @@ haproxy:
   nodeSelector: {}
   service:
     type: NodePort
+  containerPorts:
+    prometheus: 8404
+  serviceMonitor:
+    enabled: true
+    endpoints:
+      - port: prometheus
+        path: /metrics
+        interval: 30s
   config: |
     defaults
       timeout connect 10s
@@ -975,6 +1204,13 @@ haproxy:
       mode http
       option httplog
       maxconn 3000
+    frontend stats
+      bind :8404
+      http-request use-service prometheus-exporter if { path /metrics }
+      stats enable
+      stats uri /stats
+      stats refresh 10s
+
     frontend http-in
       bind *:80
 
@@ -1156,10 +1392,29 @@ postgresql:
     #  repository: radiantone/bitnami-shell
     #  tag: 11-debian-11-r57
   metrics:
-    enabled: false
-    # image:
-    #  repository: radiantone/postgres-exporter
-    #  tag: 0.11.1-debian-11-r34
+    enabled: true
+    service:
+      ports:
+        metrics: 9187
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      labels:
+        release: prometheus
+    prometheusRule:
+      enabled: true
+      rules:
+        - alert: PostgresqlDown
+          expr: pg_up == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL down"
+            description: "PostgreSQL instance is down"
   fullnameOverride: postgresql
   image:
     repository: radiantone/postgresql
@@ -1382,7 +1637,7 @@ smtp:
 #   - `persistence.size`: Size of the persistent volume for storing OpenSearch data.
 
 opensearch:
-  enabled: false
+  enabled: true
   fullnameOverride: "opensearch"
   singleNode: true
   replicas: 1
@@ -1394,6 +1649,17 @@ opensearch:
       value: "true"
     - name: "DISABLE_INSTALL_DEMO_CONFIG"
       value: "true"
+  # Install Prometheus exporter plugin for metrics
+  plugins:
+    enabled: true
+    installList:
+      - https://github.com/Aiven-Open/prometheus-exporter-plugin-for-opensearch/releases/download/2.11.0.0/prometheus-exporter-2.11.0.0.zip
+  # Add pod annotations for Prometheus scraping
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/_prometheus/metrics"
+    prometheus.io/port: "9200"
+    prometheus.io/scheme: "http"
   rbac:
     create: false
     serviceAccountAnnotations: {}
@@ -1467,7 +1733,7 @@ opensearch-dashboards:
 # Existing ConfigMap (Optional): If you have a pre-existing ConfigMap with custom Fluent Bit configuration, specify its name here.
 
 fluent-bit:
-  enabled: false
+  enabled: true
   nodeSelector: {}
     # tenantname:
   fullnameOverride: "fluent-bit"
@@ -1478,9 +1744,23 @@ fluent-bit:
   service:
     type: ClusterIP
   prometheusRule:
-    enabled: false
+    enabled: true
+    rules:
+      - alert: FluentBitNoOutputBytes
+        expr: rate(fluentbit_output_proc_bytes_total[5m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fluent Bit not processing output bytes"
   serviceMonitor:
-    enabled: false
+    enabled: true
+    interval: 10s
+    scrapeTimeout: 10s
+  dashboards:
+    enabled: true
+    labelKey: grafana_dashboard
+    labelValue: "1"
 # ====== For helm chart version < 1.0.9 =====
   outputSearchType: "es"
   outputSearchHost: "elasticsearch-master"
@@ -1686,7 +1966,7 @@ curator:
 # Note: Ensure proper configuration of backup storage and credentials for successful operation.
 
 velero:
-  enabled: false
+  enabled: true
   fullnameOverride: "velero"
   backupStorage:
     bucket: ""
@@ -1722,6 +2002,35 @@ velero:
       volumeMounts:
         - mountPath: /target
           name: plugins
+  metrics:
+    enabled: true
+    scrapeInterval: 30s
+    scrapeTimeout: 10s
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8085"
+      prometheus.io/path: "/metrics"
+    serviceMonitor:
+      enabled: true
+      autodetect: true
+      additionalLabels:
+        release: prometheus
+    nodeAgentPodMonitor:
+      enabled: true
+      autodetect: true
+      additionalLabels:
+        release: prometheus
+    prometheusRule:
+      enabled: true
+      autodetect: true
+      spec:
+        - alert: VeleroBackupFailed
+          annotations:
+            message: "Velero backup {{ $labels.schedule }} has failed"
+          expr: velero_backup_last_status{schedule!=""} != 1
+          for: 15m
+          labels:
+            severity: warning
 
 # Zoo Navigator Configuration
 # ----------------------------
@@ -1776,7 +2085,7 @@ zoonavigator:
 # -- Cloud Native PG
 # -----------------------------------------------------------------
 cloudnative-pg:
-  enabled: false
+  enabled: true
   fullnameOverride: cnpg
   config:
     create: true
@@ -1796,6 +2105,15 @@ cloudnative-pg:
   # CRDs are installed by a dedicated job
   crds:
     create: false
+  # Monitoring configuration
+  monitoring:
+    podMonitorEnabled: true
+    podMonitorAdditionalLabels:
+      release: prometheus
+    grafanaDashboard:
+      create: true
+      labels:
+        grafana_dashboard: "1"
 
 # -----------------------------------------------------------------
 # -- Identity Observability - Nebula Operator for Graph Database
@@ -1828,7 +2146,7 @@ nebula-operator:
 # -- Identity Observability - Flink Operator for Apache Flink data processor
 # -----------------------------------------------------------------
 flink-kubernetes-operator:
-  enabled: false
+  enabled: true
   fullnameOverride: flink-operator
   nameOverride: flink-operator
   imagePullSecrets: []
@@ -1911,10 +2229,10 @@ velero-ui:
 # https://github.com/grafana/loki/blob/main/production/helm/loki/
 # -----------------------------------------------------------------
 loki:
-  enabled: false
+  enabled: true
   fullnameOverride: loki
 
-  deploymentMode: SimpleScalable
+  deploymentMode: SingleBinary
   imagePullSecrets: []
 
   test:
@@ -1986,15 +2304,15 @@ loki:
     compactor:
       retention_enabled: true
       retention_delete_delay: 1h
-      delete_request_store: s3
+      delete_request_store: filesystem
 
     storage:
-      type: s3
-      bucketNames: {}
+      type: filesystem
+      # bucketNames: {}
         # chunks: duploservices-rli-ops10-svc-common-125328463501
         # ruler: duploservices-rli-ops10-svc-common-125328463501
         # admin: duploservices-rli-ops10-svc-common-125328463501
-      s3: {}
+      # s3: {}
         # region: eu-west-3
         # s3forcepathstyle: true
 
@@ -2009,7 +2327,7 @@ loki:
     nodeSelector: {}
 
   backend:
-    replicas: 1
+    replicas: 0
     persistence:
       # Usage:
       #   - Local Temporal (TSDB) Index: index cache for faster queries
@@ -2025,11 +2343,11 @@ loki:
     nodeSelector: {}
 
   read:
-    replicas: 1
+    replicas: 0
     nodeSelector: {}
 
   write:
-    replicas: 1
+    replicas: 0
     persistence:
       # Usage:
       #   - Write-Ahead Log (WAL): ensure data durability before pushing to S3
@@ -2045,13 +2363,27 @@ loki:
       size: 50Gi
     nodeSelector: {}
 
+  # Monitoring configuration
+  monitoring:
+    serviceMonitor:
+      enabled: true
+      interval: 15s
+      labels: {}
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
+    rules:
+      enabled: true
+      alerting: true
+
 # -----------------------------------------------------------------
 # Alloy
 #   https://grafana.com/docs/loki/latest/send-data/alloy/
 #   https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy
 # -----------------------------------------------------------------
 alloy:
-  enabled: false
+  enabled: true
   fullnameOverride: alloy
 
   image:
@@ -2322,3 +2654,72 @@ alloy:
           // Limit concurrent streams
           max_streams = 5000
         }
+        
+        // ========== Self-monitoring for Alloy ==========
+        prometheus.exporter.self "alloy_metrics" {}
+        
+        prometheus.scrape "alloy" {
+          targets    = prometheus.exporter.self.alloy_metrics.targets
+          forward_to = [prometheus.remote_write.default.receiver]
+          scrape_interval = "15s"
+          job_name   = "alloy"
+        }
+        
+        // ServiceMonitor support
+        prometheus.operator.servicemonitors "services" {
+          forward_to = [prometheus.remote_write.default.receiver]
+        }
+        
+        // PodMonitor support
+        prometheus.operator.podmonitors "pods" {
+          forward_to = [prometheus.remote_write.default.receiver]
+        }
+        
+        // Remote write to Prometheus
+        prometheus.remote_write "default" {
+          endpoint {
+            name = "prometheus"
+            url  = "http://prometheus-server:9090/api/v1/write"
+            
+            queue_config {
+              capacity = 10000
+              max_samples_per_send = 2000
+              max_shards = 10
+            }
+          }
+        }
+
+# -----------------------------------------------------------------
+# -- Prometheus Elasticsearch Exporter for Elasticsearch Metrics
+# -----------------------------------------------------------------
+prometheus-elasticsearch-exporter:
+  enabled: true
+  fullnameOverride: elasticsearch-exporter
+  
+  # Elasticsearch connection settings
+  es:
+    uri: http://elasticsearch-master:9200
+    all: true
+    indices: true
+    shards: true
+    snapshots: true
+    cluster_settings: true
+    
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      release: prometheus
+
+# -----------------------------------------------------------------
+# -- Enable All Services for Metrics Testing
+# -----------------------------------------------------------------
+# All services are now enabled by default with metrics configured.
+# To disable specific services, override in your values:
+#
+# Example:
+# zookeeper:
+#   enabled: false
+# fluent-bit:
+#   enabled: false
