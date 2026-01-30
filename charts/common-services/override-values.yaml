@@ -53,6 +53,10 @@ postgresql:
       tenantname: duploservices-qaibtest
   metrics:
     enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/postgres-exporter
+      tag: latest
     serviceMonitor:
       enabled: true
       labels:
@@ -102,13 +106,9 @@ velero:
       enabled: true
 
 # 7. Loki - Metrics: 3100, Dashboard: ID 13639
+# DISABLED - requires object storage (S3/GCS/Minio)
 loki:
-  enabled: true
-  nodeSelector:
-    tenantname: duploservices-qaibtest
-  monitoring:
-    serviceMonitor:
-      enabled: true
+  enabled: false
 
 # 8. CloudNative PG - Dashboard: ID 20417
 cloudnative-pg:
@@ -125,6 +125,14 @@ opensearch:
     enabled: true
     serviceMonitor:
       enabled: true
+
+# OpenSearch Dashboards
+opensearch-dashboards:
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  service:
+    type: ClusterIP
 
 # 10. Flink Kubernetes Operator - Metrics: 9999, Dashboard: ID 14911
 flink-kubernetes-operator:
@@ -162,13 +170,52 @@ kibana:
     enabled: true
   service:
     type: ClusterIP
+  # Fix exporter image tag
+  extraContainers:
+    - name: kibana-exporter
+      image: chamilad/kibana-prometheus-exporter:v7.10.x.1
+      args:
+        - -kibana.uri=http://localhost:5601
+        - -kibana.username=$(ELASTICSEARCH_USERNAME)
+        - -kibana.password=$(ELASTICSEARCH_PASSWORD)
+        - -web.listen-address=:9684
+      env:
+        - name: ELASTICSEARCH_USERNAME
+          value: ""
+        - name: ELASTICSEARCH_PASSWORD
+          value: ""
+      ports:
+        - containerPort: 9684
+          name: metrics
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
 
 # ==========================================
 # DISABLED SERVICES (no metrics or UI only)
 # ==========================================
 
+# 14. Prometheus - Deploy in qaibtest namespace for cross-tenant scraping
 prometheus:
-  enabled: false  # Assuming Prometheus Operator already installed
+  enabled: true
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+  server:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    service:
+      type: ClusterIP
+  alertmanager:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+  pushgateway:
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+  kubeStateMetrics:
+    enabled: false  # Already in monitoring namespace
+  nodeExporter:
+    enabled: false  # Already in monitoring namespace
 
 grafana:
   enabled: true
@@ -237,7 +284,7 @@ grafana:
       datasources:
         - name: Prometheus
           type: prometheus
-          url: http://prometheus-server.monitoring.svc.cluster.local:9090
+          url: http://prometheus-server.duploservices-qaibtest.svc.cluster.local:9090
           access: proxy
           isDefault: true
   
@@ -305,16 +352,7 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/velero
-        - name: 'loki'
-          orgId: 1
-          folder: 'Logging'
-          type: file
-          disableDeletion: false
-          updateIntervalSeconds: 10
-          allowUiUpdates: true
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/loki
+
         - name: 'cloudnative-pg'
           orgId: 1
           folder: 'Infrastructure'
@@ -335,6 +373,16 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/opensearch
+        - name: 'opensearch-dashboards'
+          orgId: 1
+          folder: 'Infrastructure'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/opensearch-dashboards
         - name: 'flink'
           orgId: 1
           folder: 'Infrastructure'
@@ -345,16 +393,6 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/flink
-        - name: 'alloy'
-          orgId: 1
-          folder: 'Infrastructure'
-          type: file
-          disableDeletion: false
-          updateIntervalSeconds: 10
-          allowUiUpdates: true
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/alloy
         - name: 'elasticsearch'
           orgId: 1
           folder: 'Infrastructure'
@@ -385,12 +423,14 @@ grafana:
     # Dashboards for all enabled services
     flink: "flink-dashboard"
     kibana: "kibana-dashboard"
-    loki: "loki-dashboard"
     opensearch: "opensearch-dashboard"
+    opensearch-dashboards: "opensearch-dashboard"
     cloudnative-pg: "cloudnative-pg-dashboard"
     elasticsearch-metrics: "elasticsearch-dashboard"
     velero: "velero-dashboard"
-    alloy: "alloy-dashboard"
+    # Disable dashboards for unavailable services
+    loki: null
+    alloy: null
 argo-cd:
   server:
     service:

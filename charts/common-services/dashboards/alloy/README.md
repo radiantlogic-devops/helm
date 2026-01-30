@@ -1,29 +1,30 @@
 # Grafana Alloy Dashboards
 
-## Status
-Official Grafana Alloy dashboards are not yet published on Grafana.com with a stable dashboard ID.
+## Included Dashboard
 
-## Manual Installation
+- `alloy-cluster-dashboard.json` - Cluster overview dashboard (Grafana Dashboard ID: 19624)
 
-To use Alloy dashboards:
+This dashboard is automatically provisioned when:
+- `grafana.enabled: true`
+- `alloy.enabled: true`
 
-1. Clone the Alloy repository:
-   ```bash
-   git clone https://github.com/grafana/alloy.git
-   cd alloy/operations/alloy-mixin/dashboards
-   ```
+## Metrics
 
-2. Copy dashboards to this folder:
-   ```bash
-   cp alloy-operational.json /path/to/common-services/dashboards/alloy/
-   cp alloy-logs.json /path/to/common-services/dashboards/alloy/
-   cp alloy-cluster-overview.json /path/to/common-services/dashboards/alloy/
-   ```
+Alloy exposes metrics on port 12345 at `/metrics`. The service is configured with Prometheus annotations for automatic scraping:
 
-3. Redeploy the chart:
-   ```bash
-   helm upgrade --install common-services .
-   ```
+```yaml
+alloy:
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "12345"
+      prometheus.io/path: "/metrics"
+```
 
-## Alternative
-Use Grafana's built-in data source metrics or create custom dashboards from Alloy's self-metrics.
+## Key Metrics
+
+| Metric | Description |
+|--------|-------------|
+| `alloy_build_info` | Build information |
+| `alloy_component_*` | Component-level metrics |
+| `alloy_resources_*` | Resource usage metrics |

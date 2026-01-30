@@ -108,6 +108,10 @@ argo-cd:
       service:
         servicePort: 8082
         portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8082"
+          prometheus.io/path: "/metrics"
       serviceMonitor:
         enabled: true
         interval: 30s
@@ -119,6 +123,11 @@ argo-cd:
     nodeSelector: {}
     metrics:
       enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "9121"
+          prometheus.io/path: "/metrics"
       serviceMonitor:
         enabled: true
         additionalLabels:
@@ -132,6 +141,10 @@ argo-cd:
       service:
         servicePort: 8083
         portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8083"
+          prometheus.io/path: "/metrics"
       serviceMonitor:
         enabled: true
         interval: 30s
@@ -144,6 +157,10 @@ argo-cd:
       service:
         servicePort: 8084
         portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8084"
+          prometheus.io/path: "/metrics"
       serviceMonitor:
         enabled: true
         interval: 30s
@@ -234,6 +251,11 @@ grafana:
   nodeSelector: {}
   service:
     type: ClusterIP
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "3000"
+      # Path matches grafana.ini server.root_url subpath
+      prometheus.io/path: "/eoc-backend/grafana/metrics"
   # Persistence enabled by default
   persistence:
     enabled: true
@@ -1187,6 +1209,10 @@ haproxy:
   nodeSelector: {}
   service:
     type: NodePort
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8404"
+      prometheus.io/path: "/metrics"
   containerPorts:
     prometheus: 8404
   serviceMonitor:
@@ -1743,6 +1769,10 @@ fluent-bit:
   metricsPort: 2020
   service:
     type: ClusterIP
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "2020"
+      prometheus.io/path: "/api/v1/metrics/prometheus"
   prometheusRule:
     enabled: true
     rules:
@@ -2152,6 +2182,10 @@ flink-kubernetes-operator:
   imagePullSecrets: []
   operatorPod:
     nodeSelector: {}
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9999"
+      prometheus.io/path: "/metrics"
 
   webhook:
     create: false
@@ -2388,6 +2422,13 @@ alloy:
 
   image:
     pullSecrets: []
+
+  # Service configuration with Prometheus annotations
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "12345"
+      prometheus.io/path: "/metrics"
 
   # Do not install CRDs for monitoring
   crds:
@@ -2695,7 +2736,14 @@ alloy:
 prometheus-elasticsearch-exporter:
   enabled: true
   fullnameOverride: elasticsearch-exporter
-  
+
+  # Service annotations for Prometheus scraping
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9108"
+      prometheus.io/path: "/metrics"
+
   # Elasticsearch connection settings
   es:
     uri: http://elasticsearch-master:9200

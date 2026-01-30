@@ -1,22 +1,27 @@
 {{/* ============================================================================
     Grafana Dashboards for Metrics-Enabled Services
-    
+
     This template creates ConfigMaps for Grafana dashboards that are conditionally
     imported based on whether the respective service is enabled.
-    
+
+    All dashboards are automatically provisioned when the service is enabled.
+    Prometheus scrapes metrics via service annotations (prometheus.io/scrape).
+
     Dashboards included:
-    - Argo CD (argo-cd)
-    - Elasticsearch
-    - HAProxy
-    - PostgreSQL
-    - ZooKeeper
-    - OpenSearch
-    - Fluent Bit
-    - Velero
-    - CloudNative PG
-    - Loki
-    - Flink
-    - Kibana
+    - Argo CD (argo-cd)         - GitOps continuous delivery
+    - Elasticsearch             - Search and analytics engine
+    - HAProxy                   - Load balancer / API gateway
+    - PostgreSQL                - Relational database
+    - ZooKeeper                 - Coordination service
+    - OpenSearch                - Search and analytics (ES alternative)
+    - Fluent Bit                - Log processor / forwarder
+    - Velero                    - Backup and restore
+    - CloudNative PG            - PostgreSQL operator
+    - Loki                      - Log aggregation
+    - Flink                     - Stream processing operator
+    - Kibana                    - Elasticsearch visualization
+    - Alloy                     - Observability collector (Grafana Agent)
+    - Grafana                   - Self-monitoring metrics
     ============================================================================ */}}
 
 {{/* ----------------------------------------------------------------------------
@@ -225,6 +230,24 @@ metadata:
     grafana_dashboard: "1"
 data:
 {{ (.Files.Glob "dashboards/alloy/*.json").AsConfig | indent 2 }}
+---
+{{- end }}
+{{- end }}
+
+{{/* ----------------------------------------------------------------------------
+    Grafana Self-Monitoring Dashboard
+    Condition: grafana.enabled = true
+    ---------------------------------------------------------------------------- */}}
+{{- if .Values.grafana.enabled }}
+{{- if (.Files.Glob "dashboards/grafana/*.json") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-metrics-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+{{ (.Files.Glob "dashboards/grafana/*.json").AsConfig | indent 2 }}
 ---
 {{- end }}
 {{- end }}

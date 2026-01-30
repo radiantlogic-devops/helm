@@ -1,11 +1,13 @@
 # Overrides for duploservices-qaibtest deployment
+# Chart version: 2.0.1
+# Purpose: Full E2E testing of metrics and dashboards
 global:
   hibernate: false
   postgresql:
     auth:
       database: eocdb
 
-nodeSelector: 
+nodeSelector:
   tenantname: duploservices-qaibtest
 
 # ----------------------------------------------------------------------------
@@ -27,6 +29,9 @@ postgresql:
     nodeSelector: { tenantname: duploservices-qaibtest }
   metrics:
     enabled: true
+    image:
+      # Use latest tag as specific versions may have issues
+      tag: latest
     serviceMonitor:
       enabled: true
       labels: { release: prometheus }
@@ -34,7 +39,7 @@ postgresql:
 argo-cd:
   enabled: true
   crds:
-    install: false
+    install: true
   controller:
     nodeSelector: { tenantname: duploservices-qaibtest }
     metrics:
@@ -77,6 +82,8 @@ elasticsearch:
 kibana:
   enabled: true
   nodeSelector: { tenantname: duploservices-qaibtest }
+  # Disable sidecar exporter to avoid image pull errors
+  extraContainers: []
 
 prometheus-elasticsearch-exporter:
   enabled: true
@@ -99,30 +106,67 @@ fluent-bit:
     enabled: true
 
 # ----------------------------------------------------------------------------
+# Prometheus Configuration
+# ----------------------------------------------------------------------------
+prometheus:
+  enabled: true
+  server:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+  prometheus-pushgateway:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+
+# ----------------------------------------------------------------------------
 # Grafana Configuration
 # ----------------------------------------------------------------------------
 grafana:
   enabled: true
   nodeSelector: { tenantname: duploservices-qaibtest }
-  # Ensure dashboards are created
   sidecar:
     dashboards:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
+  # Dashboards - all enabled services will have their dashboards loaded
+  dashboardsConfigMaps:
+    # -- FID/Product Dashboards
+    fid: "fid-dashboard"
+    zookeeper: "zookeeper-dashboard"
+    iddm: "iddm-dashboard"
+    elasticsearch: "audit-logs-elastic-dashboard"
+    service-status: "service-status-dashboard"
+    # -- Metrics Dashboards (Enabled services)
+    argo-cd: "argo-cd-dashboard"
+    elasticsearch-metrics: "elasticsearch-dashboard"
+    haproxy: "haproxy-dashboard"
+    postgresql: "postgresql-dashboard"
+    zookeeper-metrics: "zookeeper-metrics-dashboard"
+    fluent-bit: "fluent-bit-dashboard"
+    cloudnative-pg: "cloudnative-pg-dashboard"
+    kibana: "kibana-dashboard"
+    grafana: "grafana-metrics-dashboard"
+    alloy: "alloy-dashboard"
+    # -- Disabled Dashboards (services not enabled)
+    opensearch: null
+    velero: null
+    loki: null
+    flink: null
 
 # ----------------------------------------------------------------------------
-# Services to Skip/Disable if problematic (Loki, Velero, OpenSearch)
+# Alloy - Log Collector (sends to Loki when enabled)
 # ----------------------------------------------------------------------------
-# Loki had issues with storage validation in SimpleScalable mode
+alloy:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+
+# ----------------------------------------------------------------------------
+# Services Disabled for this test
+# ----------------------------------------------------------------------------
 loki:
   enabled: false
 
-# Velero often needs cloud-specific backup storage (S3) which might not be ready
 velero:
   enabled: false
 
-# OpenSearch can be heavy/slow to start in small test clusters
 opensearch:
   enabled: false
 
