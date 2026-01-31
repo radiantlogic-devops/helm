@@ -249,6 +249,13 @@ grafana:
   enabled: true
   fullnameOverride: grafana
   nodeSelector: {}
+  # Sidecar configuration for dashboard provisioning
+  sidecar:
+    dashboards:
+      enabled: true
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
   service:
     type: ClusterIP
     annotations:
@@ -1078,19 +1085,15 @@ grafana:
     ido-metrics-system: "ido-metrics-system-dashboard"
     ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
     # -- Metrics Dashboards (Infrastructure)
-    argo-cd: "argo-cd-dashboard"
+    # Only dashboards with working metrics are enabled by default
+    argo-cd: "argocd-dashboard"
     elasticsearch-metrics: "elasticsearch-dashboard"
     haproxy: "haproxy-dashboard"
-    postgresql: "postgresql-dashboard"
-    zookeeper-metrics: "zookeeper-metrics-dashboard"
-    opensearch: "opensearch-dashboard"
     fluent-bit: "fluent-bit-dashboard"
-    velero: "velero-dashboard"
-    cloudnative-pg: "cloudnative-pg-dashboard"
-    loki: "loki-dashboard"
-    flink: "flink-dashboard"
-    kibana: "kibana-dashboard"
-    alloy: "alloy-dashboard"
+    zookeeper-metrics: "zookeeper-metrics-dashboard"
+    prometheus: "prometheus-dashboard"
+    postgresql: "postgresql-dashboard"
+    # Grafana self-monitoring dashboard is created by template when grafana.enabled=true
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
@@ -1151,29 +1154,38 @@ kibana:
       server.compression.enabled: true
       server.requestId.allowFromAnyIp: true
   # Add exporter sidecar for metrics
+  # Using custom exporter: https://github.com/gnanirahulnutakki/kibana-prometheus-exporter
   extraContainers:
     - name: kibana-exporter
-      image: chamilad/kibana-prometheus-exporter:v7.17.x.2
+      image: rahulnutakki/kibana-prometheus-exporter:latest
       args:
-        - -kibana.uri=http://localhost:5601
-        - -kibana.username=$(ELASTICSEARCH_USERNAME)
-        - -kibana.password=$(ELASTICSEARCH_PASSWORD)
-        - -web.listen-address=:9684
-      env:
-        - name: ELASTICSEARCH_USERNAME
-          value: ""
-        - name: ELASTICSEARCH_PASSWORD
-          value: ""
+        - --kibana-url=http://localhost:5601/eoc-backend/kibana
+        - --log-level=info
       ports:
         - containerPort: 9684
           name: metrics
+          protocol: TCP
       resources:
         limits:
           cpu: 100m
-          memory: 128Mi
-        requests:
-          cpu: 50m
           memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: metrics
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 5
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: metrics
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 5
 
 # HAProxy Configuration
 # ---------------------

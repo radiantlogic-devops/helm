@@ -170,27 +170,36 @@ kibana:
     enabled: true
   service:
     type: ClusterIP
-  # Fix exporter image tag
+  # Custom exporter: https://github.com/gnanirahulnutakki/kibana-prometheus-exporter
   extraContainers:
     - name: kibana-exporter
-      image: chamilad/kibana-prometheus-exporter:v7.10.x.1
+      image: rahulnutakki/kibana-prometheus-exporter:latest
       args:
-        - -kibana.uri=http://localhost:5601
-        - -kibana.username=$(ELASTICSEARCH_USERNAME)
-        - -kibana.password=$(ELASTICSEARCH_PASSWORD)
-        - -web.listen-address=:9684
-      env:
-        - name: ELASTICSEARCH_USERNAME
-          value: ""
-        - name: ELASTICSEARCH_PASSWORD
-          value: ""
+        - --kibana-url=http://localhost:5601
+        - --log-level=info
       ports:
         - containerPort: 9684
           name: metrics
+          protocol: TCP
       resources:
         limits:
           cpu: 100m
-          memory: 128Mi
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: metrics
+        initialDelaySeconds: 10
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: metrics
+        initialDelaySeconds: 10
+        periodSeconds: 10
 
 # ==========================================
 # DISABLED SERVICES (no metrics or UI only)

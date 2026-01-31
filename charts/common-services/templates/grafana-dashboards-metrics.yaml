@@ -8,36 +8,35 @@
     Prometheus scrapes metrics via service annotations (prometheus.io/scrape).
 
     Dashboards included:
-    - Argo CD (argo-cd)         - GitOps continuous delivery
     - Elasticsearch             - Search and analytics engine
     - HAProxy                   - Load balancer / API gateway
-    - PostgreSQL                - Relational database
-    - ZooKeeper                 - Coordination service
-    - OpenSearch                - Search and analytics (ES alternative)
     - Fluent Bit                - Log processor / forwarder
-    - Velero                    - Backup and restore
-    - CloudNative PG            - PostgreSQL operator
-    - Loki                      - Log aggregation
-    - Flink                     - Stream processing operator
-    - Kibana                    - Elasticsearch visualization
-    - Alloy                     - Observability collector (Grafana Agent)
     - Grafana                   - Self-monitoring metrics
+    - ZooKeeper                 - Coordination service
+    - Prometheus                - Monitoring system self-metrics
+    - Kibana                    - Log visualization UI metrics
     ============================================================================ */}}
 
 {{/* ----------------------------------------------------------------------------
-    Argo CD Dashboard
+    ArgoCD Dashboard
     Condition: argo-cd.enabled = true
+    Metrics: argocd_* from controller, server, repo-server
+    Note: Application metrics appear when ArgoCD apps are deployed
     ---------------------------------------------------------------------------- */}}
 {{- if and (.Values.grafana.enabled) (index .Values "argo-cd" "enabled") }}
+{{- if (.Files.Glob "dashboards/argo-cd/argocd-dashboard.json") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argo-cd-dashboard
+  name: argocd-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "GitOps"
 data:
-{{ (.Files.Glob "dashboards/argo-cd/argo-cd-dashboard.json").AsConfig | indent 2 }}
+{{ (.Files.Glob "dashboards/argo-cd/argocd-dashboard.json").AsConfig | indent 2 }}
 ---
+{{- end }}
 {{- end }}
 
 {{/* ----------------------------------------------------------------------------
@@ -51,6 +50,8 @@ metadata:
   name: elasticsearch-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Database"
 data:
 {{ (.Files.Glob "dashboards/elasticsearch/elasticsearch-dashboard.json").AsConfig | indent 2 }}
 ---
@@ -67,56 +68,10 @@ metadata:
   name: haproxy-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Infrastructure"
 data:
 {{ (.Files.Glob "dashboards/haproxy/haproxy-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    PostgreSQL Dashboard
-    Condition: postgresql.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (.Values.postgresql.enabled) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgresql-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/postgresql/postgresql-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    ZooKeeper Dashboard
-    Condition: zookeeper.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (.Values.zookeeper.enabled) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: zookeeper-metrics-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/zookeeper/zookeeper-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    OpenSearch Dashboard
-    Condition: opensearch.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (.Values.opensearch.enabled) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: opensearch-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/opensearch/opensearch-dashboard.json").AsConfig | indent 2 }}
 ---
 {{- end }}
 
@@ -131,107 +86,11 @@ metadata:
   name: fluent-bit-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Logging"
 data:
 {{ (.Files.Glob "dashboards/fluent-bit/fluent-bit-dashboard.json").AsConfig | indent 2 }}
 ---
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    Velero Dashboard
-    Condition: velero.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (.Values.velero.enabled) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: velero-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/velero/velero-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    CloudNative PG Dashboard
-    Condition: cloudnative-pg.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (index .Values "cloudnative-pg" "enabled") }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cloudnative-pg-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/cloudnative-pg/cloudnative-pg-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    Loki Dashboards
-    Condition: loki.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (index .Values "loki" "enabled") }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: loki-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/loki/*.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    Flink Dashboard
-    Condition: flink-kubernetes-operator.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (index .Values "flink-kubernetes-operator" "enabled") }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: flink-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/flink/flink-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    Kibana Dashboard
-    Condition: kibana.enabled = true
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (.Values.kibana.enabled) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kibana-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/kibana/kibana-dashboard.json").AsConfig | indent 2 }}
----
-{{- end }}
-
-{{/* ----------------------------------------------------------------------------
-    Alloy Dashboards
-    Condition: alloy.enabled = true AND dashboard files exist
-    ---------------------------------------------------------------------------- */}}
-{{- if and (.Values.grafana.enabled) (index .Values "alloy" "enabled") }}
-{{- if (.Files.Glob "dashboards/alloy/*.json") }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alloy-dashboard
-  labels:
-    grafana_dashboard: "1"
-data:
-{{ (.Files.Glob "dashboards/alloy/*.json").AsConfig | indent 2 }}
----
-{{- end }}
 {{- end }}
 
 {{/* ----------------------------------------------------------------------------
@@ -246,8 +105,95 @@ metadata:
   name: grafana-metrics-dashboard
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Observability"
 data:
 {{ (.Files.Glob "dashboards/grafana/*.json").AsConfig | indent 2 }}
+---
+{{- end }}
+{{- end }}
+
+{{/* ----------------------------------------------------------------------------
+    ZooKeeper Dashboard
+    Condition: zookeeper.enabled = true
+    Metrics: JMX metrics via zookeeper-metrics service
+    ---------------------------------------------------------------------------- */}}
+{{- if and (.Values.grafana.enabled) (.Values.zookeeper.enabled) }}
+{{- if (.Files.Glob "dashboards/zookeeper/zookeeper-metrics-dashboard.json") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zookeeper-metrics-dashboard
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Infrastructure"
+data:
+{{ (.Files.Glob "dashboards/zookeeper/zookeeper-metrics-dashboard.json").AsConfig | indent 2 }}
+---
+{{- end }}
+{{- end }}
+
+{{/* ----------------------------------------------------------------------------
+    Prometheus Self-Monitoring Dashboard
+    Condition: prometheus.enabled = true
+    Metrics: prometheus_* self-metrics
+    ---------------------------------------------------------------------------- */}}
+{{- if and (.Values.grafana.enabled) (.Values.prometheus.enabled) }}
+{{- if (.Files.Glob "dashboards/prometheus/prometheus-dashboard.json") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-dashboard
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Observability"
+data:
+{{ (.Files.Glob "dashboards/prometheus/prometheus-dashboard.json").AsConfig | indent 2 }}
+---
+{{- end }}
+{{- end }}
+
+{{/* ----------------------------------------------------------------------------
+    PostgreSQL Dashboard
+    Condition: postgresql.enabled = true
+    Metrics: pg_* from postgres_exporter sidecar
+    ---------------------------------------------------------------------------- */}}
+{{- if and (.Values.grafana.enabled) (.Values.postgresql.enabled) }}
+{{- if (.Files.Glob "dashboards/postgresql/postgresql-dashboard.json") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-dashboard
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Database"
+data:
+{{ (.Files.Glob "dashboards/postgresql/postgresql-dashboard.json").AsConfig | indent 2 }}
+---
+{{- end }}
+{{- end }}
+
+{{/* ----------------------------------------------------------------------------
+    Kibana Dashboard
+    Condition: kibana.enabled = true
+    Metrics: kibana_* from custom prometheus exporter sidecar
+    Exporter: https://github.com/gnanirahulnutakki/kibana-prometheus-exporter
+    ---------------------------------------------------------------------------- */}}
+{{- if and (.Values.grafana.enabled) (.Values.kibana.enabled) }}
+{{- if (.Files.Glob "dashboards/kibana/kibana-dashboard.json") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-dashboard
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Logging"
+data:
+{{ (.Files.Glob "dashboards/kibana/kibana-dashboard.json").AsConfig | indent 2 }}
 ---
 {{- end }}
 {{- end }}

@@ -32,15 +32,15 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "none"
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
       "id": 2,
       "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(loki_panic_total{namespace=~\"$namespace\"})", "refId": "A" }],
-      "title": "Total Panics",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(grafana_alerting_active_alerts{namespace=~\"$namespace\"})", "refId": "A" }],
+      "title": "Active Alerts",
       "type": "stat"
     },
     {
@@ -50,14 +50,14 @@
           "color": { "mode": "thresholds" },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "percentunit"
+          "unit": "none"
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
       "id": 3,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_hits_total{namespace=~\"$namespace\"}[5m])) / clamp_min(sum(rate(loki_querier_index_cache_gets_total{namespace=~\"$namespace\"}[5m])), 1e-10)", "refId": "A" }],
-      "title": "Cache Hit Ratio",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(grafana_alerting_active_configurations{namespace=~\"$namespace\"})", "refId": "A" }],
+      "title": "Active Configurations",
       "type": "stat"
     },
     {
@@ -73,8 +73,8 @@
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
       "id": 4,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_logql_querystats_ingester_sent_lines_total{namespace=~\"$namespace\"}[5m]))", "refId": "A" }],
-      "title": "Ingester Sent Lines/s",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(grafana_access_evaluation_count{namespace=~\"$namespace\"}[5m]))", "refId": "A" }],
+      "title": "Access Evaluations/s",
       "type": "stat"
     },
     {
@@ -84,14 +84,14 @@
           "color": { "mode": "thresholds" },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
+          "unit": "none"
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
       "id": 5,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(loki_experimental_features_in_use_total{namespace=~\"$namespace\"})", "refId": "A" }],
-      "title": "Experimental Features",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(grafana_alerting_discovered_configurations{namespace=~\"$namespace\"})", "refId": "A" }],
+      "title": "Discovered Configurations",
       "type": "stat"
     },
     {
@@ -99,7 +99,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
       "id": 6,
       "panels": [],
-      "title": "Query Statistics",
+      "title": "Alerting",
       "type": "row"
     },
     {
@@ -116,8 +116,11 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
       "id": 7,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_logql_querystats_ingester_sent_lines_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Sent Lines/s", "refId": "A" }],
-      "title": "Ingester Sent Lines Rate",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(grafana_alerting_active_alerts{namespace=~\"$namespace\"})", "legendFormat": "Active Alerts", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(grafana_alerting_alerts{namespace=~\"$namespace\"})", "legendFormat": "Total Alerts", "refId": "B" }
+      ],
+      "title": "Alerts Over Time",
       "type": "timeseries"
     },
     {
@@ -134,8 +137,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
       "id": 8,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_logql_querystats_duplicates_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Duplicates/s", "refId": "A" }],
-      "title": "Query Duplicates Rate",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(grafana_alerting_alerts_received_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Alerts Received/s", "refId": "A" }],
+      "title": "Alerts Received Rate",
       "type": "timeseries"
     },
     {
@@ -143,7 +146,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
       "id": 9,
       "panels": [],
-      "title": "Index Cache",
+      "title": "Access Control",
       "type": "row"
     },
     {
@@ -160,12 +163,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
       "id": 10,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_gets_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Gets/s", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_hits_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Hits/s", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_puts_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Puts/s", "refId": "C" }
-      ],
-      "title": "Cache Operations Rate",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(grafana_access_evaluation_count{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Evaluations/s", "refId": "A" }],
+      "title": "Access Evaluation Rate",
       "type": "timeseries"
     },
     {
@@ -176,14 +175,14 @@
           "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "percentunit"
+          "unit": "s"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
       "id": 11,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_hits_total{namespace=~\"$namespace\"}[5m])) / clamp_min(sum(rate(loki_querier_index_cache_gets_total{namespace=~\"$namespace\"}[5m])), 1e-10)", "legendFormat": "Hit Ratio", "refId": "A" }],
-      "title": "Cache Hit Ratio Over Time",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(grafana_access_evaluation_duration_sum{namespace=~\"$namespace\"}[5m])) / clamp_min(sum(rate(grafana_access_evaluation_duration_count{namespace=~\"$namespace\"}[5m])), 1e-10)", "legendFormat": "Avg Duration", "refId": "A" }],
+      "title": "Access Evaluation Duration",
       "type": "timeseries"
     },
     {
@@ -191,7 +190,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
       "id": 12,
       "panels": [],
-      "title": "Errors",
+      "title": "Cache & Permissions",
       "type": "row"
     },
     {
@@ -203,17 +202,13 @@
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "short"
-        },
-        "overrides": [{ "matcher": { "id": "byRegexp", "options": ".*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }]
+        }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "id": 13,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_corruptions_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Corruptions/s", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_querier_index_cache_encode_errors_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Encode Errors/s", "refId": "B" }
-      ],
-      "title": "Cache Errors Rate",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum by (status) (grafana_access_permissions_cache_usage{namespace=~\"$namespace\"})", "legendFormat": "{{status}}", "refId": "A" }],
+      "title": "Permissions Cache Usage",
       "type": "timeseries"
     },
     {
@@ -224,21 +219,20 @@
           "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": [{ "matcher": { "id": "byRegexp", "options": ".*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }]
+          "unit": "s"
+        }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "id": 14,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(loki_panic_total{namespace=~\"$namespace\"}[5m]))", "legendFormat": "Panics/s", "refId": "A" }],
-      "title": "Panic Rate",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sum(rate(grafana_access_permissions_duration_sum{namespace=~\"$namespace\"}[5m])) / clamp_min(sum(rate(grafana_access_permissions_duration_count{namespace=~\"$namespace\"}[5m])), 1e-10)", "legendFormat": "Avg Permission Duration", "refId": "A" }],
+      "title": "Permissions Duration",
       "type": "timeseries"
     }
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["loki", "logging"],
+  "tags": ["grafana", "observability"],
   "templating": {
     "list": [
       {
@@ -259,14 +253,14 @@
       {
         "current": {},
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "definition": "label_values(loki_panic_total, namespace)",
+        "definition": "label_values(grafana_alerting_active_alerts, namespace)",
         "hide": 0,
         "includeAll": true,
         "label": "Namespace",
         "multi": false,
         "name": "namespace",
         "options": [],
-        "query": { "query": "label_values(loki_panic_total, namespace)", "refId": "StandardVariableQuery" },
+        "query": { "query": "label_values(grafana_alerting_active_alerts, namespace)", "refId": "StandardVariableQuery" },
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -278,7 +272,7 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Loki Metrics Overview",
-  "uid": "loki-custom-001",
+  "title": "Grafana Metrics Overview",
+  "uid": "grafana-custom-001",
   "version": 1
 }
