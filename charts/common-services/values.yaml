@@ -1157,7 +1157,7 @@ kibana:
   # Using custom exporter: https://github.com/gnanirahulnutakki/kibana-prometheus-exporter
   extraContainers:
     - name: kibana-exporter
-      image: rahulnutakki/kibana-prometheus-exporter:latest
+      image: rahulnutakki/kibana-prometheus-exporter:v1.1.0
       args:
         - --kibana-url=http://localhost:5601/eoc-backend/kibana
         - --log-level=info
