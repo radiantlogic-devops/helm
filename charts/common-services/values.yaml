@@ -2707,33 +2707,33 @@ alloy:
           // Limit concurrent streams
           max_streams = 5000
         }
-        
+
         // ========== Self-monitoring for Alloy ==========
         prometheus.exporter.self "alloy_metrics" {}
-        
+
         prometheus.scrape "alloy" {
           targets    = prometheus.exporter.self.alloy_metrics.targets
           forward_to = [prometheus.remote_write.default.receiver]
           scrape_interval = "15s"
           job_name   = "alloy"
         }
-        
+
         // ServiceMonitor support
         prometheus.operator.servicemonitors "services" {
           forward_to = [prometheus.remote_write.default.receiver]
         }
-        
+
         // PodMonitor support
         prometheus.operator.podmonitors "pods" {
           forward_to = [prometheus.remote_write.default.receiver]
         }
-        
+
         // Remote write to Prometheus
         prometheus.remote_write "default" {
           endpoint {
             name = "prometheus"
             url  = "http://prometheus-server:9090/api/v1/write"
-            
+
             queue_config {
               capacity = 10000
               max_samples_per_send = 2000
@@ -2764,7 +2764,7 @@ prometheus-elasticsearch-exporter:
     shards: true
     snapshots: true
     cluster_settings: true
-    
+
   serviceMonitor:
     enabled: true
     interval: 30s
