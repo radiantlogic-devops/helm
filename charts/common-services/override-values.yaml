@@ -362,16 +362,16 @@ grafana:
           options:
             path: /var/lib/grafana/dashboards/velero
 
-        - name: 'cloudnative-pg'
-          orgId: 1
-          folder: 'Infrastructure'
-          type: file
-          disableDeletion: false
-          updateIntervalSeconds: 10
-          allowUiUpdates: true
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/cloudnative-pg
+        # - name: 'cloudnative-pg'
+        #   orgId: 1
+        #   folder: 'Infrastructure'
+        #   type: file
+        #   disableDeletion: false
+        #   updateIntervalSeconds: 10
+        #   allowUiUpdates: true
+        #   editable: true
+        #   options:
+        #     path: /var/lib/grafana/dashboards/cloudnative-pg
         - name: 'opensearch'
           orgId: 1
           folder: 'Infrastructure'
@@ -434,7 +434,7 @@ grafana:
     kibana: "kibana-dashboard"
     opensearch: "opensearch-dashboard"
     opensearch-dashboards: "opensearch-dashboard"
-    cloudnative-pg: "cloudnative-pg-dashboard"
+    # cloudnative-pg: "cloudnative-pg-dashboard"
     elasticsearch-metrics: "elasticsearch-dashboard"
     velero: "velero-dashboard"
     # Disable dashboards for unavailable services

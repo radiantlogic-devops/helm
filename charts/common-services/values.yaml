@@ -973,16 +973,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/velero
-      - name: 'cloudnative-pg'
-        orgId: 1
-        folder: 'Infrastructure'
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/cloudnative-pg
+      # - name: 'cloudnative-pg'
+      #   orgId: 1
+      #   folder: 'Infrastructure'
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/cloudnative-pg
       - name: 'loki'
         orgId: 1
         folder: 'Logging'
