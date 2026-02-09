@@ -893,16 +893,16 @@ grafana:
         options:
           path: /var/lib/grafana/dashboards/ido-metrics-writeback-service
       # -- Metrics Dashboards (Infrastructure)
-      - name: 'argo-cd'
-        orgId: 1
-        folder: 'Infrastructure'
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/argo-cd
+      # - name: 'argo-cd'
+      #   orgId: 1
+      #   folder: 'Infrastructure'
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/argo-cd
       - name: 'elasticsearch-metrics'
         orgId: 1
         folder: 'Infrastructure'
@@ -933,16 +933,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/postgresql
-      - name: 'zookeeper-metrics'
-        orgId: 1
-        folder: 'Infrastructure'
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/zookeeper-metrics
+      # - name: 'zookeeper-metrics'
+      #   orgId: 1
+      #   folder: 'Infrastructure'
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/zookeeper-metrics
       - name: 'opensearch'
         orgId: 1
         folder: 'Infrastructure'
@@ -953,16 +953,16 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/opensearch
-      - name: 'fluent-bit'
-        orgId: 1
-        folder: 'Logging'
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/fluent-bit
+      # - name: 'fluent-bit'
+      #   orgId: 1
+      #   folder: 'Logging'
+      #   type: file
+      #   disableDeletion: false
+      #   updateIntervalSeconds: 10
+      #   allowUiUpdates: true
+      #   editable: true
+      #   options:
+      #     path: /var/lib/grafana/dashboards/fluent-bit
       - name: 'velero'
         orgId: 1
         folder: 'Backup'
@@ -1086,11 +1086,11 @@ grafana:
     ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
     # -- Metrics Dashboards (Infrastructure)
     # Only dashboards with working metrics are enabled by default
-    argo-cd: "argocd-dashboard"
+    # argo-cd: "argocd-dashboard"
     elasticsearch-metrics: "elasticsearch-dashboard"
     haproxy: "haproxy-dashboard"
-    fluent-bit: "fluent-bit-dashboard"
-    zookeeper-metrics: "zookeeper-metrics-dashboard"
+    # fluent-bit: "fluent-bit-dashboard"
+    # zookeeper-metrics: "zookeeper-metrics-dashboard"
     prometheus: "prometheus-dashboard"
     postgresql: "postgresql-dashboard"
     # Grafana self-monitoring dashboard is created by template when grafana.enabled=true
@@ -1164,6 +1164,8 @@ kibana:
       args:
         - --kibana-url=http://localhost:5601/eoc-backend/kibana
         - --log-level=info
+        # - '--kibana-username=elastic'
+        # - '--kibana-password=ReplaceMe'
       ports:
         - containerPort: 9684
           name: metrics
