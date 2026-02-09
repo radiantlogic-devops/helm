@@ -64,7 +64,7 @@ zookeeper:
         prometheus.io/port: "9141"
         prometheus.io/path: "/metrics"
     serviceMonitor:
-      enabled: true
+      enabled: false
       interval: 30s
       additionalLabels:
         release: prometheus
@@ -113,7 +113,7 @@ argo-cd:
           prometheus.io/port: "8082"
           prometheus.io/path: "/metrics"
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         additionalLabels:
           release: prometheus
@@ -129,7 +129,7 @@ argo-cd:
           prometheus.io/port: "9121"
           prometheus.io/path: "/metrics"
       serviceMonitor:
-        enabled: true
+        enabled: false
         additionalLabels:
           release: prometheus
   server:
@@ -146,7 +146,7 @@ argo-cd:
           prometheus.io/port: "8083"
           prometheus.io/path: "/metrics"
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         additionalLabels:
           release: prometheus
@@ -162,11 +162,12 @@ argo-cd:
           prometheus.io/port: "8084"
           prometheus.io/path: "/metrics"
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         additionalLabels:
           release: prometheus
   crds:
+    install: true
     keep: false
   # Disabling new components that didn't exist in 5.6.0
   commitServer:
@@ -1093,6 +1094,12 @@ grafana:
     # zookeeper-metrics: "zookeeper-metrics-dashboard"
     prometheus: "prometheus-dashboard"
     postgresql: "postgresql-dashboard"
+    opensearch: "opensearch-dashboard"
+    velero: "velero-dashboard"
+    loki: "loki-dashboard"
+    flink: "flink-dashboard"
+    alloy: "alloy-dashboard"
+    kibana: "kibana-dashboard"
     # Grafana self-monitoring dashboard is created by template when grafana.enabled=true
 
 # Elasticsearch & Kibana Configuration
@@ -1145,7 +1152,7 @@ kibana:
       prometheus.io/path: "/metrics"
   healthCheckPath: "/eoc-backend/kibana"
   serviceMonitor:
-    enabled: true
+    enabled: false
 
   kibanaConfig:
     kibana.yml: |
@@ -1164,8 +1171,12 @@ kibana:
       args:
         - --kibana-url=http://localhost:5601/eoc-backend/kibana
         - --log-level=info
+        # Authentication for Kibana exporter (optional)
+        # The exporter skips auth when username is empty.
+        # For authenticated clusters, uncomment:
         # - '--kibana-username=elastic'
-        # - '--kibana-password=ReplaceMe'
+        # - '--kibana-password=<your-password>'
+        # Or use env vars: KIBANA_USERNAME, KIBANA_PASSWORD
       ports:
         - containerPort: 9684
           name: metrics
@@ -1233,7 +1244,7 @@ haproxy:
   containerPorts:
     prometheus: 8404
   serviceMonitor:
-    enabled: true
+    enabled: false
     endpoints:
       - port: prometheus
         path: /metrics
@@ -1436,6 +1447,9 @@ postgresql:
     #  tag: 11-debian-11-r57
   metrics:
     enabled: true
+    image:
+      repository: radiantone/postgres-exporter
+      tag: 0.11.1-debian-11-r34
     service:
       ports:
         metrics: 9187
@@ -1443,12 +1457,12 @@ postgresql:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9187"
     serviceMonitor:
-      enabled: true
+      enabled: false
       interval: 30s
       labels:
         release: prometheus
     prometheusRule:
-      enabled: true
+      enabled: false
       rules:
         - alert: PostgresqlDown
           expr: pg_up == 0
@@ -1791,7 +1805,7 @@ fluent-bit:
       prometheus.io/port: "2020"
       prometheus.io/path: "/api/v1/metrics/prometheus"
   prometheusRule:
-    enabled: true
+    enabled: false
     rules:
       - alert: FluentBitNoOutputBytes
         expr: rate(fluentbit_output_proc_bytes_total[5m]) == 0
@@ -1801,7 +1815,7 @@ fluent-bit:
         annotations:
           summary: "Fluent Bit not processing output bytes"
   serviceMonitor:
-    enabled: true
+    enabled: false
     interval: 10s
     scrapeTimeout: 10s
   dashboards:
@@ -2058,17 +2072,17 @@ velero:
       prometheus.io/port: "8085"
       prometheus.io/path: "/metrics"
     serviceMonitor:
-      enabled: true
+      enabled: false
       autodetect: true
       additionalLabels:
         release: prometheus
     nodeAgentPodMonitor:
-      enabled: true
+      enabled: false
       autodetect: true
       additionalLabels:
         release: prometheus
     prometheusRule:
-      enabled: true
+      enabled: false
       autodetect: true
       spec:
         - alert: VeleroBackupFailed
@@ -2154,7 +2168,7 @@ cloudnative-pg:
     create: false
   # Monitoring configuration
   monitoring:
-    podMonitorEnabled: true
+    podMonitorEnabled: false
     podMonitorAdditionalLabels:
       release: prometheus
     grafanaDashboard:
@@ -2294,13 +2308,18 @@ loki:
     enabled: false
 
   loki:
+    # Prometheus annotations for metrics discovery (port 3100, built-in /metrics endpoint)
+    serviceAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "3100"
+      prometheus.io/path: "/metrics"
     # multi-tenancy disabled by default
     auth_enabled: false
     schemaConfig:
       configs:
         - from: "2024-04-01"
           store: tsdb
-          object_store: s3
+          object_store: filesystem
           schema: v13
           index:
             prefix: loki_index_
@@ -2417,7 +2436,7 @@ loki:
   # Monitoring configuration
   monitoring:
     serviceMonitor:
-      enabled: true
+      enabled: false
       interval: 15s
       labels: {}
     dashboards:
@@ -2425,7 +2444,7 @@ loki:
       labels:
         grafana_dashboard: "1"
     rules:
-      enabled: true
+      enabled: false
       alerting: true
 
 # -----------------------------------------------------------------
@@ -2771,7 +2790,7 @@ prometheus-elasticsearch-exporter:
     cluster_settings: true
 
   serviceMonitor:
-    enabled: true
+    enabled: false
     interval: 30s
     scrapeTimeout: 10s
     labels:
