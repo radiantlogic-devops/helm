@@ -1144,6 +1144,9 @@ kibana:
       prometheus.io/port: "9684"
       prometheus.io/path: "/metrics"
   healthCheckPath: "/eoc-backend/kibana"
+  serviceMonitor:
+    enabled: true
+
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/eoc-backend/kibana"
