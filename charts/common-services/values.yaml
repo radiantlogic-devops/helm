@@ -2156,7 +2156,7 @@ cloudnative-pg:
     podMonitorAdditionalLabels:
       release: prometheus
     grafanaDashboard:
-      create: true
+      create: false
       labels:
         grafana_dashboard: "1"
 
