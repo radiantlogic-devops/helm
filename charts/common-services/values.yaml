@@ -289,6 +289,9 @@ grafana:
       enabled: true
       host: smtp-server:25
       from_address: saas@radiantlogic.com
+    dataproxy:
+      timeout: 90
+      keep_alive_seconds: 30
     live:
       allowed_origins: "*"
   # Setup Data Source (prometheus and elastic)
@@ -315,6 +318,7 @@ grafana:
             logMessageField: message
             maxConcurrentShardRequests: 5
             timeField: '@timestamp'
+            timeout: 90
           readonly: true
         - name: OpenSearch
           type: opensearch
@@ -602,6 +606,7 @@ haproxy:
     {{- end }}
     {{- if ((.Values.route).grafana | default false) }}
     backend grafana_backend
+      timeout server 90s
       http-request set-path %[path,regsub(^/grafana/?,/)]
       server grafana grafana:80 check
     {{- end }}
