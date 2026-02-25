@@ -122,7 +122,7 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           ct install --charts=charts/common-services \
-            --helm-extra-args="--timeout=15m0s" \
+            --helm-extra-args="--timeout=20m0s" \
             --helm-extra-set-args="--set=velero-ui.enabled=false \
             --set=elasticsearch.replicas=1 \
             --set=elasticsearch.clusterHealthCheckParams=wait_for_status=yellow&timeout=60s \

@@ -376,6 +376,7 @@ grafana:
 
 elasticsearch:
   enabled: true
+  imageTag: "7.17.25"
   replicas: 1
   nodeSelector: {}
   service:
@@ -399,6 +400,7 @@ elasticsearch:
 
 kibana:
   enabled: true
+  imageTag: "7.17.25"
   fullnameOverride: kibana
   nodeSelector: {}
   service:
