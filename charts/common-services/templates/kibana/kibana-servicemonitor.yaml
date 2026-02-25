@@ -1,4 +1,4 @@
-{{- if and .Values.kibana.enabled .Values.prometheus.enabled ((.Values.kibana.serviceMonitor).enabled) }}
+{{- if and .Values.kibana.enabled .Values.prometheus.enabled (((.Values.kibana).serviceMonitor).enabled | default false) }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:

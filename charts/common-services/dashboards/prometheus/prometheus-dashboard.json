@@ -35,7 +35,7 @@
       "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
       "targets": [
         {
-          "expr": "prometheus_build_info{namespace=~\"$namespace\"}",
+          "expr": "prometheus_build_info{}",
           "legendFormat": "{{version}}",
           "refId": "A"
         }
@@ -54,7 +54,7 @@
       "gridPos": {"h": 4, "w": 3, "x": 6, "y": 1},
       "targets": [
         {
-          "expr": "prometheus_ready{namespace=~\"$namespace\"}",
+          "expr": "prometheus_ready{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -73,7 +73,7 @@
       "gridPos": {"h": 4, "w": 3, "x": 9, "y": 1},
       "targets": [
         {
-          "expr": "prometheus_config_last_reload_successful{namespace=~\"$namespace\"}",
+          "expr": "prometheus_config_last_reload_successful{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -92,7 +92,7 @@
       "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1},
       "targets": [
         {
-          "expr": "count(up{namespace=~\"$namespace\"})",
+          "expr": "count(up{})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -111,7 +111,7 @@
       "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
       "targets": [
         {
-          "expr": "count(up{namespace=~\"$namespace\"} == 1)",
+          "expr": "count(up{} == 1)",
           "legendFormat": "",
           "refId": "A"
         }
@@ -130,7 +130,7 @@
       "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
       "targets": [
         {
-          "expr": "count(up{namespace=~\"$namespace\"} == 0)",
+          "expr": "count(up{} == 0)",
           "legendFormat": "",
           "refId": "A"
         }
@@ -157,7 +157,7 @@
       "gridPos": {"h": 4, "w": 6, "x": 0, "y": 6},
       "targets": [
         {
-          "expr": "prometheus_engine_queries{namespace=~\"$namespace\"}",
+          "expr": "prometheus_engine_queries{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -176,7 +176,7 @@
       "gridPos": {"h": 4, "w": 6, "x": 6, "y": 6},
       "targets": [
         {
-          "expr": "prometheus_engine_queries_concurrent_max{namespace=~\"$namespace\"}",
+          "expr": "prometheus_engine_queries_concurrent_max{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -195,7 +195,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
       "targets": [
         {
-          "expr": "rate(prometheus_engine_query_duration_seconds_sum{namespace=~\"$namespace\"}[5m]) / clamp_min(rate(prometheus_engine_query_duration_seconds_count{namespace=~\"$namespace\"}[5m]), 1)",
+          "expr": "rate(prometheus_engine_query_duration_seconds_sum{}[5m]) / clamp_min(rate(prometheus_engine_query_duration_seconds_count{}[5m]), 1)",
           "legendFormat": "{{slice}} avg",
           "refId": "A"
         }
@@ -211,7 +211,7 @@
       "gridPos": {"h": 4, "w": 12, "x": 0, "y": 10},
       "targets": [
         {
-          "expr": "prometheus_engine_queries{namespace=~\"$namespace\"}",
+          "expr": "prometheus_engine_queries{}",
           "legendFormat": "active queries",
           "refId": "A"
         }
@@ -235,7 +235,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 15},
       "targets": [
         {
-          "expr": "sum by (handler) (rate(prometheus_http_requests_total{namespace=~\"$namespace\"}[5m]))",
+          "expr": "sum by (handler) (rate(prometheus_http_requests_total{}[5m]))",
           "legendFormat": "{{handler}}",
           "refId": "A"
         }
@@ -251,7 +251,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 15},
       "targets": [
         {
-          "expr": "sum by (handler) (rate(prometheus_http_request_duration_seconds_sum{namespace=~\"$namespace\"}[5m])) / clamp_min(sum by (handler) (rate(prometheus_http_request_duration_seconds_count{namespace=~\"$namespace\"}[5m])), 1)",
+          "expr": "sum by (handler) (rate(prometheus_http_request_duration_seconds_sum{}[5m])) / clamp_min(sum by (handler) (rate(prometheus_http_request_duration_seconds_count{}[5m])), 1)",
           "legendFormat": "{{handler}}",
           "refId": "A"
         }
@@ -275,7 +275,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
       "targets": [
         {
-          "expr": "topk(10, avg by (job) (scrape_duration_seconds{namespace=~\"$namespace\"}))",
+          "expr": "topk(10, avg by (job) (scrape_duration_seconds{}))",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
@@ -291,7 +291,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
       "targets": [
         {
-          "expr": "topk(10, sum by (job) (scrape_samples_scraped{namespace=~\"$namespace\"}))",
+          "expr": "topk(10, sum by (job) (scrape_samples_scraped{}))",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
@@ -315,7 +315,7 @@
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 33},
       "targets": [
         {
-          "expr": "prometheus_tsdb_head_series{namespace=~\"$namespace\"}",
+          "expr": "prometheus_tsdb_head_series{}",
           "legendFormat": "head series",
           "refId": "A"
         }
@@ -331,12 +331,12 @@
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 33},
       "targets": [
         {
-          "expr": "rate(prometheus_tsdb_compactions_total{namespace=~\"$namespace\"}[5m])",
+          "expr": "rate(prometheus_tsdb_compactions_total{}[5m])",
           "legendFormat": "compactions/s",
           "refId": "A"
         },
         {
-          "expr": "rate(prometheus_tsdb_compactions_failed_total{namespace=~\"$namespace\"}[5m])",
+          "expr": "rate(prometheus_tsdb_compactions_failed_total{}[5m])",
           "legendFormat": "failed/s",
           "refId": "B"
         }
@@ -360,7 +360,7 @@
       "gridPos": {"h": 4, "w": 6, "x": 0, "y": 42},
       "targets": [
         {
-          "expr": "prometheus_notifications_alertmanagers_discovered{namespace=~\"$namespace\"}",
+          "expr": "prometheus_notifications_alertmanagers_discovered{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -379,7 +379,7 @@
       "gridPos": {"h": 4, "w": 6, "x": 6, "y": 42},
       "targets": [
         {
-          "expr": "prometheus_notifications_queue_length{namespace=~\"$namespace\"}",
+          "expr": "prometheus_notifications_queue_length{}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -398,12 +398,12 @@
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 42},
       "targets": [
         {
-          "expr": "rate(prometheus_notifications_sent_total{namespace=~\"$namespace\"}[5m])",
+          "expr": "rate(prometheus_notifications_sent_total{}[5m])",
           "legendFormat": "sent/s",
           "refId": "A"
         },
         {
-          "expr": "rate(prometheus_notifications_dropped_total{namespace=~\"$namespace\"}[5m])",
+          "expr": "rate(prometheus_notifications_dropped_total{}[5m])",
           "legendFormat": "dropped/s",
           "refId": "B"
         }
@@ -417,18 +417,7 @@
   "style": "dark",
   "tags": ["prometheus", "monitoring"],
   "templating": {
-    "list": [
-      {
-        "name": "namespace",
-        "type": "query",
-        "datasource": "Prometheus",
-        "query": "label_values(prometheus_build_info, namespace)",
-        "refresh": 2,
-        "includeAll": true,
-        "allValue": ".*",
-        "current": {"text": "All", "value": "$__all"}
-      }
-    ]
+    "list": []
   },
   "time": {"from": "now-6h", "to": "now"},
   "timepicker": {},

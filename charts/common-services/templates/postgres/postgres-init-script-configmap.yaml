@@ -1,17 +1,22 @@
-{{- if eq .Values.postgresql.enabled true }}
+{{- if and .Values.postgresql.enabled ((.Values.postgresql).databases) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init-script
 data:
+  {{- if (.Values.postgresql.databases).sdc }}
   01_sdc_init_script.sql: |
     CREATE DATABASE {{ .Values.postgresql.databases.sdc.databaseName }};
     CREATE USER {{ .Values.postgresql.databases.sdc.user }} WITH ENCRYPTED PASSWORD '{{ .Values.postgresql.databases.sdc.password }}';
     GRANT ALL PRIVILEGES ON DATABASE agentsdb TO {{ .Values.postgresql.databases.sdc.user }};
+  {{- end }}
+  {{- if (.Values.postgresql.databases).eoc }}
   02_eoc_init_script.sql: |
     CREATE DATABASE {{ .Values.postgresql.databases.eoc.databaseName }};
     CREATE USER {{ .Values.postgresql.databases.eoc.user }} WITH ENCRYPTED PASSWORD '{{ .Values.postgresql.databases.eoc.password }}';
     GRANT ALL PRIVILEGES ON DATABASE eocdb TO {{ .Values.postgresql.databases.eoc.user }};
+  {{- end }}
+  {{- if and (.Values.postgresql.databases).eoc (.Values.postgresql.databases).sdc }}
   XX_create_schema_init_script.sh: |
     #!/bin/bash
     PGPASSWORD=$POSTGRES_PASSWORD psql -v ON_ERROR_STOP=1 <<-EOSQL
@@ -24,4 +29,5 @@ data:
       GRANT ALL ON SCHEMA {{ .Values.postgresql.databases.sdc.schema }} TO {{ .Values.postgresql.databases.sdc.user }};
       GRANT ALL ON SCHEMA public TO {{ .Values.postgresql.databases.sdc.user }};
     EOSQL
+  {{- end }}
 {{- end }}
