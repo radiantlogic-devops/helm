@@ -9,11 +9,12 @@
 # Enable or disable them as needed by setting `enabled` to `true` or `false`.
 
 # Note: Adjust individual component settings to match your specific environment and requirements.
-
+#--------------------------------------------------------------
 global:
   hibernate: false
-
-nodeSelector: {}
+  nodeSelector:
+    tenantname: duploservices-qaibtest
+#-------------------------------------------------Dashboard--------------------------------------------
 
 # Ingress Configuration for Load Balancing
 # ----------------------------------------
@@ -81,11 +82,11 @@ argo-cd:
       policy.csv: |
         g, devops, role:admin
   dex:
-    enabled: false
+    enabled: true
   applicationSet:
-    enabled: false
+    enabled: true
   notifications:
-    enabled: false
+    enabled: true
   controller:
     nodeSelector: {}
   redis:
@@ -103,7 +104,7 @@ argo-cd:
     enabled: false
   # New required settings for 7.8.0
   redisSecretInit:
-    enabled: true  #  This is needed for Redis to work properly in 7.8.0
+    enabled: false  #  This is needed for Redis to work properly in 7.8.0
 
 # Prometheus Monitoring Stack Configuration
 # ----------------------------------------
@@ -126,7 +127,7 @@ prometheus:
   enabled: true
   configmapReload:
     prometheus:
-      enabled: false
+      enabled: true
   # nodeExporter:
   #   enabled: false
   # kubeStateMetrics:
@@ -910,7 +911,7 @@ elasticsearch:
   #     value: changeme
 
 kibana:
-  enabled: true
+  enabled: false
   fullnameOverride: kibana
   nodeSelector: {}
   service:
@@ -928,8 +929,43 @@ kibana:
       telemetry.optIn: false
       security.showInsecureClusterWarning: false
       server.rewriteBasePath: true
-      server.compression.enabled: true
+      server.compression.enabled: false
       server.requestId.allowFromAnyIp: true
+elasticsearch-exporter:
+  enabled: true
+
+  image:
+    repository: quay.io/prometheuscommunity/elasticsearch-exporter
+    tag: v1.7.0
+    pullPolicy: IfNotPresent
+
+  es:
+    uri: http://elasticsearch-master:9200
+    all: true
+    indices: true
+    shards: true
+    cluster_settings: true
+
+  service:
+    type: ClusterIP
+    port: 9114
+    annotations: {}
+
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      release: common-services 
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
 
 # HAProxy Configuration
 # ---------------------
@@ -944,7 +980,7 @@ kibana:
 #
 # Note: Ensure correct service names and ports in the backend definitions.
 haproxy:
-  enabled: true
+  enabled: false
   route:
     argocd: true
     grafana: true
@@ -1149,29 +1185,37 @@ haproxy:
 
 postgresql:
   enabled: true
+  auth:
+    username: postgres
+    postgresPassword: postgres123
+    database: postgres  
   volumePermissions:
     enabled: false
-    # image:
-    #  repository: radiantone/bitnami-shell
-    #  tag: 11-debian-11-r57
+    image:
+      repository: radiantone/bitnami-shell
+      tag: 11-debian-11-r57
+
   metrics:
-    enabled: false
-    # image:
-    #  repository: radiantone/postgres-exporter
-    #  tag: 0.11.1-debian-11-r34
+    enabled: true
+    image:
+      repository: radiantone/postgres-exporter
+      tag: 0.11.1-debian-11-r34
+
   fullnameOverride: postgresql
+
   image:
     repository: radiantone/postgresql
     tag: 15.1.0-debian-11-r7
+
   primary:
     nodeSelector: {}
     service:
       type: ClusterIP
-    # Persistence enabled by default and size to 50Gi
     persistence:
       size: 10Gi
     initdb:
       scriptsConfigMap: "postgres-init-script"
+
   databases:
     eoc:
       databaseName: eocdb
@@ -1209,7 +1253,7 @@ pgadmin4:
   service:
     type: ClusterIP
   persistentVolume:
-    enabled: false
+    enabled: true
   env:
     contextPath: "/pgadmin4"
 
@@ -1229,7 +1273,7 @@ pgadmin4:
 # Note: Review and adjust settings according to your testing requirements.
 
 slamd:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: pgodey/slamd
@@ -1381,18 +1425,19 @@ smtp:
 #   - `persistence.size`: Size of the persistent volume for storing OpenSearch data.
 
 opensearch:
+  extraJavaOpts: "-Dplugins.prometheus.enabled=true"
   enabled: false
   fullnameOverride: "opensearch"
-  singleNode: true
+  singleNode: false
   replicas: 1
   clusterName: "opensearch-cluster"
   nodeGroup: "master"
   masterService: "opensearch-cluster-master"
   extraEnvs:
     - name: "DISABLE_SECURITY_PLUGIN"
-      value: "true"
+      value: "false"
     - name: "DISABLE_INSTALL_DEMO_CONFIG"
-      value: "true"
+      value: "false"
   rbac:
     create: false
     serviceAccountAnnotations: {}
@@ -1409,6 +1454,13 @@ opensearch:
     annotations: {}
     httpPortName: http
     transportPortName: transport
+    ports:
+      - name: http
+        port: 9200
+        targetPort: 9200
+      - name: metrics          
+        port: 9600
+        targetPort: 9600
 
 opensearch-dashboards:
   enabled: false
@@ -1417,7 +1469,7 @@ opensearch-dashboards:
   fullnameOverride: "opensearch-dashboards"
   extraEnvs:
     - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
-      value: "true"
+      value: "false"
   service:
     type: ClusterIP
     port: 5601
@@ -1431,7 +1483,7 @@ opensearch-dashboards:
   nodeSelector: {}
     # tenantname: duploservices-nike-svc
   plugins:
-    enabled: false
+    enabled: true
     installList: []
   config:
     opensearch_dashboards.yml: |
@@ -1553,7 +1605,7 @@ curator:
     pullPolicy: Always
     tag: 5.8.4-debian-10-r253
   imagePullSecrets: []
-  enabled: true
+  enabled: false
   dryrun: false
   # Elasticsearch Client Settings
   # -----------------------------
@@ -1794,7 +1846,7 @@ cloudnative-pg:
 # -- Identity Observability - Nebula Operator for Graph Database
 # -----------------------------------------------------------------
 nebula-operator:
-  enabled: false
+  enabled: true
   nameOverride: nebula
   imagePullSecrets: []
 
@@ -1821,7 +1873,7 @@ nebula-operator:
 # -- Identity Observability - Flink Operator for Apache Flink data processor
 # -----------------------------------------------------------------
 flink-kubernetes-operator:
-  enabled: false
+  enabled: true
   fullnameOverride: flink-operator
   nameOverride: flink-operator
   imagePullSecrets: []
@@ -1835,6 +1887,34 @@ flink-kubernetes-operator:
     create: true
     annotations: {}
     name: "flink"
+flinkDeployment:
+  enabled: true
+  name: flink-app
+  namespace: duploservices-qaibtest
+
+  image:
+    repository: flink
+    tag: "1.17"
+
+  flinkConfiguration:
+    metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+    metrics.reporter.prom.port: "9249"
+
+  jobManager:
+    replicas: 1
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    resources:
+      cpu: 1
+      memory: "1024m"
+
+  taskManager:
+    replicas: 2
+    nodeSelector:
+      tenantname: duploservices-qaibtest
+    resources:
+      cpu: 1
+      memory: "2048m"
 
 # -----------------------------------------------------------------
 # -- Backup Manager service for Velero
@@ -2044,7 +2124,7 @@ loki:
 #   https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy
 # -----------------------------------------------------------------
 alloy:
-  enabled: false
+  enabled: true
   fullnameOverride: alloy
 
   image:
