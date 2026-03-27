@@ -27,7 +27,7 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: OPENSEARCH_URL
-          value: "opensearch-dashboards:5601/opensearch-dashboards"
+          value: "opensearch-dashboards:5601/eoc-backend/opensearch-dashboards"
         command: ["/bin/sh", "-c"]
         args:
             - |
