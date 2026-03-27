@@ -1018,7 +1018,7 @@ opensearch-dashboards:
   config:
     opensearch_dashboards.yml: |
       server:
-        basePath: "/opensearch-dashboards"
+        basePath: "/eoc-backend/opensearch-dashboards"
         rewriteBasePath: true
 
 # Fluent Bit Configuration
