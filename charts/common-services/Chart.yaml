@@ -109,8 +109,8 @@ dependencies:
   repository: https://vesoft-inc.github.io/nebula-operator/charts
   condition: nebula-operator.enabled
 - name: flink-kubernetes-operator
-  version: 1.13.0
-  repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.13.0
+  version: 1.14.0
+  repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.14.0
   condition: flink-kubernetes-operator.enabled
 - name: loki
   repository: https://grafana.github.io/helm-charts
