@@ -1496,6 +1496,7 @@ backupManager:
     pullPolicy: Always
   imagePullSecrets: []
   service:
+    type: ClusterIP
     port: 80
     containerPort: 8080
   podAnnotations: {}
