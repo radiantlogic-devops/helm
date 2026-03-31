@@ -1555,7 +1555,8 @@ loki:
   enabled: false
   fullnameOverride: loki
 
-  deploymentMode: SingleBinary
+  # --> JMC: change deployment mode from SingleBinary to SimpleScalable
+  deploymentMode: SimpleScalable
   imagePullSecrets: []
 
   test:
@@ -1573,11 +1574,15 @@ loki:
       prometheus.io/path: "/metrics"
     # multi-tenancy disabled by default
     auth_enabled: false
+    # --> JMC: change replication factor for SimpleScalable mode to be equal to the number of write replicas
+    commonConfig:
+      replication_factor: 1
     schemaConfig:
       configs:
         - from: "2024-04-01"
           store: tsdb
-          object_store: filesystem
+          # --> JMC: change persistent storage for chunks to be in S3 bucket (not local filesystem)
+          object_store: s3
           schema: v13
           index:
             prefix: loki_index_
@@ -1655,7 +1660,8 @@ loki:
     nodeSelector: {}
 
   backend:
-    replicas: 0
+    # --> JMC: change number of replicas for backend to be equal to the number of write replicas
+    replicas: 1
     persistence:
       # Usage:
       #   - Local Temporal (TSDB) Index: index cache for faster queries
@@ -1671,11 +1677,13 @@ loki:
     nodeSelector: {}
 
   read:
-    replicas: 0
+    # --> JMC: change number of replicas for read to be equal to the number of write replicas
+    replicas: 1
     nodeSelector: {}
 
   write:
-    replicas: 0
+    # --> JMC: change number of replicas for write to be equal to the number of write replicas
+    replicas: 1
     persistence:
       # Usage:
       #   - Write-Ahead Log (WAL): ensure data durability before pushing to S3
