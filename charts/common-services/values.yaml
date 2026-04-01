@@ -12,6 +12,9 @@
 
 global:
   hibernate: false
+  postgresql:
+    auth:
+      database: eocdb
 
 nodeSelector: {}
 
@@ -45,14 +48,26 @@ zookeeper:
   enabled: false
   volumePermissions:
     enabled: false
-    # image:
-    #  repository: radiantone/bitnami-shell
-    #  tag: 11-debian-11-r51
   image:
     repository: radiantone/zookeeper
     tag: 3.8.0-debian-11-r56
   fullnameOverride: zookeeper
   nodeSelector: {}
+  metrics:
+    enabled: true
+    containerPort: 9141
+    service:
+      type: ClusterIP
+      port: 9141
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9141"
+        prometheus.io/path: "/metrics"
+    serviceMonitor:
+      enabled: false
+      interval: 30s
+      additionalLabels:
+        release: prometheus
 
 # Argo CD Configuration
 # ---------------------
@@ -88,15 +103,71 @@ argo-cd:
     enabled: false
   controller:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8082
+        portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8082"
+          prometheus.io/path: "/metrics"
+      serviceMonitor:
+        enabled: false
+        interval: 30s
+        additionalLabels:
+          release: prometheus
+      rules:
+        enabled: false
   redis:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "9121"
+          prometheus.io/path: "/metrics"
+      serviceMonitor:
+        enabled: false
+        additionalLabels:
+          release: prometheus
   server:
     nodeSelector: {}
     service:
       type: NodePort
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8083
+        portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8083"
+          prometheus.io/path: "/metrics"
+      serviceMonitor:
+        enabled: false
+        interval: 30s
+        additionalLabels:
+          release: prometheus
   repoServer:
     nodeSelector: {}
+    metrics:
+      enabled: true
+      service:
+        servicePort: 8084
+        portName: http-metrics
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8084"
+          prometheus.io/path: "/metrics"
+      serviceMonitor:
+        enabled: false
+        interval: 30s
+        additionalLabels:
+          release: prometheus
   crds:
+    install: true
     keep: false
   # Disabling new components that didn't exist in 5.6.0
   commitServer:
@@ -127,14 +198,13 @@ prometheus:
   configmapReload:
     prometheus:
       enabled: false
-  # nodeExporter:
-  #   enabled: false
-  # kubeStateMetrics:
-  #   enabled: false
+  # NOTE: Use subchart dependency names (not aliases) for enable/disable:
+  #   prometheus-node-exporter.enabled (NOT nodeExporter.enabled)
+  #   kube-state-metrics.enabled (NOT kubeStateMetrics.enabled)
   kube-state-metrics:
     enabled: false
   prometheus-node-exporter:
-    enabled: true
+    enabled: false
   alertmanager:
     enabled: false
   # pushgateway:
@@ -149,6 +219,7 @@ prometheus:
       - web.route-prefix=/
       - web.external-url=http://prometheus-server/prometheus/
       - web.enable-admin-api
+      - web.enable-remote-write-receiver
     fullnameOverride: prometheus-server
     nodeSelector: {}
     # Persistence enabled by default and size to 50Gi
@@ -175,11 +246,23 @@ prometheus:
 #
 # Note: Ensure correct data source URLs and credentials. Place dashboard JSON files in the specified directories.
 grafana:
-  fullnameOverride: grafana
   enabled: true
+  fullnameOverride: grafana
   nodeSelector: {}
+  # Sidecar configuration for dashboard provisioning
+  sidecar:
+    dashboards:
+      enabled: true
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
   service:
     type: ClusterIP
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "3000"
+      # Path matches grafana.ini server.root_url subpath
+      prometheus.io/path: "/eoc-backend/grafana/metrics"
   # Persistence enabled by default
   persistence:
     enabled: true
@@ -206,6 +289,9 @@ grafana:
       enabled: true
       host: smtp-server:25
       from_address: saas@radiantlogic.com
+    dataproxy:
+      timeout: 90
+      keep_alive_seconds: 30
     live:
       allowed_origins: "*"
   # Setup Data Source (prometheus and elastic)
@@ -232,6 +318,7 @@ grafana:
             logMessageField: message
             maxConcurrentShardRequests: 5
             timeField: '@timestamp'
+            timeout: 90
           readonly: true
         - name: OpenSearch
           type: opensearch
@@ -252,624 +339,25 @@ grafana:
           #   timeout: 60
           #   maxLines: 1000
 
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'fid'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/fid
-      - name: 'zookeeper'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/zookeeper
-      - name: 'iddm'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/iddm
-      - name: 'elasticsearch'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/elasticsearch
-      - name: 'service-status'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/service-status
-      # -- IDA Metrics Dashboards
-      - name: 'ia-service-status'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-service-status
-      - name: 'ida'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ida
-      - name: ia-controller-beam
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-controller-beam
-      - name: 'ia-controller-ecto'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-controller-ecto
-      - name: 'ia-controller-oban'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-controller-oban
-      - name: 'ia-controller-phoenix'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-controller-phoenix
-      - name: 'ia-data-ingestion'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-data-ingestion
-      - name: 'ia-extractor-webapp'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-extractor-webapp
-      - name: 'ia-governance-portal'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ia-governance-portal
-      # -- IDO Logs Dashboards
-      - name: 'ido-logs-alert-center'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-alert-center
-      - name: 'ido-logs-analytics-db'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-analytics-db
-      - name: 'ido-logs-api-umbrella'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-api-umbrella
-      - name: 'ido-logs-environment-setup'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-environment-setup
-      - name: 'ido-logs-global-scheduler'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-global-scheduler
-      - name: 'ido-logs-iddm-api-gateway'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-api-gateway
-      - name: 'ido-logs-iddm-authentication-service'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-authentication-service
-      - name: 'ido-logs-iddm-core'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-core
-      - name: 'ido-logs-iddm-data-catalog'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-data-catalog
-      - name: 'ido-logs-iddm-directory-browser'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-browser
-      - name: 'ido-logs-iddm-directory-namespace'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-namespace
-      - name: 'ido-logs-iddm-directory-schema'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-directory-schema
-      - name: 'ido-logs-iddm-proxy'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-proxy
-      - name: 'ido-logs-iddm-settings'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-settings
-      - name: 'ido-logs-iddm-system-administration'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-system-administration
-      - name: 'ido-logs-iddm-ui'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-ui
-      - name: 'ido-logs-iddm-zookeeper'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-iddm-zookeeper
-      - name: 'ido-logs-portal'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-portal
-      - name: 'ido-logs-portal-setup'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-portal-setup
-      - name: 'ido-logs-ledger-operations'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-ledger-operations
-      - name: 'ido-logs-nats'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-nats
-      - name: 'ido-logs-nebula-graphd'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-nebula-graphd
-      - name: 'ido-logs-nebula-metad'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-nebula-metad
-      - name: 'ido-logs-nebula-storaged'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-nebula-storaged
-      - name: 'ido-logs-observation-supervisor'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-observation-supervisor
-      - name: 'ido-logs-pipeline-job-manager'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-pipeline-job-manager
-      - name: 'ido-logs-pipeline-orchestrator'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-pipeline-orchestrator
-      - name: 'ido-logs-pipeline-task-manager'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-pipeline-task-manager
-      - name: 'ido-logs-schema-manager'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-schema-manager
-      - name: 'ido-logs-secret-manager'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-secret-manager
-      - name: 'ido-logs-writeback'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-logs-writeback
-      # -- IDO Metrics Dashboards
-      - name: 'ido-metrics-alert-center'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-alert-center
-      - name: 'ido-metrics-graph-database'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-graph-database
-      - name: 'ido-metrics-iddm-core'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-iddm-core
-      - name: 'ido-metrics-ido-dashboard'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-ido-dashboard
-      - name: 'ido-metrics-observations-channels-contention'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-observations-channels-contention
-      - name: 'ido-metrics-observations-functional'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-observations-functional
-      - name: 'ido-metrics-observations-process'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-observations-process
-      - name: 'ido-metrics-observations-timings'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-observations-timings
-      - name: 'ido-metrics-system'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-system
-      - name: 'ido-metrics-writeback-service'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        updateIntervalSeconds: 10
-        allowUiUpdates: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/ido-metrics-writeback-service
+  # dashboardProviders: NOT NEEDED
+  # --------------------------------
+  # Dashboard provisioning is handled entirely by the Grafana sidecar.
+  # The sidecar creates its own provider that reads from /tmp/dashboards.
+  # It auto-discovers ConfigMaps with label "grafana_dashboard: 1" and
+  # organizes them into folders using the "grafana_folder" annotation.
+  #
+  # DO NOT add dashboardProviders entries — they require matching
+  # dashboardsConfigMaps volume mounts which break when services are disabled.
+  dashboardProviders: {}
 
-  dashboardsConfigMaps:
-    # -- FID Dashboards
-    fid: "fid-dashboard"
-    zookeeper: "zookeeper-dashboard"
-    iddm: "iddm-dashboard"
-    elasticsearch: "audit-logs-elastic-dashboard"
-    service-status: "service-status-dashboard"
-    # -- IDA Metrics Dashboards
-    ia-service-status: "ia-service-status-dashboard"
-    ida: "ia-dashboard"
-    ia-controller-beam: "ia-controller-beam-dashboard"
-    ia-controller-ecto: "ia-controller-ecto-dasboard"
-    ia-controller-oban: "ia-controller-oban-dashboard"
-    ia-controller-phoenix: "ia-controller-phoenix-dashboard"
-    ia-data-ingestion: "ia-data-ingestion-dashboard"
-    ia-extractor-webapp: "ia-extractor-webapp-dashboard"
-    ia-governance-portal: "ia-governance-portal-dashboard"
-    # -- IDO Logs Dashboards
-    ido-logs-alert-center: "ido-logs-alert-center-dashboard"
-    ido-logs-analytics-db: "ido-logs-analytics-db-dashboard"
-    ido-logs-api-umbrella: "ido-logs-api-umbrella-dashboard"
-    ido-logs-environment-setup: "ido-logs-environment-setup-dashboard"
-    ido-logs-global-scheduler: "ido-logs-global-scheduler-dashboard"
-    ido-logs-iddm-api-gateway: "ido-logs-iddm-api-gateway-dashboard"
-    ido-logs-iddm-authentication-service: "ido-logs-iddm-authentication-service-dashboard"
-    ido-logs-iddm-core: "ido-logs-iddm-core-dashboard"
-    ido-logs-iddm-data-catalog: "ido-logs-iddm-data-catalog-dashboard"
-    ido-logs-iddm-directory-browser: "ido-logs-iddm-directory-browser-dashboard"
-    ido-logs-iddm-directory-namespace: "ido-logs-iddm-directory-namespace-dashboard"
-    ido-logs-iddm-directory-schema: "ido-logs-iddm-directory-schema-dashboard"
-    ido-logs-iddm-proxy: "ido-logs-iddm-proxy-dashboard"
-    ido-logs-iddm-settings: "ido-logs-iddm-settings-dashboard"
-    ido-logs-iddm-system-administration: "ido-logs-iddm-system-administration-dashboard"
-    ido-logs-iddm-ui: "ido-logs-iddm-ui-dashboard"
-    ido-logs-iddm-zookeeper: "ido-logs-iddm-zookeeper-dashboard"
-    ido-logs-portal: "ido-logs-portal-dashboard"
-    ido-logs-portal-setup: "ido-logs-portal-setup-dashboard"
-    ido-logs-ledger-operations: "ido-logs-ledger-operations-dashboard"
-    ido-logs-nats: "ido-logs-nats-dashboard"
-    ido-logs-nebula-graphd: "ido-logs-nebula-graphd-dashboard"
-    ido-logs-nebula-metad: "ido-logs-nebula-metad-dashboard"
-    ido-logs-nebula-storaged: "ido-logs-nebula-storaged-dashboard"
-    ido-logs-observation-supervisor: "ido-logs-observation-supervisor-dashboard"
-    ido-logs-pipeline-job-manager: "ido-logs-pipeline-job-manager-dashboard"
-    ido-logs-pipeline-orchestrator: "ido-logs-pipeline-orchestrator-dashboard"
-    ido-logs-pipeline-task-manager: "ido-logs-pipeline-task-manager-dashboard"
-    ido-logs-schema-manager: "ido-logs-schema-manager-dashboard"
-    ido-logs-secret-manager: "ido-logs-secret-manager-dashboard"
-    ido-logs-writeback: "ido-logs-writeback-dashboard"
-    # -- IDO Metrics Dashboards
-    ido-metrics-alert-center: "ido-metrics-alert-center-dashboard"
-    ido-metrics-graph-database: "ido-metrics-graph-database-dashboard"
-    ido-metrics-iddm-core: "ido-metrics-iddm-core-dashboard"
-    ido-metrics-ido-dashboard: "ido-metrics-ido-dashboard-dashboard"
-    ido-metrics-observations-channels-contention: "ido-metrics-observations-channels-contention-dashboard"
-    ido-metrics-observations-functional: "ido-metrics-observations-functional-dashboard"
-    ido-metrics-observations-process: "ido-metrics-observations-process-dashboard"
-    ido-metrics-observations-timings: "ido-metrics-observations-timings-dashboard"
-    ido-metrics-system: "ido-metrics-system-dashboard"
-    ido-metrics-writeback-service: "ido-metrics-writeback-service-dashboard"
+  # Dashboard provisioning is handled by the Grafana sidecar (sidecar.dashboards.enabled: true).
+  # The sidecar auto-discovers ConfigMaps with the label "grafana_dashboard: 1" and
+  # organizes them into folders using the "grafana_folder" annotation.
+  # See grafana-dashboards*.yaml templates for all available dashboards.
+  #
+  # DO NOT use dashboardProviders or dashboardsConfigMaps — they create static volume
+  # mounts that break when a service is disabled (missing ConfigMap → FailedMount).
+  dashboardsConfigMaps: {}
 
 # Elasticsearch & Kibana Configuration
 # -----------------------------------
@@ -888,6 +376,7 @@ grafana:
 
 elasticsearch:
   enabled: true
+  imageTag: "7.17.25"
   replicas: 1
   nodeSelector: {}
   service:
@@ -911,16 +400,19 @@ elasticsearch:
 
 kibana:
   enabled: true
+  imageTag: "7.17.25"
   fullnameOverride: kibana
   nodeSelector: {}
   service:
     type: ClusterIP
-  # extraEnvs:
-  #   - name: ELASTICSEARCH_USERNAME
-  #     value: elastic
-  #   - name: ELASTICSEARCH_PASSWORD
-  #     value: changeme
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9684"
+      prometheus.io/path: "/metrics"
   healthCheckPath: "/eoc-backend/kibana"
+  serviceMonitor:
+    enabled: false
+
   kibanaConfig:
     kibana.yml: |
       server.basePath: "/eoc-backend/kibana"
@@ -930,6 +422,43 @@ kibana:
       server.rewriteBasePath: true
       server.compression.enabled: true
       server.requestId.allowFromAnyIp: true
+  # Add exporter sidecar for metrics
+  # Using custom exporter: https://github.com/gnanirahulnutakki/kibana-prometheus-exporter
+  extraContainers:
+    - name: kibana-exporter
+      image: rahulnutakki/kibana-prometheus-exporter:v1.1.0
+      args:
+        - --kibana-url=http://localhost:5601/eoc-backend/kibana
+        - --log-level=info
+        # Authentication for Kibana exporter (optional)
+        # The exporter skips auth when username is empty.
+        # For authenticated clusters, uncomment:
+        # - '--kibana-username=elastic'
+        # - '--kibana-password=<your-password>'
+        # Or use env vars: KIBANA_USERNAME, KIBANA_PASSWORD
+      ports:
+        - containerPort: 9684
+          name: metrics
+          protocol: TCP
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: metrics
+        initialDelaySeconds: 90
+        periodSeconds: 30
+        failureThreshold: 6
+      # No readinessProbe — the exporter is a metrics sidecar, not a traffic-serving
+      # container. Pod readiness is determined by the main kibana container.
+      # The /ready endpoint depends on Kibana's stats API which may 404 on certain
+      # Kibana versions (7.17.x) or during startup, causing the entire pod to become
+      # not-ready and blocking helm --wait upgrades.
 
 # HAProxy Configuration
 # ---------------------
@@ -965,6 +494,18 @@ haproxy:
   nodeSelector: {}
   service:
     type: NodePort
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8404"
+      prometheus.io/path: "/metrics"
+  containerPorts:
+    prometheus: 8404
+  serviceMonitor:
+    enabled: false
+    endpoints:
+      - port: prometheus
+        path: /metrics
+        interval: 30s
   config: |
     defaults
       timeout connect 10s
@@ -974,6 +515,13 @@ haproxy:
       mode http
       option httplog
       maxconn 3000
+    frontend stats
+      bind :8404
+      http-request use-service prometheus-exporter if { path /metrics }
+      stats enable
+      stats uri /stats
+      stats refresh 10s
+
     frontend http-in
       bind *:80
 
@@ -1060,6 +608,7 @@ haproxy:
     {{- end }}
     {{- if ((.Values.route).grafana | default false) }}
     backend grafana_backend
+      timeout server 90s
       http-request set-path %[path,regsub(^/grafana/?,/)]
       server grafana grafana:80 check
     {{- end }}
@@ -1155,10 +704,32 @@ postgresql:
     #  repository: radiantone/bitnami-shell
     #  tag: 11-debian-11-r57
   metrics:
-    enabled: false
-    # image:
-    #  repository: radiantone/postgres-exporter
-    #  tag: 0.11.1-debian-11-r34
+    enabled: true
+    image:
+      repository: radiantone/postgres-exporter
+      tag: 0.11.1-debian-11-r34
+    service:
+      ports:
+        metrics: 9187
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+    serviceMonitor:
+      enabled: false
+      interval: 30s
+      labels:
+        release: prometheus
+    prometheusRule:
+      enabled: false
+      rules:
+        - alert: PostgresqlDown
+          expr: pg_up == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL down"
+            description: "PostgreSQL instance is down"
   fullnameOverride: postgresql
   image:
     repository: radiantone/postgresql
@@ -1393,6 +964,17 @@ opensearch:
       value: "true"
     - name: "DISABLE_INSTALL_DEMO_CONFIG"
       value: "true"
+  # Install Prometheus exporter plugin for metrics
+  plugins:
+    enabled: true
+    installList:
+      - https://github.com/Aiven-Open/prometheus-exporter-plugin-for-opensearch/releases/download/2.11.0.0/prometheus-exporter-2.11.0.0.zip
+  # Add pod annotations for Prometheus scraping
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/_prometheus/metrics"
+    prometheus.io/port: "9200"
+    prometheus.io/scheme: "http"
   rbac:
     create: false
     serviceAccountAnnotations: {}
@@ -1436,7 +1018,7 @@ opensearch-dashboards:
   config:
     opensearch_dashboards.yml: |
       server:
-        basePath: "/opensearch-dashboards"
+        basePath: "/eoc-backend/opensearch-dashboards"
         rewriteBasePath: true
 
 # Fluent Bit Configuration
@@ -1476,10 +1058,28 @@ fluent-bit:
   metricsPort: 2020
   service:
     type: ClusterIP
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "2020"
+      prometheus.io/path: "/api/v1/metrics/prometheus"
   prometheusRule:
     enabled: false
+    rules:
+      - alert: FluentBitNoOutputBytes
+        expr: rate(fluentbit_output_proc_bytes_total[5m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fluent Bit not processing output bytes"
   serviceMonitor:
     enabled: false
+    interval: 10s
+    scrapeTimeout: 10s
+  dashboards:
+    enabled: true
+    labelKey: grafana_dashboard
+    labelValue: "1"
 # ====== For helm chart version < 1.0.9 =====
   outputSearchType: "es"
   outputSearchHost: "elasticsearch-master"
@@ -1548,12 +1148,12 @@ fluent-bit:
 # Curator can perform actions like deleting, closing, or creating indices based on configured filters.
 
 curator:
+  enabled: true
   image:
     repository: radiantone/elasticsearch-curator-archived
     pullPolicy: Always
     tag: 5.8.4-debian-10-r253
   imagePullSecrets: []
-  enabled: true
   dryrun: false
   # Elasticsearch Client Settings
   # -----------------------------
@@ -1721,6 +1321,35 @@ velero:
       volumeMounts:
         - mountPath: /target
           name: plugins
+  metrics:
+    enabled: true
+    scrapeInterval: 30s
+    scrapeTimeout: 10s
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8085"
+      prometheus.io/path: "/metrics"
+    serviceMonitor:
+      enabled: false
+      autodetect: true
+      additionalLabels:
+        release: prometheus
+    nodeAgentPodMonitor:
+      enabled: false
+      autodetect: true
+      additionalLabels:
+        release: prometheus
+    prometheusRule:
+      enabled: false
+      autodetect: true
+      spec:
+        - alert: VeleroBackupFailed
+          annotations:
+            message: "Velero backup {{ $labels.schedule }} has failed"
+          expr: velero_backup_last_status{schedule!=""} != 1
+          for: 15m
+          labels:
+            severity: warning
 
 # Zoo Navigator Configuration
 # ----------------------------
@@ -1783,12 +1412,27 @@ cloudnative-pg:
     data:
       INHERITED_LABELS: app.kubernetes.io/*, radiantlogic.io/*, *.radiantlogic.io/*
       INHERITED_ANNOTATIONS: meta.helm.sh/*, helm.sh/*, radiantlogic.io/*, *.radiantlogic.io/*
+  imageCatalog:
+    enabled: false
+    images: []
+    # images:
+    #   - major: 18
+    #     image: ghcr.io/cloudnative-pg/postgresql:18.1
   nodeSelector: {}
   tolerations: []
   affinity: {}
   # CRDs are installed by a dedicated job
   crds:
     create: false
+  # Monitoring configuration
+  monitoring:
+    podMonitorEnabled: false
+    podMonitorAdditionalLabels:
+      release: prometheus
+    grafanaDashboard:
+      create: false
+      labels:
+        grafana_dashboard: "1"
 
 # -----------------------------------------------------------------
 # -- Identity Observability - Nebula Operator for Graph Database
@@ -1827,6 +1471,10 @@ flink-kubernetes-operator:
   imagePullSecrets: []
   operatorPod:
     nodeSelector: {}
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9999"
+      prometheus.io/path: "/metrics"
 
   webhook:
     create: false
@@ -1848,8 +1496,13 @@ backupManager:
     pullPolicy: Always
   imagePullSecrets: []
   service:
+    type: ClusterIP
     port: 80
     containerPort: 8080
+    # Only used when type is NodePort
+    nodePort: ""
+    # Preserve client source IP (NodePort/LoadBalancer)
+    externalTrafficPolicy: ""
   podAnnotations: {}
   podSecurityContext: {}
   securityContext: {}
@@ -1907,6 +1560,7 @@ loki:
   enabled: false
   fullnameOverride: loki
 
+  # --> JMC: change deployment mode from SingleBinary to SimpleScalable
   deploymentMode: SimpleScalable
   imagePullSecrets: []
 
@@ -1918,12 +1572,21 @@ loki:
     enabled: false
 
   loki:
+    # Prometheus annotations for metrics discovery (port 3100, built-in /metrics endpoint)
+    serviceAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "3100"
+      prometheus.io/path: "/metrics"
     # multi-tenancy disabled by default
     auth_enabled: false
+    # --> JMC: change replication factor for SimpleScalable mode to be equal to the number of write replicas
+    commonConfig:
+      replication_factor: 1
     schemaConfig:
       configs:
         - from: "2024-04-01"
           store: tsdb
+          # --> JMC: change persistent storage for chunks to be in S3 bucket (not local filesystem)
           object_store: s3
           schema: v13
           index:
@@ -1979,15 +1642,15 @@ loki:
     compactor:
       retention_enabled: true
       retention_delete_delay: 1h
-      delete_request_store: s3
+      delete_request_store: filesystem
 
     storage:
-      type: s3
-      bucketNames: {}
+      type: filesystem
+      # bucketNames: {}
         # chunks: duploservices-rli-ops10-svc-common-125328463501
         # ruler: duploservices-rli-ops10-svc-common-125328463501
         # admin: duploservices-rli-ops10-svc-common-125328463501
-      s3: {}
+      # s3: {}
         # region: eu-west-3
         # s3forcepathstyle: true
 
@@ -2002,7 +1665,8 @@ loki:
     nodeSelector: {}
 
   backend:
-    replicas: 3
+    # --> JMC: change number of replicas for backend to be equal to the number of write replicas
+    replicas: 1
     persistence:
       # Usage:
       #   - Local Temporal (TSDB) Index: index cache for faster queries
@@ -2018,11 +1682,13 @@ loki:
     nodeSelector: {}
 
   read:
-    replicas: 3
+    # --> JMC: change number of replicas for read to be equal to the number of write replicas
+    replicas: 1
     nodeSelector: {}
 
   write:
-    replicas: 3
+    # --> JMC: change number of replicas for write to be equal to the number of write replicas
+    replicas: 1
     persistence:
       # Usage:
       #   - Write-Ahead Log (WAL): ensure data durability before pushing to S3
@@ -2038,6 +1704,20 @@ loki:
       size: 50Gi
     nodeSelector: {}
 
+  # Monitoring configuration
+  monitoring:
+    serviceMonitor:
+      enabled: false
+      interval: 15s
+      labels: {}
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
+    rules:
+      enabled: false
+      alerting: true
+
 # -----------------------------------------------------------------
 # Alloy
 #   https://grafana.com/docs/loki/latest/send-data/alloy/
@@ -2049,6 +1729,13 @@ alloy:
 
   image:
     pullSecrets: []
+
+  # Service configuration with Prometheus annotations
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "12345"
+      prometheus.io/path: "/metrics"
 
   # Do not install CRDs for monitoring
   crds:
@@ -2315,3 +2002,79 @@ alloy:
           // Limit concurrent streams
           max_streams = 5000
         }
+
+        // ========== Self-monitoring for Alloy ==========
+        prometheus.exporter.self "alloy_metrics" {}
+
+        prometheus.scrape "alloy" {
+          targets    = prometheus.exporter.self.alloy_metrics.targets
+          forward_to = [prometheus.remote_write.default.receiver]
+          scrape_interval = "15s"
+          job_name   = "alloy"
+        }
+
+        // ServiceMonitor support
+        prometheus.operator.servicemonitors "services" {
+          forward_to = [prometheus.remote_write.default.receiver]
+        }
+
+        // PodMonitor support
+        prometheus.operator.podmonitors "pods" {
+          forward_to = [prometheus.remote_write.default.receiver]
+        }
+
+        // Remote write to Prometheus
+        prometheus.remote_write "default" {
+          endpoint {
+            name = "prometheus"
+            url  = "http://prometheus-server:9090/api/v1/write"
+
+            queue_config {
+              capacity = 10000
+              max_samples_per_send = 2000
+              max_shards = 10
+            }
+          }
+        }
+
+# -----------------------------------------------------------------
+# -- Prometheus Elasticsearch Exporter for Elasticsearch Metrics
+# -----------------------------------------------------------------
+prometheus-elasticsearch-exporter:
+  enabled: false
+  fullnameOverride: elasticsearch-exporter
+
+  # Service annotations for Prometheus scraping
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9108"
+      prometheus.io/path: "/metrics"
+
+  # Elasticsearch connection settings
+  es:
+    uri: http://elasticsearch-master:9200
+    all: true
+    indices: true
+    shards: true
+    snapshots: true
+    cluster_settings: true
+
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      release: prometheus
+
+# -----------------------------------------------------------------
+# -- Enable All Services for Metrics Testing
+# -----------------------------------------------------------------
+# All services are now enabled by default with metrics configured.
+# To disable specific services, override in your values:
+#
+# Example:
+# zookeeper:
+#   enabled: false
+# fluent-bit:
+#   enabled: false

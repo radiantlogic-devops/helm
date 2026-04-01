@@ -1,0 +1,362 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "HAProxy load balancer monitoring dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Active Backend Servers",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(haproxy_backend_active_servers{namespace=~\"$namespace\", proxy=~\"$proxy\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "none", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 1}, {"color": "green", "value": 2}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Current Sessions",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(haproxy_backend_current_sessions{namespace=~\"$namespace\", proxy=~\"$proxy\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "none", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Requests/s",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(rate(haproxy_backend_http_requests_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Connection Errors/s",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(rate(haproxy_backend_connection_errors_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.1}, {"color": "red", "value": 1}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 101,
+      "panels": [],
+      "title": "Traffic",
+      "type": "row"
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Bytes In/Out Rate",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_backend_bytes_in_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}} in",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (proxy) (rate(haproxy_backend_bytes_out_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}} out",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Sessions",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (haproxy_backend_current_sessions{namespace=~\"$namespace\", proxy=~\"$proxy\"})",
+          "legendFormat": "{{proxy}} current",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (proxy) (haproxy_backend_max_sessions{namespace=~\"$namespace\", proxy=~\"$proxy\"})",
+          "legendFormat": "{{proxy}} max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14},
+      "id": 102,
+      "panels": [],
+      "title": "HTTP Responses",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "HTTP Response Codes",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 15},
+      "targets": [
+        {
+          "expr": "sum by (proxy, code) (rate(haproxy_backend_http_responses_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}} {{code}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 23},
+      "id": 103,
+      "panels": [],
+      "title": "Latency",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Connect Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "targets": [
+        {
+          "expr": "haproxy_backend_connect_time_average_seconds{namespace=~\"$namespace\", proxy=~\"$proxy\"}",
+          "legendFormat": "{{proxy}} avg",
+          "refId": "A"
+        },
+        {
+          "expr": "haproxy_backend_max_connect_time_seconds{namespace=~\"$namespace\", proxy=~\"$proxy\"}",
+          "legendFormat": "{{proxy}} max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Response Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "targets": [
+        {
+          "expr": "haproxy_backend_response_time_average_seconds{namespace=~\"$namespace\", proxy=~\"$proxy\"}",
+          "legendFormat": "{{proxy}} avg",
+          "refId": "A"
+        },
+        {
+          "expr": "haproxy_backend_max_response_time_seconds{namespace=~\"$namespace\", proxy=~\"$proxy\"}",
+          "legendFormat": "{{proxy}} max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32},
+      "id": 104,
+      "panels": [],
+      "title": "Errors",
+      "type": "row"
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Connection Errors",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 33},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_backend_connection_errors_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Response Errors",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 33},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_backend_response_errors_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Internal Errors",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 33},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_backend_internal_errors_total{namespace=~\"$namespace\", proxy=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{proxy}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 41},
+      "id": 105,
+      "panels": [],
+      "title": "Frontend",
+      "type": "row"
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Frontend Connections",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 42},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_frontend_connections_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{proxy}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Frontend HTTP Requests",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 42},
+      "targets": [
+        {
+          "expr": "sum by (proxy) (rate(haproxy_frontend_http_requests_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{proxy}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["haproxy", "loadbalancer"],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(haproxy_backend_active_servers, namespace)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      },
+      {
+        "name": "proxy",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(haproxy_backend_active_servers{namespace=~\"$namespace\"}, proxy)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "HAProxy Monitoring",
+  "uid": "haproxy-monitoring",
+  "version": 1,
+  "weekStart": ""
+}

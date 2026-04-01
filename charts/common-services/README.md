@@ -1,8 +1,49 @@
 # common-services
 
-![Version: 1.0.9](https://img.shields.io/badge/Version-1.0.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3](https://img.shields.io/badge/AppVersion-1.3-informational?style=flat-square)
+![Version: 2.0.1](https://img.shields.io/badge/Version-2.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0](https://img.shields.io/badge/AppVersion-2.0-informational?style=flat-square)
 
 A Helm chart for deploying RadiantOne Common Services on Kubernetes
+
+## What's New in 2.0.1
+
+### Automatic Metrics & Dashboards
+
+Every enabled service now automatically:
+- Exposes a Prometheus-compatible metrics endpoint
+- Is scraped by Prometheus via service annotations
+- Has a pre-configured Grafana dashboard
+
+| Service | Metrics Port | Dashboard |
+|---------|-------------|-----------|
+| ArgoCD | 8082, 8083, 8084 | ✅ |
+| Elasticsearch (exporter) | 9108 | ✅ |
+| Fluent-bit | 2020 | ✅ |
+| Grafana | 3000 | ✅ |
+| HAProxy | 8404 | ✅ |
+| Kibana | 9684 | ✅ |
+| Loki | 3100 | ✅ |
+| OpenSearch | 9200 | ✅ |
+| PostgreSQL | 9187 | ✅ |
+| Velero | 8085 | ✅ |
+| Zookeeper | 9141 | ✅ |
+| CloudNative-PG | 8080 | ✅ |
+| Alloy | 12345 | ✅ |
+| Flink Operator | 9999 | ✅ |
+
+### Prometheus Scraping
+
+Services are configured with standard annotations for Prometheus discovery:
+
+```yaml
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "<port>"
+  prometheus.io/path: "/metrics"
+```
+
+### Dashboard Auto-Import
+
+Grafana dashboards are automatically provisioned via ConfigMaps with the `grafana_dashboard: "1"` label. The Grafana sidecar discovers and imports them on startup.
 
 ## Maintainers
 

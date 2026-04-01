@@ -1,0 +1,1607 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Elasticsearch monitoring dashboard for common-services",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "panels": [],
+      "title": "Cluster Health",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Cluster Health Status",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_status{namespace=~\"$namespace\", color=\"green\"} == 1",
+          "legendFormat": "green",
+          "refId": "A"
+        },
+        {
+          "expr": "elasticsearch_cluster_health_status{namespace=~\"$namespace\", color=\"yellow\"} == 1",
+          "legendFormat": "yellow",
+          "refId": "B"
+        },
+        {
+          "expr": "elasticsearch_cluster_health_status{namespace=~\"$namespace\", color=\"red\"} == 1",
+          "legendFormat": "red",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "green": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "GREEN"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "yellow": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "YELLOW"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "red": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "RED"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "name"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Nodes",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "max(elasticsearch_cluster_health_number_of_nodes{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "green", "value": 3}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Data Nodes",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "max(elasticsearch_cluster_health_number_of_data_nodes{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "green", "value": 3}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active Shards",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "max(elasticsearch_cluster_health_active_shards{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "blue", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Unassigned Shards",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "max(elasticsearch_cluster_health_unassigned_shards{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 5}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Pending Tasks",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "targets": [
+        {
+          "expr": "max(elasticsearch_cluster_health_number_of_pending_tasks{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 20}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 101,
+      "panels": [],
+      "title": "Index Statistics",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Total Documents",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(elasticsearch_indices_docs{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "blue", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Store Size",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(elasticsearch_indices_store_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "blue", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Segments Count",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(elasticsearch_indices_segments_count{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "blue", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Deleted Documents",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(elasticsearch_indices_docs_deleted{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 10000},
+              {"color": "red", "value": 100000}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 102,
+      "panels": [],
+      "title": "JVM & Memory",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "JVM Heap Used",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_jvm_memory_used_bytes{namespace=~\"$namespace\", area=\"heap\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "JVM Heap Max",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_jvm_memory_max_bytes{namespace=~\"$namespace\", area=\"heap\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "JVM GC Collection Rate",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, gc) (rate(elasticsearch_jvm_gc_collection_seconds_count{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{gc}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "JVM GC Collection Time",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, gc) (rate(elasticsearch_jvm_gc_collection_seconds_sum{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{gc}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 103,
+      "panels": [],
+      "title": "Search & Indexing",
+      "type": "row"
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Search Query Rate",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_search_query_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Search Query Time",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_search_query_time_seconds{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Indexing Rate",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_indexing_index_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Indexing Time",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_indexing_index_time_seconds_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 104,
+      "panels": [],
+      "title": "Cache",
+      "type": "row"
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Query Cache Hit Ratio",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(elasticsearch_indices_query_cache_count{namespace=~\"$namespace\"}[5m])) / clamp_min(sum(rate(elasticsearch_indices_query_cache_total{namespace=~\"$namespace\"}[5m])), 1e-10) * 100",
+          "legendFormat": "Query Cache Hit %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Query Cache Memory",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (elasticsearch_indices_query_cache_memory_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Cache Evictions",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_query_cache_evictions{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "query cache {{name}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_fielddata_evictions{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "fielddata {{name}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (name) (rate(elasticsearch_indices_request_cache_evictions{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "request cache {{name}}",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Fielddata Memory",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (elasticsearch_indices_fielddata_memory_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 61
+      },
+      "id": 105,
+      "panels": [],
+      "title": "System Resources",
+      "type": "row"
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "OS CPU %",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 62
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_os_cpu_percent{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "OS Load Average (1m)",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 62
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_os_load1{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Process CPU %",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 62
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_process_cpu_percent{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "OS Memory Used",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 70
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_os_mem_used_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "timeseries",
+      "title": "File Descriptors",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 70
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_process_open_files_count{namespace=~\"$namespace\"})",
+          "legendFormat": "open {{name}} {{node}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (name, node) (elasticsearch_process_max_files_descriptors{namespace=~\"$namespace\"})",
+          "legendFormat": "max {{name}} {{node}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 78
+      },
+      "id": 106,
+      "panels": [],
+      "title": "Disk & Transport",
+      "type": "row"
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "Filesystem Available",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 79
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_filesystem_data_available_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Filesystem Size",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 79
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (elasticsearch_filesystem_data_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Transport TX Rate",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 87
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (rate(elasticsearch_transport_tx_size_bytes_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Transport RX Rate",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 87
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, node) (rate(elasticsearch_transport_rx_size_bytes_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{node}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 95
+      },
+      "id": 107,
+      "panels": [],
+      "title": "Thread Pools",
+      "type": "row"
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Thread Pool Active",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 96
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, type) (elasticsearch_thread_pool_active_count{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Thread Pool Queue",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 96
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, type) (elasticsearch_thread_pool_queue_count{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Thread Pool Rejected",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 104
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, type) (rate(elasticsearch_thread_pool_rejected_count{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 112
+      },
+      "id": 108,
+      "panels": [],
+      "title": "Circuit Breakers",
+      "type": "row"
+    },
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "Circuit Breaker Estimated Size",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 113
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, breaker) (elasticsearch_breakers_estimated_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{breaker}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 36,
+      "type": "timeseries",
+      "title": "Circuit Breaker Limit",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 113
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, breaker) (elasticsearch_breakers_limit_size_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{name}} {{breaker}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 37,
+      "type": "timeseries",
+      "title": "Circuit Breaker Tripped",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 121
+      },
+      "targets": [
+        {
+          "expr": "sum by (name, breaker) (rate(elasticsearch_breakers_tripped{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} {{breaker}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "elasticsearch"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(elasticsearch_cluster_health_status, namespace)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Elasticsearch Monitoring",
+  "uid": "elasticsearch-monitoring",
+  "version": 1,
+  "weekStart": ""
+}

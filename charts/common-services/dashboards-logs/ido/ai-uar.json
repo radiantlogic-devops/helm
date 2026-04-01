@@ -1,0 +1,603 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "AIDA for UAR logs",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "title": "AIDA for User Access Review",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "title": "AIDA",
+      "description": "Show logs from AIDA for UAR container",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "CRITICAL": {
+                  "text": "CRITICAL",
+                  "color": "dark-red",
+                  "index": 0
+                },
+                "critical": {
+                  "text": "CRITICAL",
+                  "color": "dark-red",
+                  "index": 1
+                },
+                "ERROR": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "ERROR"
+                },
+                "error": {
+                  "color": "red",
+                  "index": 3,
+                  "text": "ERROR"
+                },
+                "WARNING": {
+                  "color": "yellow",
+                  "index": 4,
+                  "text": "WARNING"
+                },
+                "warning": {
+                  "color": "yellow",
+                  "index": 5,
+                  "text": "WARNING"
+                },
+                "INFO": {
+                  "color": "transparent",
+                  "index": 6,
+                  "text": "INFO"
+                },
+                "info": {
+                  "color": "transparent",
+                  "index": 7,
+                  "text": "INFO"
+                },
+                "DEBUG": {
+                  "color": "transparent",
+                  "index": 8,
+                  "text": "DEBUG"
+                },
+                "debug": {
+                  "color": "transparent",
+                  "index": 9,
+                  "text": "DEBUG"
+                }
+              }
+            }
+          ],
+          "noValue": "No data - check time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 197
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 99
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": true,
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Logger"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 269
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"ai-uar\", container=\"analytics-ai\"} |~ \"^[0-9]{4}-\" | line_format \"{{ regexReplaceAll \\\"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]+ - .+? - (DEBUG|INFO|WARNING|ERROR|CRITICAL) - \\\" __line__ \\\"\\\" }}\"",
+          "queryType": "range",
+          "refId": "logs"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "Time": true,
+              "detected_level": true,
+              "Line": true
+            },
+            "indexByName": {
+              "Time": 0,
+              "detected_level": 1,
+              "Line": 2
+            },
+            "renameByName": {
+              "detected_level": "Level",
+              "Line": "Message"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 11,
+      "title": "LLM Proxy",
+      "type": "row",
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "title": "Proxy",
+          "description": "Show logs from LLM Proxy container",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto",
+                  "wrapText": true
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "fatal": {
+                      "text": "FATAL",
+                      "color": "dark-red",
+                      "index": 0
+                    },
+                    "FATAL": {
+                      "text": "FATAL",
+                      "color": "dark-red",
+                      "index": 1
+                    },
+                    "CRITICAL": {
+                      "text": "CRITICAL",
+                      "color": "dark-red",
+                      "index": 2
+                    },
+                    "critical": {
+                      "text": "CRITICAL",
+                      "color": "dark-red",
+                      "index": 3
+                    },
+                    "error": {
+                      "color": "red",
+                      "index": 4,
+                      "text": "ERROR"
+                    },
+                    "ERROR": {
+                      "color": "red",
+                      "index": 5,
+                      "text": "ERROR"
+                    },
+                    "warn": {
+                      "color": "yellow",
+                      "index": 6,
+                      "text": "WARN"
+                    },
+                    "WARN": {
+                      "color": "yellow",
+                      "index": 7,
+                      "text": "WARN"
+                    },
+                    "WARNING": {
+                      "color": "yellow",
+                      "index": 8,
+                      "text": "WARNING"
+                    },
+                    "warning": {
+                      "color": "yellow",
+                      "index": 9,
+                      "text": "WARNING"
+                    },
+                    "info": {
+                      "color": "transparent",
+                      "index": 10,
+                      "text": "INFO"
+                    },
+                    "INFO": {
+                      "color": "transparent",
+                      "index": 11,
+                      "text": "INFO"
+                    },
+                    "debug": {
+                      "color": "transparent",
+                      "index": 12,
+                      "text": "DEBUG"
+                    },
+                    "DEBUG": {
+                      "color": "transparent",
+                      "index": 13,
+                      "text": "DEBUG"
+                    }
+                  }
+                }
+              ],
+              "noValue": "No data - check time range",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Time"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 197
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Level"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 99
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "applyToRow": true,
+                      "mode": "gradient",
+                      "type": "color-background"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Logger"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 269
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Component"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 251
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 23,
+            "w": 24,
+            "x": 0,
+            "y": 25
+          },
+          "id": 2,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "direction": "backward",
+              "editorMode": "code",
+              "expr": "{app=\"$application\", environment=\"$environment\", component=\"ai-uar\", container=\"litellm-proxy\"} | json | __error__ != \"JSONParserErr\"",
+              "queryType": "range",
+              "refId": "logs"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "extractFields",
+              "options": {
+                "source": "labels"
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "includeByName": {
+                  "Line": false,
+                  "Time": true,
+                  "app": false,
+                  "component": false,
+                  "component_extracted": true,
+                  "level": true,
+                  "loggerName": false,
+                  "loggerName 2": false,
+                  "message": true,
+                  "portalInstance": false,
+                  "shortLogger": true,
+                  "tenant": false
+                },
+                "indexByName": {
+                  "Line": 7,
+                  "Time": 0,
+                  "app": 2,
+                  "build": 21,
+                  "component": 11,
+                  "component_extracted": 4,
+                  "container": 12,
+                  "detected_level": 13,
+                  "id": 10,
+                  "instance": 14,
+                  "job": 15,
+                  "labelTypes": 9,
+                  "labels": 6,
+                  "level": 3,
+                  "message": 5,
+                  "namespace": 16,
+                  "node_name": 17,
+                  "phase": 24,
+                  "pod": 18,
+                  "service_name": 19,
+                  "tenant": 1,
+                  "time": 22,
+                  "tsNs": 8,
+                  "version": 20,
+                  "version_extracted": 23
+                },
+                "renameByName": {
+                  "component_extracted": "Component",
+                  "level": "Level",
+                  "loggerName": "Logger",
+                  "message": "Message",
+                  "shortLogger": "Logger"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": [
+    "identity-observability",
+    "logging",
+    "ai-uar"
+  ],
+  "templating": {
+    "list": [
+      {
+        "hide": 2,
+        "name": "DS_LOKI",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_LOKI}"
+        },
+        "definition": "",
+        "description": "",
+        "label": "Environment",
+        "name": "environment",
+        "options": [],
+        "query": {
+          "label": "environment",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Application",
+        "name": "application",
+        "query": "identity-observability",
+        "skipUrlSync": true,
+        "type": "constant",
+        "current": {
+          "value": "identity-observability",
+          "text": "identity-observability",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "identity-observability",
+            "text": "identity-observability",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "30m",
+      "1h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Logs - AIDA for UAR",
+  "uid": "ido-logs-ai-uar",
+  "version": 1,
+  "weekStart": ""
+}

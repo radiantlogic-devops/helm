@@ -1,0 +1,23 @@
+{{- if and .Values.kibana.enabled .Values.prometheus.enabled (((.Values.kibana).serviceMonitor).enabled | default false) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kibana
+  labels:
+    app: kibana
+    release: prometheus
+    {{- include "common-services.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: kibana
+      component: metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics
+{{- end }}

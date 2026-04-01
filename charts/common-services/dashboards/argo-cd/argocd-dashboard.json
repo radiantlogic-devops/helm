@@ -1,0 +1,499 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Argo CD GitOps monitoring dashboard - automatically shows application data when apps are deployed",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "ArgoCD Version",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "targets": [
+        {
+          "expr": "argocd_info{namespace=~\"$namespace\"}",
+          "legendFormat": "{{version}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "/^version$/", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "name"}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Applications",
+      "description": "Shows data when ArgoCD applications are deployed",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 6, "y": 1},
+      "targets": [
+        {
+          "expr": "count(argocd_app_info{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Healthy Apps",
+      "description": "Applications with health_status=Healthy",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 3, "x": 10, "y": 1},
+      "targets": [
+        {
+          "expr": "count(argocd_app_info{namespace=~\"$namespace\", health_status=\"Healthy\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Degraded Apps",
+      "description": "Applications with health_status=Degraded",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 3, "x": 13, "y": 1},
+      "targets": [
+        {
+          "expr": "count(argocd_app_info{namespace=~\"$namespace\", health_status=\"Degraded\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Synced Apps",
+      "description": "Applications with sync_status=Synced",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
+      "targets": [
+        {
+          "expr": "count(argocd_app_info{namespace=~\"$namespace\", sync_status=\"Synced\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "OutOfSync Apps",
+      "description": "Applications with sync_status=OutOfSync",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
+      "targets": [
+        {
+          "expr": "count(argocd_app_info{namespace=~\"$namespace\", sync_status=\"OutOfSync\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "yellow", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 101,
+      "panels": [],
+      "title": "Application Health & Sync Status",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "type": "piechart",
+      "title": "Apps by Health Status",
+      "description": "Distribution of applications by health status",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 6},
+      "targets": [
+        {
+          "expr": "count by (health_status) (argocd_app_info{namespace=~\"$namespace\"})",
+          "legendFormat": "{{health_status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short"},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Healthy"}, "properties": [{"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Degraded"}, "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Progressing"}, "properties": [{"id": "color", "value": {"fixedColor": "yellow", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Suspended"}, "properties": [{"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Missing"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Unknown"}, "properties": [{"id": "color", "value": {"fixedColor": "gray", "mode": "fixed"}}]}
+        ]
+      },
+      "options": {"legend": {"displayMode": "list", "placement": "right"}, "pieType": "pie", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 8,
+      "type": "piechart",
+      "title": "Apps by Sync Status",
+      "description": "Distribution of applications by sync status",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 6},
+      "targets": [
+        {
+          "expr": "count by (sync_status) (argocd_app_info{namespace=~\"$namespace\"})",
+          "legendFormat": "{{sync_status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short"},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Synced"}, "properties": [{"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "OutOfSync"}, "properties": [{"id": "color", "value": {"fixedColor": "yellow", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Unknown"}, "properties": [{"id": "color", "value": {"fixedColor": "gray", "mode": "fixed"}}]}
+        ]
+      },
+      "options": {"legend": {"displayMode": "list", "placement": "right"}, "pieType": "pie", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Application Status",
+      "description": "List of all ArgoCD applications with their status",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 6},
+      "targets": [
+        {
+          "expr": "argocd_app_info{namespace=~\"$namespace\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "Value": true, "__name__": true, "instance": true, "job": true}, "indexByName": {}, "renameByName": {"dest_namespace": "Dest NS", "dest_server": "Dest Server", "health_status": "Health", "name": "Application", "namespace": "Namespace", "project": "Project", "repo": "Repository", "sync_status": "Sync"}}}
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Health"}, "properties": [{"id": "mappings", "value": [{"options": {"Degraded": {"color": "red", "index": 1}, "Healthy": {"color": "green", "index": 0}, "Missing": {"color": "orange", "index": 3}, "Progressing": {"color": "yellow", "index": 2}, "Unknown": {"color": "gray", "index": 4}}, "type": "value"}]}]},
+          {"matcher": {"id": "byName", "options": "Sync"}, "properties": [{"id": "mappings", "value": [{"options": {"OutOfSync": {"color": "yellow", "index": 1}, "Synced": {"color": "green", "index": 0}, "Unknown": {"color": "gray", "index": 2}}, "type": "value"}]}]}
+        ]
+      },
+      "options": {"showHeader": true, "cellHeight": "sm"}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14},
+      "id": 102,
+      "panels": [],
+      "title": "Sync Operations",
+      "type": "row"
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Sync Operations Rate",
+      "description": "Rate of sync operations by application",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 15},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(argocd_app_sync_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0, "noValue": "No sync data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Sync Operations by Phase",
+      "description": "Sync operations grouped by phase (Succeeded, Failed, Error)",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 15},
+      "targets": [
+        {
+          "expr": "sum by (phase) (rate(argocd_app_sync_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{phase}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "min": 0, "noValue": "No sync data"},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Succeeded"}, "properties": [{"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Failed"}, "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Error"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}
+        ]
+      },
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 23},
+      "id": 103,
+      "panels": [],
+      "title": "Reconciliation",
+      "type": "row"
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Reconciliation Rate",
+      "description": "Rate of application reconciliations",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(argocd_app_reconcile_count{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0, "noValue": "No reconciliation data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Reconciliation Duration (p99)",
+      "description": "99th percentile reconciliation duration",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, name) (rate(argocd_app_reconcile_bucket{namespace=~\"$namespace\"}[5m])))",
+          "legendFormat": "{{name}} p99",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0, "noValue": "No reconciliation data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32},
+      "id": 104,
+      "panels": [],
+      "title": "Cluster & Resources",
+      "type": "row"
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Managed Clusters",
+      "description": "Number of clusters managed by ArgoCD",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 33},
+      "targets": [
+        {
+          "expr": "count(argocd_cluster_info{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "0", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Cluster API Resources",
+      "description": "Number of API resources per cluster",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 9, "x": 6, "y": 33},
+      "targets": [
+        {
+          "expr": "sum by (server) (argocd_cluster_api_resources{namespace=~\"$namespace\"})",
+          "legendFormat": "{{server}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0, "noValue": "No cluster data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Cluster Resource Objects",
+      "description": "Number of K8s resource objects per cluster",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 9, "x": 15, "y": 33},
+      "targets": [
+        {
+          "expr": "sum by (server) (argocd_cluster_api_resource_objects{namespace=~\"$namespace\"})",
+          "legendFormat": "{{server}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0, "noValue": "No cluster data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 41},
+      "id": 105,
+      "panels": [],
+      "title": "Controller Performance",
+      "type": "row"
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Redis Request Rate",
+      "description": "Rate of Redis requests from controller and server",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 42},
+      "targets": [
+        {
+          "expr": "sum by (initiator, failed) (rate(argocd_redis_request_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{initiator}} (failed={{failed}})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Redis Request Duration (avg)",
+      "description": "Average Redis request duration",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 42},
+      "targets": [
+        {
+          "expr": "sum by (initiator) (rate(argocd_redis_request_duration_sum{namespace=~\"$namespace\"}[5m])) / clamp_min(sum by (initiator) (rate(argocd_redis_request_duration_count{namespace=~\"$namespace\"}[5m])), 1)",
+          "legendFormat": "{{initiator}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 50},
+      "id": 106,
+      "panels": [],
+      "title": "Git & Repository",
+      "type": "row"
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Git Request Rate",
+      "description": "Rate of Git requests by repository",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 51},
+      "targets": [
+        {
+          "expr": "sum by (repo) (rate(argocd_git_request_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{repo}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0, "noValue": "No git data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Git Request Duration",
+      "description": "Git request duration by repository",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 51},
+      "targets": [
+        {
+          "expr": "sum by (repo) (rate(argocd_git_request_duration_seconds_sum{namespace=~\"$namespace\"}[5m])) / clamp_min(sum by (repo) (rate(argocd_git_request_duration_seconds_count{namespace=~\"$namespace\"}[5m])), 1)",
+          "legendFormat": "{{repo}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0, "noValue": "No git data"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["argocd", "gitops", "kubernetes"],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(argocd_info, namespace)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ArgoCD GitOps Monitoring",
+  "uid": "argocd-gitops-monitoring",
+  "version": 1,
+  "weekStart": ""
+}

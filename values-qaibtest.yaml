@@ -1,0 +1,177 @@
+# Overrides for duploservices-qaibtest deployment
+# Chart version: 2.0.1
+# Purpose: Full E2E testing of metrics and dashboards
+global:
+  hibernate: false
+  postgresql:
+    auth:
+      database: eocdb
+
+nodeSelector:
+  tenantname: duploservices-qaibtest
+
+# ----------------------------------------------------------------------------
+# Core Services with Metrics/Dashboards
+# ----------------------------------------------------------------------------
+
+zookeeper:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels: { release: prometheus }
+
+postgresql:
+  enabled: true
+  primary:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+  metrics:
+    enabled: true
+    image:
+      # Use latest tag as specific versions may have issues
+      tag: latest
+    serviceMonitor:
+      enabled: true
+      labels: { release: prometheus }
+
+argo-cd:
+  enabled: true
+  crds:
+    install: true
+  controller:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  server:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  repoServer:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+  redis:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: { release: prometheus }
+
+haproxy:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+
+elasticsearch:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+
+kibana:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  # Disable sidecar exporter to avoid image pull errors
+  extraContainers: []
+
+prometheus-elasticsearch-exporter:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+    labels: { release: prometheus }
+
+cloudnative-pg:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  monitoring:
+    podMonitorEnabled: true
+    podMonitorAdditionalLabels: { release: prometheus }
+
+fluent-bit:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  serviceMonitor:
+    enabled: true
+
+# ----------------------------------------------------------------------------
+# Prometheus Configuration
+# ----------------------------------------------------------------------------
+prometheus:
+  enabled: true
+  server:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+  prometheus-pushgateway:
+    nodeSelector: { tenantname: duploservices-qaibtest }
+
+# ----------------------------------------------------------------------------
+# Grafana Configuration
+# ----------------------------------------------------------------------------
+grafana:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+  # Dashboards - all enabled services will have their dashboards loaded
+  dashboardsConfigMaps:
+    # -- FID/Product Dashboards
+    fid: "fid-dashboard"
+    zookeeper: "zookeeper-dashboard"
+    iddm: "iddm-dashboard"
+    elasticsearch: "audit-logs-elastic-dashboard"
+    service-status: "service-status-dashboard"
+    # -- Metrics Dashboards (Enabled services)
+    argo-cd: "argo-cd-dashboard"
+    elasticsearch-metrics: "elasticsearch-dashboard"
+    haproxy: "haproxy-dashboard"
+    postgresql: "postgresql-dashboard"
+    zookeeper-metrics: "zookeeper-metrics-dashboard"
+    fluent-bit: "fluent-bit-dashboard"
+    cloudnative-pg: "cloudnative-pg-dashboard"
+    kibana: "kibana-dashboard"
+    grafana: "grafana-metrics-dashboard"
+    alloy: "alloy-dashboard"
+    # -- Disabled Dashboards (services not enabled)
+    opensearch: null
+    velero: null
+    loki: null
+    flink: null
+
+# ----------------------------------------------------------------------------
+# Alloy - Log Collector (sends to Loki when enabled)
+# ----------------------------------------------------------------------------
+alloy:
+  enabled: true
+  nodeSelector: { tenantname: duploservices-qaibtest }
+
+# ----------------------------------------------------------------------------
+# Services Disabled for this test
+# ----------------------------------------------------------------------------
+loki:
+  enabled: false
+
+velero:
+  enabled: false
+
+opensearch:
+  enabled: false
+
+flink-kubernetes-operator:
+  enabled: false
+
+nebula-operator:
+  enabled: false

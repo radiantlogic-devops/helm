@@ -10,7 +10,7 @@ type: application
 # Chart Version
 # -------------
 # This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
-version: 2.0.0
+version: 2.0.1
 
 # Application Version (Informational)
 # -----------------------------------
@@ -98,7 +98,7 @@ dependencies:
   condition: velero.enabled
 - name: cloudnative-pg
   repository: https://cloudnative-pg.github.io/charts
-  version: 0.26.0
+  version: 0.27.1
   condition: cloudnative-pg.enabled
 - name: velero-ui
   version: 0.x.x
@@ -109,8 +109,8 @@ dependencies:
   repository: https://vesoft-inc.github.io/nebula-operator/charts
   condition: nebula-operator.enabled
 - name: flink-kubernetes-operator
-  version: 1.12.1
-  repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.12.1
+  version: 1.14.0
+  repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.14.0
   condition: flink-kubernetes-operator.enabled
 - name: loki
   repository: https://grafana.github.io/helm-charts
@@ -120,3 +120,7 @@ dependencies:
   repository: https://grafana.github.io/helm-charts
   version: 1.2.1
   condition: alloy.enabled
+- name: prometheus-elasticsearch-exporter
+  version: 6.6.0
+  repository: https://prometheus-community.github.io/helm-charts
+  condition: prometheus-elasticsearch-exporter.enabled

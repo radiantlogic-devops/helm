@@ -89,18 +89,21 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory
+            {{- $webhook := (.Values.backupManager).webhook | default dict }}
+            {{- $webhookBackup := $webhook.backup | default dict }}
+            {{- $webhookRestore := $webhook.restore | default dict }}
             - name: WEBHOOK_ENABLED
-              value: {{ .Values.backupManager.webhook.enabled | default false | quote }}
+              value: {{ $webhook.enabled | default false | quote }}
             - name: WATCH_SYNC_PERIOD
-              value: {{ .Values.backupManager.webhook.syncPeriod | default "1m" | quote }}
+              value: {{ $webhook.syncPeriod | default "1m" | quote }}
             - name: BACKUP_WEBHOOK_URL
-              value: {{ .Values.backupManager.webhook.backup.url | quote }}
+              value: {{ $webhookBackup.url | default "" | quote }}
             - name: BACKUP_WAIT_TIMEOUT
-              value: {{ .Values.backupManager.webhook.backup.timeout | default "1h" | quote }}
+              value: {{ $webhookBackup.timeout | default "1h" | quote }}
             - name: RESTORE_WEBHOOK_URL
-              value: {{ .Values.backupManager.webhook.restore.url | quote }}
+              value: {{ $webhookRestore.url | default "" | quote }}
             - name: RESTORE_WAIT_TIMEOUT
-              value: {{ .Values.backupManager.webhook.restore.timeout | default "1h" | quote }}
+              value: {{ $webhookRestore.timeout | default "1h" | quote }}
             - name: PODS_WAIT_TIMEOUT
               value: {{ .Values.backupManager.podsWaitTimeout | default "5m" | quote }}
           livenessProbe:

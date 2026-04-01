@@ -1,4 +1,4 @@
-{{- if and .Values.postgresql.enabled (and ((.Values.postgresql).backup).enabled | default false) }}
+{{- if and .Values.postgresql.enabled (((.Values.postgresql).backup).enabled | default false) }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:

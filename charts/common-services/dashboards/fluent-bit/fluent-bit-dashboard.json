@@ -1,0 +1,310 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Fluent Bit log forwarder monitoring dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "targets": [
+        {
+          "expr": "max(fluentbit_uptime{namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Input Records/s",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(rate(fluentbit_input_records_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Output Records/s",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(rate(fluentbit_output_proc_records_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Errors/s",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(rate(fluentbit_output_errors_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.1}, {"color": "red", "value": 1}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 101,
+      "panels": [],
+      "title": "Input Plugins",
+      "type": "row"
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Input Records Rate",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_input_records_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Input Bytes Rate",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_input_bytes_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Files Opened/Closed",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_input_files_opened_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} opened",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (name) (rate(fluentbit_input_files_closed_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} closed",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Files Rotated",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_input_files_rotated_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 22},
+      "id": 102,
+      "panels": [],
+      "title": "Output Plugins",
+      "type": "row"
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Output Records Rate",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 23},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_proc_records_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Output Bytes Rate",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 23},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_proc_bytes_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 31},
+      "id": 103,
+      "panels": [],
+      "title": "Errors & Retries",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Output Errors",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_errors_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Retries",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_retries_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} retries",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_retries_failed_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}} failed",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Dropped Records",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(fluentbit_output_dropped_records_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["fluent-bit", "logging"],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(fluentbit_uptime, namespace)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Fluent Bit Monitoring",
+  "uid": "fluentbit-monitoring",
+  "version": 1,
+  "weekStart": ""
+}

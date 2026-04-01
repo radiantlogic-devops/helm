@@ -1,0 +1,314 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Observation Database logs",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "Show all logs from Observation Database",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "debug": {
+                  "color": "transparent",
+                  "index": 2
+                },
+                "error": {
+                  "color": "dark-red",
+                  "index": 0
+                },
+                "info": {
+                  "color": "transparent",
+                  "index": 3
+                },
+                "warn": {
+                  "color": "dark-yellow",
+                  "index": 1
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "No data - check time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 197
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 99
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": true,
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Logger"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 269
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{app=\"$application\", environment=\"$environment\", component=\"observation-database\"} | json | __error__ != \"JSONParserErr\"",
+          "key": "Q-8ecbdd88-d655-4837-968a-007a7fae03b2-0",
+          "queryType": "range",
+          "refId": "logs"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "Time": true,
+              "app": false,
+              "level": true,
+              "logger": false,
+              "loggerName": false,
+              "loggerName 2": false,
+              "message": true,
+              "msg": false,
+              "portalInstance": false,
+              "record_message": true,
+              "shortLogger": true,
+              "tenant": false
+            },
+            "indexByName": {
+              "Line": 9,
+              "Time": 0,
+              "app": 2,
+              "component": 13,
+              "container": 14,
+              "detected_level": 15,
+              "endOfBatch": 16,
+              "id": 12,
+              "instance": 17,
+              "job": 18,
+              "labelTypes": 11,
+              "labels": 8,
+              "level": 3,
+              "loggerFqcn": 19,
+              "loggerName": 5,
+              "message": 7,
+              "namespace": 20,
+              "node_name": 21,
+              "pod": 22,
+              "portalInstance": 4,
+              "service_name": 23,
+              "shortLogger": 6,
+              "tenant": 1,
+              "thread": 24,
+              "threadId": 25,
+              "threadPriority": 26,
+              "timeMillis": 27,
+              "tsNs": 10,
+              "version": 28
+            },
+            "renameByName": {
+              "level": "Level",
+              "logger": "",
+              "loggerName": "Logger",
+              "message": "Message",
+              "record_message": "Message",
+              "shortLogger": "Logger"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": [
+    "identity-observability",
+    "logging",
+    "observation-database"
+  ],
+  "templating": {
+    "list": [
+      {
+        "hide": 2,
+        "name": "DS_LOKI",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_LOKI}"
+        },
+        "definition": "",
+        "description": "",
+        "label": "Environment",
+        "name": "environment",
+        "options": [],
+        "query": {
+          "label": "environment",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Application",
+        "name": "application",
+        "query": "identity-observability",
+        "skipUrlSync": true,
+        "type": "constant",
+        "current": {
+          "value": "identity-observability",
+          "text": "identity-observability",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "identity-observability",
+            "text": "identity-observability",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "30m",
+      "1h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Logs - Observation Database",
+  "uid": "ido-logs-observation-db",
+  "version": 4,
+  "weekStart": ""
+}

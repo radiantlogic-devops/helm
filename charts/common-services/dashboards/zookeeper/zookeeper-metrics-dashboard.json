@@ -1,0 +1,366 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "ZooKeeper cluster monitoring dashboard with JMX metrics",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1},
+      "targets": [
+        {
+          "expr": "max(uptime{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ms", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "ZNode Count",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(znode_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Watch Count",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(watch_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "purple", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Global Sessions",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(global_sessions{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "orange", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Outstanding Requests",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
+      "targets": [
+        {
+          "expr": "sum(outstanding_requests{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}, {"color": "red", "value": 100}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Avg Latency (ms)",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
+      "targets": [
+        {
+          "expr": "avg(avg_latency{service=~\".*zookeeper.*\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "ms", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}, {"color": "red", "value": 100}]}},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "value"}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 101,
+      "panels": [],
+      "title": "Latency",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Request Latency",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "targets": [
+        {
+          "expr": "avg_latency{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{pod}} avg",
+          "refId": "A"
+        },
+        {
+          "expr": "max_latency{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{pod}} max",
+          "refId": "B"
+        },
+        {
+          "expr": "min_latency{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{pod}} min",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Quorum Ack Latency",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "targets": [
+        {
+          "expr": "rate(quorum_ack_latency_sum{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]) / clamp_min(rate(quorum_ack_latency_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]), 1)",
+          "legendFormat": "{{pod}} avg",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14},
+      "id": 102,
+      "panels": [],
+      "title": "Throughput",
+      "type": "row"
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Packets Received/Sent",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 15},
+      "targets": [
+        {
+          "expr": "rate(packets_received{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m])",
+          "legendFormat": "{{pod}} received",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(packets_sent{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m])",
+          "legendFormat": "{{pod}} sent",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Commits",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 15},
+      "targets": [
+        {
+          "expr": "rate(commit_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m])",
+          "legendFormat": "{{pod}} commits/s",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 23},
+      "id": 103,
+      "panels": [],
+      "title": "Disk I/O",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Fsync Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "targets": [
+        {
+          "expr": "rate(fsynctime_sum{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]) / clamp_min(rate(fsynctime_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]), 1)",
+          "legendFormat": "{{pod}} avg fsync",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Snapshot Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "targets": [
+        {
+          "expr": "rate(snapshottime_sum{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]) / clamp_min(rate(snapshottime_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]), 1)",
+          "legendFormat": "{{pod}} avg snapshot",
+          "refId": "A"
+        },
+        {
+          "expr": "snap_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{pod}} snapshot count",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32},
+      "id": 104,
+      "panels": [],
+      "title": "Cluster Health",
+      "type": "row"
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Outstanding Requests Over Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 33},
+      "targets": [
+        {
+          "expr": "outstanding_requests{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Election Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 33},
+      "targets": [
+        {
+          "expr": "rate(election_time_sum{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]) / clamp_min(rate(election_time_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]), 1)",
+          "legendFormat": "{{pod}} election time",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Follower Sync Time",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 41},
+      "targets": [
+        {
+          "expr": "rate(follower_sync_time_sum{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]) / clamp_min(rate(follower_sync_time_count{service=~\".*zookeeper.*\", namespace=~\"$namespace\"}[5m]), 1)",
+          "legendFormat": "{{pod}} sync time",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms", "min": 0}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["zookeeper", "coordination"],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(uptime{service=~\".*zookeeper.*\"}, namespace)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ZooKeeper Cluster Monitoring",
+  "uid": "zookeeper-cluster-monitoring",
+  "version": 1,
+  "weekStart": ""
+}
