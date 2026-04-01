@@ -7,11 +7,17 @@ metadata:
     {{- include "common-services.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.backupManager.service.type | default "ClusterIP" }}
+  {{- if .Values.backupManager.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.backupManager.service.externalTrafficPolicy }}
+  {{- end }}
   ports:
     - name: http
-      port: {{ .Values.backupManager.port | default 80 }}
-      targetPort: {{ .Values.backupManager.containerPort | default 8080 }}
+      port: {{ .Values.backupManager.service.port | default 80 }}
+      targetPort: {{ .Values.backupManager.service.containerPort | default 8080 }}
       protocol: TCP
+      {{- if and (eq ((.Values.backupManager.service.type) | default "ClusterIP") "NodePort") .Values.backupManager.service.nodePort }}
+      nodePort: {{ .Values.backupManager.service.nodePort }}
+      {{- end }}
     {{- if and .Values.backupManager.swagger.enabled (ne (.Values.backupManager.swagger.port | toString) "8080") }}
     - name: api-doc
       port: {{ .Values.backupManager.swagger.port }}

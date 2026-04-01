@@ -1499,6 +1499,10 @@ backupManager:
     type: ClusterIP
     port: 80
     containerPort: 8080
+    # Only used when type is NodePort
+    nodePort: 30000
+    # Preserve client source IP (NodePort/LoadBalancer)
+    externalTrafficPolicy: ""
   podAnnotations: {}
   podSecurityContext: {}
   securityContext: {}
