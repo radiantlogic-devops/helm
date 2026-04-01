@@ -1500,7 +1500,7 @@ backupManager:
     port: 80
     containerPort: 8080
     # Only used when type is NodePort
-    nodePort: 30000
+    nodePort: ""
     # Preserve client source IP (NodePort/LoadBalancer)
     externalTrafficPolicy: ""
   podAnnotations: {}
