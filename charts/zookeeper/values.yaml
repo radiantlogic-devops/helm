@@ -103,14 +103,26 @@ persistence:
 
 
 metrics:
+  # Controls the zk-exporter sidecar. Two independent subsystems:
+  #   metrics.enabled=true        -> zookeeper-exporter Go binary runs,
+  #                                   serving pull-mode metrics at :9095/metrics
+  #   metrics.enabled + pushMode  -> additionally pushes to Pushgateway via cron
+  #   metrics.fluentd.enabled     -> Fluentd runs independently for log forwarding
+  # The sidecar container spawns if EITHER metrics.enabled or fluentd.enabled is true.
   enabled: false
   image: radiantone/zk-exporter
   imageTag: latest
   zk_conn: localhost:2181
+  # NOTE: this securityContext is currently unused by the template — the sidecar
+  # uses the runtime default user (uid 1000 from Dockerfile USER fluent).
+  # Left for future wiring.
   securityContext:
     runAsUser: 0
   annotations: {}
-  pushMode: true
+  # pushMode: false by default. Only enable when a reachable Pushgateway exists.
+  # The exporter exits with code 1 after a 300s Pushgateway timeout, causing
+  # CrashLoopBackOff if pushMode=true but PUSHGATEWAY_URI is unreachable.
+  pushMode: false
   pushGateway: http://prometheus-pushgateway:9091
   pushMetricCron: "* * * * *"
   fluentd:
