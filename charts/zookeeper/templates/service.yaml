@@ -8,6 +8,11 @@ spec:
   type: {{ .Values.service.type }}
 {{- if contains "ClusterIP" .Values.service.type }}
   clusterIP: None
+  # Required for StatefulSet pod-DNS resolution during cluster bootstrap.
+  # ZK pods need DNS for sibling pods (zookeeper-0,1,2) BEFORE they are Ready
+  # so they can form a quorum. Without this, K8s 1.22+ EndpointSlice handling
+  # withholds DNS records until pods are Ready -> chicken-and-egg deadlock.
+  publishNotReadyAddresses: true
 {{- end }}
   ports:
     - port: {{ .Values.service.port }}
