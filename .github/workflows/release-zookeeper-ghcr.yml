@@ -1,0 +1,61 @@
+name: Release Zookeeper Chart to GHCR
+
+# Publishes the zookeeper chart to ghcr.io/radiantlogic-devops/helm/zookeeper-dev
+# as an OCI artifact. This is the dev-channel counterpart to the GitHub Pages
+# helm repository at https://radiantlogic-devops.github.io/helm/ and allows
+# consumers (e.g. helm-v8 fid chart dependency) to pull feature-branch builds
+# directly without waiting for a master merge.
+#
+# Trigger model:
+#   - push to master  -> publishes with the Chart.yaml version
+#   - workflow_dispatch -> can be run manually from any branch to produce a
+#                         testable OCI artifact tagged with that branch's
+#                         Chart.yaml version (overwrites if same version).
+#
+# To test a feature branch:
+#   1. Bump charts/zookeeper/Chart.yaml version (e.g. 0.1.7-my-feature)
+#   2. Push the branch
+#   3. Manually trigger this workflow on that branch
+#   4. helm pull oci://ghcr.io/radiantlogic-devops/helm/zookeeper-dev --version <version>
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'charts/zookeeper/**'
+      - '.github/workflows/release-zookeeper-ghcr.yml'
+  workflow_dispatch:
+
+jobs:
+  release-ghcr:
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read zookeeper chart version
+        uses: mikefarah/yq@master
+        id: read_zk_chart
+        with:
+          cmd: yq '.version' charts/zookeeper/Chart.yaml
+
+      - name: Publish zookeeper chart to GHCR
+        uses: appany/helm-oci-chart-releaser@v0.4.1
+        with:
+          name: zookeeper-dev
+          repository: helm
+          tag: ${{ steps.read_zk_chart.outputs.result }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          path: charts/zookeeper
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: 'false'
+
+      # Consumers can pull with:
+      #   helm pull oci://ghcr.io/radiantlogic-devops/helm/zookeeper-dev --version <version>

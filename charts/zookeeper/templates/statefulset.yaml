@@ -88,7 +88,14 @@ spec:
         command: ["/bin/sh","-c"]
         args: ["/opt/radiantone/run.sh"]
 {{- end }}
-{{- if .Values.metrics.enabled }}
+{{- /*
+  Sidecar container spawns if EITHER metrics.enabled or metrics.fluentd.enabled is true.
+  The two subsystems are independent:
+    - metrics.enabled=true        → zookeeper-exporter Go binary runs (pull-mode at :9095)
+    - metrics.enabled + pushMode  → additionally pushes to Pushgateway via cron
+    - metrics.fluentd.enabled     → Fluentd runs for log forwarding (no dependency on metrics.enabled)
+*/}}
+{{- if or .Values.metrics.enabled .Values.metrics.fluentd.enabled }}
       - name: {{ .Chart.Name }}-exporter
         image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -99,30 +106,33 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
+{{- if .Values.metrics.enabled }}
         ports:
         - containerPort: 9095
           name: exporter
+{{- end }}
         volumeMounts:
         - name: zk-pvc
           mountPath: /opt/radiantone/rli-zookeeper-external
-{{- if eq .Values.metrics.fluentd.enabled true }}
+{{- if .Values.metrics.fluentd.enabled }}
         - name: fluentd-config-volume
           mountPath: /fluentd/etc
 {{- end }}
         securityContext:
           runAsUser: 0
         env:
+{{- if .Values.metrics.enabled }}
         - name: ZK_CONN
           value: {{ .Values.metrics.zk_conn | quote }}
         - name: PUSH_MODE
           value: {{ .Values.metrics.pushMode | quote }}
         - name: PUSHGATEWAY_URI
           value: {{ .Values.metrics.pushGateway | quote }}
-        - name: JOB_NAME
-          value: {{ .Release.Namespace | quote }}
         - name: METRICS_PORT
           value: '9095'
-{{- if hasKey .Values.metrics.fluentd "enabled" }}
+{{- end }}
+        - name: JOB_NAME
+          value: {{ .Release.Namespace | quote }}
 {{- if .Values.metrics.fluentd.enabled }}
         - name: FLUENTD_ENABLE
           value: {{ .Values.metrics.fluentd.enabled | quote }}
@@ -132,7 +142,6 @@ spec:
           value: {{ .Values.metrics.fluentd.elasticSearchHost | quote }}
         - name: ELASTICSEARCH_TYPE
           value: {{ .Values.metrics.fluentd.elasticSearchType | default "elasticsearch" | quote }}
-{{- end }}
 {{- end }}
 {{- end }}
       {{- with .Values.nodeSelector }}
