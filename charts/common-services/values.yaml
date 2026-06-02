@@ -313,7 +313,7 @@ grafana:
           access: proxy
           isDefault: false
           jsonData:
-            esVersion: '7.17.3'
+            esVersion: '8.19.16'
             logLevelField: fields.level
             logMessageField: message
             maxConcurrentShardRequests: 5
@@ -376,11 +376,26 @@ grafana:
 
 elasticsearch:
   enabled: true
-  imageTag: "7.17.25"
+  # ES 8.x driven via imageTag on the frozen elastic/elasticsearch 8.5.1 chart.
+  imageTag: "8.19.16"
   replicas: 1
   nodeSelector: {}
   service:
     type: ClusterIP
+  # --- ES 8.x with security OFF (preserves the previous 7.17 posture) ---
+  # 8.x turns security/TLS ON by default; these turn it back off (plain http, no auth).
+  createCert: false
+  protocol: http
+  secret:
+    enabled: false
+  # The frozen 8.5.1 chart's readiness probe requires ELASTIC_PASSWORD to be SET even
+  # when security is disabled (ES ignores the value). Without it the pod never goes Ready.
+  extraEnvs:
+    - name: ELASTIC_PASSWORD
+      value: "security-disabled"
+  esConfig:
+    elasticsearch.yml: |
+      xpack.security.enabled: false
   # Persistence enabled by default and size to 100Gi
   volumeClaimTemplate:
     resources:
@@ -400,7 +415,17 @@ elasticsearch:
 
 kibana:
   enabled: true
-  imageTag: "7.17.25"
+  # Kibana 8.x via imageTag on the frozen kibana 8.5.1 chart; MUST match the ES version.
+  imageTag: "8.19.16"
+  # ES security is OFF, so reach ES over http with no credentials (chart default is https).
+  elasticsearchHosts: "http://elasticsearch-master:9200"
+  # NOTE: the frozen kibana 8.5.1 chart UNCONDITIONALLY mounts an elasticsearch-master-certs
+  # secret and requires a kibana-es-token service-account-token secret — both are normally
+  # created by the security-ON helm hooks. With security off, pre-create them once per namespace:
+  #   kubectl -n <ns> create secret generic elasticsearch-master-certs \
+  #     --from-file=ca.crt=dummy.crt --from-file=tls.crt=dummy.crt --from-file=tls.key=dummy.key
+  #   kubectl -n <ns> create secret generic kibana-es-token --from-literal=token=security-disabled
+  # (ES ignores the bogus token with security off; the cert is mounted but unused over http.)
   fullnameOverride: kibana
   nodeSelector: {}
   service:
@@ -964,11 +989,14 @@ opensearch:
       value: "true"
     - name: "DISABLE_INSTALL_DEMO_CONFIG"
       value: "true"
-  # Install Prometheus exporter plugin for metrics
+  # Install Prometheus exporter plugin for metrics.
+  # IMPORTANT: this Aiven plugin version MUST match the OpenSearch app version EXACTLY,
+  # or the engine refuses to start ("plugin built for X but version Y is running").
+  # Bump it in lockstep on every OpenSearch upgrade (app 2.19.5 -> plugin 2.19.5.0).
   plugins:
     enabled: true
     installList:
-      - https://github.com/Aiven-Open/prometheus-exporter-plugin-for-opensearch/releases/download/2.11.0.0/prometheus-exporter-2.11.0.0.zip
+      - https://github.com/Aiven-Open/prometheus-exporter-plugin-for-opensearch/releases/download/2.19.5.0/prometheus-exporter-2.19.5.0.zip
   # Add pod annotations for Prometheus scraping
   podAnnotations:
     prometheus.io/scrape: "true"
@@ -2078,3 +2106,39 @@ prometheus-elasticsearch-exporter:
 #   enabled: false
 # fluent-bit:
 #   enabled: false
+
+# =================================================================
+# Upgrade Migration (hands-free helm upgrade / ArgoCD sync)
+# -----------------------------------------------------------------
+# A pre-sync Job that performs the idempotent steps a plain `helm upgrade`
+# or an ArgoCD sync cannot do on their own when moving an OLDER
+# common-services release up to this one:
+#   1. Creates the placeholder secrets the frozen Kibana 8.5.1 chart
+#      hard-requires when Elasticsearch security is disabled
+#      (elasticsearch-master-certs, kibana-es-token).
+#   2. Deletes the prometheus-server StatefulSet and the
+#      opensearch-dashboards Deployment ONLY while they still carry the
+#      LEGACY selector labels (the selector is immutable and changed in the
+#      new subcharts). StatefulSet PVCs are retained, so TSDB/index data
+#      survive the recreate.
+# Runs as BOTH a Helm pre-install/pre-upgrade hook AND an ArgoCD PreSync
+# hook. It is fully IDEMPOTENT: on a cluster already on the new versions it
+# inspects the live selectors/secrets, finds nothing to do, and exits 0
+# silently — safe to leave enabled across every sync/upgrade.
+upgradeMigration:
+  enabled: true
+  image:
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  # Create the elasticsearch-master-certs + kibana-es-token placeholder secrets
+  # required by the kibana 8.5.1 chart when ES security is OFF. Set to false if you
+  # enable ES security (the elasticsearch chart's own hooks then create them).
+  elasticsearchSecurityOffSecrets: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

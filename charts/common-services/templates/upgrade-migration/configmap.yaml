@@ -1,0 +1,64 @@
+{{- if .Values.upgradeMigration.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common-services.name" . }}-upgrade-migration-script
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
+data:
+  migrate.sh: |
+    #!/bin/sh
+    # Idempotent upgrade migration. On a cluster already on the new versions every
+    # check below is a no-op and the script exits 0 silently.
+    set -eu
+    NS="{{ .Release.Namespace }}"
+    echo "==> common-services upgrade-migration (namespace: ${NS})"
+
+    # ---- 1) ES/Kibana 8.x security-off placeholder secrets (create only if absent) ----
+    DO_ES_SHIM="{{ if and .Values.upgradeMigration.elasticsearchSecurityOffSecrets .Values.elasticsearch.enabled .Values.kibana.enabled }}true{{ else }}false{{ end }}"
+    if [ "${DO_ES_SHIM}" = "true" ]; then
+      if kubectl -n "${NS}" get secret elasticsearch-master-certs >/dev/null 2>&1; then
+        echo "  ok  secret/elasticsearch-master-certs present - skip"
+      else
+        echo "  +   creating placeholder secret/elasticsearch-master-certs (ES security-off shim)"
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout /tmp/tls.key -out /tmp/tls.crt -days 3650 -subj "/CN=security-disabled" >/dev/null 2>&1
+        kubectl -n "${NS}" create secret generic elasticsearch-master-certs \
+          --from-file=ca.crt=/tmp/tls.crt --from-file=tls.crt=/tmp/tls.crt --from-file=tls.key=/tmp/tls.key
+      fi
+      if kubectl -n "${NS}" get secret kibana-es-token >/dev/null 2>&1; then
+        echo "  ok  secret/kibana-es-token present - skip"
+      else
+        echo "  +   creating placeholder secret/kibana-es-token (ES security-off shim)"
+        kubectl -n "${NS}" create secret generic kibana-es-token --from-literal=token=security-disabled
+      fi
+    fi
+
+    # ---- 2) Delete workloads whose immutable selector changed, ONLY while still on the
+    #         legacy selector. Detect "already migrated" by the presence of the new
+    #         app.kubernetes.io/name selector label -> then it is a silent no-op. ----
+    migrate_workload() {
+      kind="$1"; name="$2"
+      if ! kubectl -n "${NS}" get "${kind}" "${name}" >/dev/null 2>&1; then
+        echo "  ok  ${kind}/${name} absent - nothing to migrate"
+        return 0
+      fi
+      if kubectl -n "${NS}" get "${kind}" "${name}" -o "jsonpath={.spec.selector.matchLabels.app\.kubernetes\.io/name}" 2>/dev/null | grep -q .; then
+        echo "  ok  ${kind}/${name} already on the new selector - skip"
+        return 0
+      fi
+      echo "  ~   ${kind}/${name} on the LEGACY selector -> deleting so the new selector applies"
+      echo "      (StatefulSet PVCs are retained from volumeClaimTemplates - data survives)"
+      kubectl -n "${NS}" delete "${kind}" "${name}" --wait=true --timeout=180s
+      echo "  +   ${kind}/${name} deleted; the sync will recreate it with the new selector"
+    }
+
+    migrate_workload statefulset "{{ dig "server" "fullnameOverride" (printf "%s-prometheus-server" .Release.Name) .Values.prometheus }}"
+    migrate_workload deployment "{{ dig "fullnameOverride" (printf "%s-opensearch-dashboards" .Release.Name) (index .Values "opensearch-dashboards") }}"
+
+    echo "==> common-services upgrade-migration complete"
+{{- end }}
