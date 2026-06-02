@@ -1,0 +1,50 @@
+{{- if .Values.upgradeMigration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common-services.name" . }}-upgrade-migration
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 120
+  template:
+    metadata:
+      name: {{ include "common-services.name" . }}-upgrade-migration
+    spec:
+      serviceAccountName: {{ include "common-services.name" . }}-upgrade-migration
+      restartPolicy: Never
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "common-services.name" . }}-upgrade-migration-script
+            defaultMode: 0755
+      containers:
+        - name: upgrade-migration
+          image: "{{ .Values.upgradeMigration.image.repository }}:{{ .Values.upgradeMigration.image.tag }}"
+          imagePullPolicy: {{ .Values.upgradeMigration.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.upgradeMigration.resources | nindent 12 }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /etc/scripts
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              export LANG=C.UTF-8 LC_ALL=C.UTF-8
+              echo "Installing kubectl + openssl..."
+              apk add --no-cache kubectl openssl >/dev/null 2>&1
+              /etc/scripts/migrate.sh
+{{- end }}

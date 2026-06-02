@@ -2106,3 +2106,39 @@ prometheus-elasticsearch-exporter:
 #   enabled: false
 # fluent-bit:
 #   enabled: false
+
+# =================================================================
+# Upgrade Migration (hands-free helm upgrade / ArgoCD sync)
+# -----------------------------------------------------------------
+# A pre-sync Job that performs the idempotent steps a plain `helm upgrade`
+# or an ArgoCD sync cannot do on their own when moving an OLDER
+# common-services release up to this one:
+#   1. Creates the placeholder secrets the frozen Kibana 8.5.1 chart
+#      hard-requires when Elasticsearch security is disabled
+#      (elasticsearch-master-certs, kibana-es-token).
+#   2. Deletes the prometheus-server StatefulSet and the
+#      opensearch-dashboards Deployment ONLY while they still carry the
+#      LEGACY selector labels (the selector is immutable and changed in the
+#      new subcharts). StatefulSet PVCs are retained, so TSDB/index data
+#      survive the recreate.
+# Runs as BOTH a Helm pre-install/pre-upgrade hook AND an ArgoCD PreSync
+# hook. It is fully IDEMPOTENT: on a cluster already on the new versions it
+# inspects the live selectors/secrets, finds nothing to do, and exits 0
+# silently — safe to leave enabled across every sync/upgrade.
+upgradeMigration:
+  enabled: true
+  image:
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  # Create the elasticsearch-master-certs + kibana-es-token placeholder secrets
+  # required by the kibana 8.5.1 chart when ES security is OFF. Set to false if you
+  # enable ES security (the elasticsearch chart's own hooks then create them).
+  elasticsearchSecurityOffSecrets: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
