@@ -281,6 +281,10 @@ podAnnotations: {}
 ##                       the cheapest meaningful hardening step.
 ##   hardened            ~PSS "restricted". Non-root (uid 1000), all capabilities dropped,
 ##                       read-only root filesystem on the init/helper containers.
+##                       VALIDATED on FID 7.4.23: pod runs as uid/gid 1000 with
+##                       allowPrivilegeEscalation=false, capabilities dropped ALL and
+##                       RuntimeDefault seccomp; the cluster forms, the leader is elected
+##                       and all bundled fid tests pass, with zero restarts.
 ##   paranoid            hardened, PLUS a read-only root filesystem on the FID container.
 ##                       FID writes to /opt/radiantone at runtime, so this REQUIRES writable
 ##                       volume mounts for every such path. Validate in a test namespace
