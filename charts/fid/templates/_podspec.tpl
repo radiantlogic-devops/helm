@@ -193,35 +193,33 @@ containers:
   - name: FID_ROOT_USER
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: fid-root-username
 {{- end }}
-{{- if .Values.fid.rootPassword }}
+{{- /* fid-root-password is always present in the Secret (explicit, preserved, or generated) */}}
   - name: FID_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: fid-root-password
-{{- end }}
 {{- if .Values.zk.username }}
   - name: ZK_USER
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: zk-username
 {{- end }}
-{{- if .Values.zk.password }}
+{{- /* zk-password is always present in the Secret (explicit, preserved, or generated) */}}
   - name: ZK_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: zk-password
-{{- end }}
-{{- if .Values.fid.license }}
+{{- if include "fid.licenseKeyPresent" . }}
   - name: LICENSE
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: fid-license
 {{- end }}
 {{- end }}
@@ -339,7 +337,7 @@ containers:
 {{- else }}
     valueFrom:
       secretKeyRef:
-        name: rootcreds-{{ template "fid.fullname" . }}
+        name: {{ include "fid.secretName" . }}
         key: fid-root-password
 {{- end }}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
@@ -376,7 +374,7 @@ volumes:
 - name: fid-creds
   secret:
     defaultMode: 288
-    secretName: rootcreds-{{ template "fid.fullname" . }}
+    secretName: {{ include "fid.secretName" . }}
 {{- end }}
 {{- if eq .Values.metrics.fluentd.enabled true }}
 - name: fluentd-config-volume

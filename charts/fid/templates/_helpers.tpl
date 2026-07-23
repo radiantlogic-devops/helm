@@ -130,6 +130,47 @@ Resolve the metrics/exporter sidecar image. `metrics.image` is a bare repository
 {{- end }}
 
 {{/*
+Name of the Secret holding the FID/ZK credentials.
+
+Defaults to the chart-managed "rootcreds-<fullname>". Set fid.existingSecret to point every
+consumer at a Secret you manage instead — External Secrets Operator, Sealed Secrets, the
+Vault CSI driver, or one created by hand. When set, the chart does not render a Secret.
+
+The Secret must carry these keys (all optional except where FID needs them):
+  fid-root-username, fid-root-password, zk-username, zk-password, fid-license
+*/}}
+{{- define "fid.secretName" -}}
+{{- .Values.fid.existingSecret | default (printf "rootcreds-%s" (include "fid.fullname" .)) -}}
+{{- end }}
+
+{{/*
+Whether the credentials Secret will carry the `fid-license` key.
+
+The credential env vars must be gated on what the SECRET actually contains, not on what is
+set in values.yaml. Those two drifted apart once credential preservation was added: with
+fid.license unset but a value preserved from the live Secret, gating on the value alone
+dropped the env var while the key was still there.
+
+fid-root-password and zk-password need no equivalent helper — secret.yaml always emits
+them (explicit value, else preserved, else generated).
+
+With fid.existingSecret the chart cannot inspect the Secret's contents, so all documented
+keys are assumed present; supplying them is the user's side of that contract.
+*/}}
+{{- define "fid.licenseKeyPresent" -}}
+{{- if .Values.fid.existingSecret -}}
+true
+{{- else if .Values.fid.license -}}
+true
+{{- else -}}
+{{- $live := (lookup "v1" "Secret" .Release.Namespace (include "fid.secretName" .)) | default dict -}}
+{{- if index ($live.data | default dict) "fid-license" -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Security posture presets.
 
 These supply DEFAULTS ONLY. Anything set explicitly in values.yaml

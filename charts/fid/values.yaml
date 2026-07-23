@@ -35,18 +35,29 @@ image:
   ##
   registry: ""
 
-## Images for the chart's helper containers.
+## Preflight checks.
 ##
-## Previously these were hardcoded in the templates, which made mirrored/airgapped installs
-## impossible and pinned every install to whatever ":latest" happened to be that day.
-## The defaults below reproduce the historical references EXACTLY, so upgrading the chart
-## changes nothing until you override something here.
+## Render-time guards that stop an install or upgrade which would otherwise fail in a
+## confusing way. Each can be switched off individually — a check you cannot bypass is a
+## restriction, and this chart does not restrict.
 ##
-## Each entry accepts: registry, repository, tag, digest, pullPolicy.
-## Setting `digest` wins over `tag`. Setting `tag: ""` renders a bare, untagged reference.
+##   mountSecretsVersionCheck  fid.mountSecrets: true with a pre-8.0.0 image tag. A 7.x
+##                             image cannot read mounted secret files, so FID starts
+##                             without credentials and never becomes ready.
+##   immutableFieldCheck       an upgrade that would change the StatefulSet's selector or
+##                             volumeClaimTemplates. Kubernetes rejects both in place, so
+##                             the upgrade would fail half-applied. The error explains the
+##                             --cascade=orphan recovery.
+##   storageClassCheck         persistence.storageClass names a class that does not exist
+##                             in the cluster, which leaves PVCs Pending forever.
 ##
-## Recommendation for production: pin every one of these by digest.
+## The last two use `lookup`, so they are inert during `helm template` and `--dry-run`.
 ##
+preflight:
+  mountSecretsVersionCheck: true
+  immutableFieldCheck: true
+  storageClassCheck: true
+
 ## PodDisruptionBudget for the main FID StatefulSet.
 ##
 ## Rendered by default with maxUnavailable: 1, which is what this chart has always produced.
@@ -90,6 +101,18 @@ helperSecurityContext: {}
 ##
 hookResources: {}
 
+## Images for the chart's helper containers.
+##
+## Previously these were hardcoded in the templates, which made mirrored/airgapped installs
+## impossible and pinned every install to whatever ":latest" happened to be that day.
+## The defaults below reproduce the historical references EXACTLY, so upgrading the chart
+## changes nothing until you override something here.
+##
+## Each entry accepts: registry, repository, tag, digest, pullPolicy.
+## Setting `digest` wins over `tag`. Setting `tag: ""` renders a bare, untagged reference.
+##
+## Recommendation for production: pin every one of these by digest.
+##
 helperImages:
   ## Init container that waits for ZooKeeper's TCP port (fid + follower StatefulSets).
   checkZk:
@@ -168,6 +191,27 @@ fid:
     url:
   ## Post migration script to be run after install (configure_fid.sh)
     script:
+  ## Bring your own credentials Secret instead of letting the chart create one.
+  ##
+  ## When set, the chart renders NO Secret and every consumer (env secretKeyRef and the
+  ## mounted-secret volume) points at the name given here. This is the hook for External
+  ## Secrets Operator, Sealed Secrets, the Vault CSI driver, or a hand-made Secret.
+  ##
+  ## The Secret must provide these keys:
+  ##   fid-root-username, fid-root-password, zk-username, zk-password, fid-license
+  ##
+  # existingSecret: "fid-credentials"
+  existingSecret: ""
+
+  ## Keep the chart-managed Secret when the release is uninstalled
+  ## (adds helm.sh/resource-policy: keep).
+  ##
+  ## WHEN TO ENABLE: a delete/reinstall cycle otherwise mints new credentials, which strands
+  ## a ZooKeeper ensemble whose ACLs still reference the old ones. Note that a kept Secret
+  ## must be deleted by hand before the namespace can be fully cleaned up.
+  ##
+  retainSecret: false
+
   # Mount the secrets by default instead of passing them as env variables. Works on for fid image 8.0.0 or higher
   # Mount secrets should be set to "false" in versions lower than "8.x.x"
   mountSecrets: true
