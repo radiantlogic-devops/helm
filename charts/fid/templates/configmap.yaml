@@ -10,12 +10,21 @@ data:
   {{- end }}
 kind: ConfigMap
 metadata:
+  name: {{ template "fid.fullname" . }}
+  {{- /* `metadata` carried two separate `labels:` keys. That is invalid YAML: strict
+         parsers reject it, and lenient ones (including the Kubernetes API server) keep
+         only the last, so `role: fid` was silently dropped on every install. Merged
+         here, which restores it. ConfigMap labels are not selectors, so adding it back
+         has no effect on matching or immutability. */}}
   labels:
     role: fid
-  name: {{ template "fid.fullname" . }}
-  labels:
     app: {{ template "fid.fullname" . }}
     chart: "{{ template "fid.chart" . }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+    {{- include "fid.commonLabels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   

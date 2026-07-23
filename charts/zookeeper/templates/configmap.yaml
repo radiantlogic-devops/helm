@@ -9,10 +9,12 @@ data:
   METRICS_PORT: '9095'
 kind: ConfigMap
 metadata:
+  name: {{ template "zookeeper.fullname" . }}
+  {{- /* `metadata` carried two `labels:` keys, which is invalid YAML. Lenient parsers
+         (including the Kubernetes API server) keep only the last, so `role: zookeeper`
+         was silently dropped; strict parsers reject the document outright. Merged. */}}
   labels:
     role: zookeeper
-  name: {{ template "zookeeper.fullname" . }}
-  labels:
     app: {{ template "zookeeper.fullname" . }}
     chart: "{{ template "zookeeper.chart" . }}"
     release: "{{ .Release.Name }}"

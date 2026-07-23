@@ -51,7 +51,6 @@ spec:
       {{- include "fid.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/core-name: {{ include "fid.name" . }}
     spec:
-    spec:
       {{- /* Render the pod spec, then deep-merge fid.podSpecPatch over it. The patch is the
            chart's escape hatch: it can set any field, including ones the chart does not model. */}}
       {{- $podSpec := fromYaml (include "fid.podSpec" .) }}
