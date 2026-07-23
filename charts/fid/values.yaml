@@ -47,6 +47,23 @@ image:
 ##
 ## Recommendation for production: pin every one of these by digest.
 ##
+## PodDisruptionBudget for the main FID StatefulSet.
+##
+## Rendered by default with maxUnavailable: 1, which is what this chart has always produced.
+##
+## WHEN TO DISABLE: on a single-replica install a PDB gives you nothing and actively hurts —
+## it can block `kubectl drain` and stop cluster-autoscaler from reclaiming an idle node.
+## WHEN TO USE minAvailable INSTEAD: when you care about how many nodes stay up rather than
+## how many may go down, e.g. minAvailable: 2 on a 3-replica cluster guarantees quorum
+## through a rolling node replacement.
+##
+## Set only ONE of maxUnavailable / minAvailable — minAvailable wins if both are set.
+##
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+  # minAvailable: 2
+
 ## Fallback resources for helper containers that do not set their own
 ## `helperImages.<name>.resources`. Also the single knob for changing them all at once.
 ##
@@ -169,12 +186,58 @@ fid:
     targetMemoryUtilizationPercentage: 80
     ## Detach from cluster on termination
     detach: true
+
+  ## Probes.
+  ##
+  ## Every field below is the value this chart has always rendered. periodSeconds,
+  ## failureThreshold and successThreshold used to be hardcoded in the template with no way
+  ## to change them; they are surfaced here so you can tune them without forking the chart.
+  ##
+  ## WHEN TO RAISE THESE: FID can block for a long time during a large Lucene index commit
+  ## or a full GC on the leader. While blocked it stops answering the liveness exec probe,
+  ## kubelet kills the container (exit 137 — looks like an OOM, but is not) and the cluster
+  ## re-elects, turning a slow operation into an outage. If you run large branches or see
+  ## unexplained restarts under load, raise timeoutSeconds first, then failureThreshold.
+  ##
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
+    periodSeconds: 30
+    failureThreshold: 5
+    successThreshold: 1
+    ## Replace the liveness command entirely, e.g. to point at a different check binary:
+    # command: ["/opt/radiantone/check", "run", "-type", "liveness"]
+    ##
+    ## Suggested where index commits are known to stall 30s or more:
+    # timeoutSeconds: 30
+    # failureThreshold: 10
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+    periodSeconds: 30
+    failureThreshold: 5
+    successThreshold: 1
+    ## LDAPS port dialled by the readiness TCP check.
+    # port: 2636
+
+  ## Startup probe. DISABLED by default — the chart has never rendered one, and turning it
+  ## on changes the pod template, which means a rolling restart.
+  ##
+  ## WHEN TO ENABLE: a startup probe gives FID a long, generous window to come up
+  ## (failureThreshold x periodSeconds) WITHOUT slackening the liveness probe that protects
+  ## it for the rest of its life. This is the right fix for "FID gets killed while still
+  ## loading a large dataset" — much better than inflating livenessProbe.initialDelaySeconds,
+  ## which weakens the probe permanently.
+  ##
+  ## The defaults below give 15 x 20s = 5 minutes of startup grace.
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 0
+    timeoutSeconds: 5
+    periodSeconds: 20
+    failureThreshold: 15
+    # command: ["/opt/radiantone/check", "run", "-type", "liveness"]
 # zookeeper configuration
 # zookeeper is set to external by default
 zk:
@@ -202,16 +265,71 @@ serviceAccount:
 updateStrategy: RollingUpdate
 podAnnotations: {}
 # Pod level security context
+## ---------------------------------------------------------------------------------------
+## SECURITY POSTURE
+## ---------------------------------------------------------------------------------------
+##
+## `security.profile` selects a set of securityContext DEFAULTS. It is a dial, not a cage:
+## anything you set in podSecurityContext / securityContext / helperSecurityContext below is
+## deep-merged ON TOP of the profile and always wins.
+##
+##   vanilla   (default) No hardening whatsoever — exactly what this chart has always
+##                       rendered. A fully supported destination: if you want root and no
+##                       restrictions, stay here. Nothing about upgrading changes this.
+##   baseline            ~Pod Security Standards "baseline". allowPrivilegeEscalation=false
+##                       and RuntimeDefault seccomp. Safe for effectively any workload and
+##                       the cheapest meaningful hardening step.
+##   hardened            ~PSS "restricted". Non-root (uid 1000), all capabilities dropped,
+##                       read-only root filesystem on the init/helper containers.
+##   paranoid            hardened, PLUS a read-only root filesystem on the FID container.
+##                       FID writes to /opt/radiantone at runtime, so this REQUIRES writable
+##                       volume mounts for every such path. Validate in a test namespace
+##                       before production — see extraVolumes / extraVolumeMounts below.
+##   custom              No preset at all. You specify every field yourself.
+##
+## Changing profile alters only mutable pod-template fields, so it is a rolling restart and
+## `helm rollback` reverses it exactly.
+##
+## To REMOVE a field a profile sets (rather than change its value), use profile: custom, or
+## fid.podSpecPatch — the patch is applied last and can delete or override anything.
+##
+## Example — hardened everywhere, but this one image insists on running as uid 0:
+##   security:
+##     profile: hardened
+##   securityContext:
+##     runAsUser: 0
+##     runAsNonRoot: false
+##
+security:
+  profile: vanilla
+
+## Pod-level security context. Merged over the active profile's pod defaults.
+## fsGroup: 1000 is the historical value and makes the mounted PVC group-writable by FID.
+##
 podSecurityContext:
   fsGroup: 1000
-# Container level security context
+  ## Set explicitly if your storage class needs a different group, or to force a
+  ## permissions relabel on every mount (slow on very large volumes):
+  # fsGroupChangePolicy: OnRootMismatch
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # supplementalGroups: [2000]
+
+## Container-level security context for the FID container.
+## Merged over the active profile's container defaults. Empty = whatever the profile says.
+##
 securityContext: {}
+  ## The `hardened` profile sets all of the following for you. Set them here only if you
+  ## want them on the `vanilla` profile, or want to override what a profile chose.
   # capabilities:
   #   drop:
   #   - ALL
-  # readOnlyRootFilesystem: true
+  # readOnlyRootFilesystem: true      # see the `paranoid` note above before enabling
   # runAsNonRoot: true
   # runAsUser: 1000
+  # allowPrivilegeEscalation: false
+  # seccompProfile:
+  #   type: RuntimeDefault
 # Service type to expose Control Panel service
 service:
   type: ClusterIP

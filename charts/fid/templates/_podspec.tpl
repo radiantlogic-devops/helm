@@ -15,7 +15,7 @@ imagePullSecrets:
 {{- toYaml . | nindent 6 }}
 {{- end }}
 securityContext:
-{{- toYaml .Values.podSecurityContext | nindent 8 }}
+{{- include "fid.podSecurityContext" . | nindent 8 }}
 initContainers:
 {{- if .Values.zk.external }}
 - name: check-zk
@@ -23,7 +23,7 @@ initContainers:
   imagePullPolicy: {{ .Values.helperImages.checkZk.pullPolicy | default "IfNotPresent" }}
   resources:
 {{- toYaml (.Values.helperImages.checkZk.resources | default .Values.helperResources) | nindent 10 }}
-{{- with (.Values.helperImages.checkZk.securityContext | default .Values.helperSecurityContext) }}
+{{- with (.Values.helperImages.checkZk.securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
   securityContext:
 {{- toYaml . | nindent 10 }}
 {{- end }}
@@ -33,7 +33,7 @@ initContainers:
   imagePullPolicy: {{ .Values.helperImages.checkZkReadonly.pullPolicy | default "IfNotPresent" }}
   resources:
 {{- toYaml (.Values.helperImages.checkZkReadonly.resources | default .Values.helperResources) | nindent 10 }}
-{{- with (.Values.helperImages.checkZkReadonly.securityContext | default .Values.helperSecurityContext) }}
+{{- with (.Values.helperImages.checkZkReadonly.securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
   securityContext:
 {{- toYaml . | nindent 10 }}
 {{- end }}
@@ -58,7 +58,7 @@ initContainers:
   imagePullPolicy: {{ .Values.helperImages.migration.pullPolicy | default "IfNotPresent" }}
   resources:
 {{- toYaml (.Values.helperImages.migration.resources | default .Values.helperResources) | nindent 10 }}
-{{- with (.Values.helperImages.migration.securityContext | default .Values.helperSecurityContext) }}
+{{- with (.Values.helperImages.migration.securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
   securityContext:
 {{- toYaml . | nindent 10 }}
 {{- end }}
@@ -101,7 +101,7 @@ containers:
 - name: {{ .Chart.Name }}
   image: "{{ include "fid.mainImage" . }}"
   imagePullPolicy: {{ .Values.image.pullPolicy }}
-{{- with .Values.securityContext }}
+{{- with (fromYaml (include "fid.containerSecurityContext" $)) }}
   securityContext:
 {{- toYaml . | nindent 10 }}
 {{- end }}
@@ -137,20 +137,32 @@ containers:
     name: https
   readinessProbe:
     tcpSocket:
-      port: 2636
+      port: {{ .Values.fid.readinessProbe.port | default 2636 }}
     initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
     timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
-    periodSeconds: 30
-    failureThreshold: 5
-    successThreshold: 1
+    periodSeconds: {{ .Values.fid.readinessProbe.periodSeconds | default 30 }}
+    failureThreshold: {{ .Values.fid.readinessProbe.failureThreshold | default 5 }}
+    successThreshold: {{ .Values.fid.readinessProbe.successThreshold | default 1 }}
   livenessProbe:
     exec:
-      command: [ "/opt/radiantone/check", "run", "-type", "liveness" ]
+      command: {{ .Values.fid.livenessProbe.command | default (list "/opt/radiantone/check" "run" "-type" "liveness") | toJson }}
     initialDelaySeconds: {{ .Values.fid.livenessProbe.initialDelaySeconds }}
     timeoutSeconds: {{ .Values.fid.livenessProbe.timeoutSeconds }}
-    periodSeconds: 30
-    failureThreshold: 5
+    periodSeconds: {{ .Values.fid.livenessProbe.periodSeconds | default 30 }}
+    failureThreshold: {{ .Values.fid.livenessProbe.failureThreshold | default 5 }}
+    successThreshold: {{ .Values.fid.livenessProbe.successThreshold | default 1 }}
+{{- with .Values.fid.startupProbe }}
+{{- if .enabled }}
+  startupProbe:
+    exec:
+      command: {{ .command | default (list "/opt/radiantone/check" "run" "-type" "liveness") | toJson }}
+    initialDelaySeconds: {{ .initialDelaySeconds | default 0 }}
+    timeoutSeconds: {{ .timeoutSeconds | default 5 }}
+    periodSeconds: {{ .periodSeconds | default 20 }}
+    failureThreshold: {{ .failureThreshold | default 15 }}
     successThreshold: 1
+{{- end }}
+{{- end }}
   envFrom:
   - configMapRef:
       name: {{ template "fid.fullname" . }}

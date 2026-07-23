@@ -62,7 +62,7 @@ spec:
         {{- toYaml . | nindent 6 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- include "fid.podSecurityContext" . | nindent 8 }}
       initContainers:
   {{- if .Values.zk.external }}
       - name: check-zk
@@ -70,7 +70,7 @@ spec:
         resources:
           {{- toYaml (.Values.helperImages.checkZk.resources | default .Values.helperResources) | nindent 10 }}
         imagePullPolicy: {{ .Values.helperImages.checkZk.pullPolicy | default "IfNotPresent" }}
-        {{- with (.Values.helperImages.checkZk.securityContext | default .Values.helperSecurityContext) }}
+        {{- with (.Values.helperImages.checkZk.securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
         securityContext:
           {{- toYaml . | nindent 10 }}
         {{- end }}
@@ -81,7 +81,7 @@ spec:
         imagePullPolicy: {{ .Values.helperImages.checkFid.pullPolicy | default "IfNotPresent" }}
         resources:
           {{- toYaml (.Values.helperImages.checkFid.resources | default .Values.helperResources) | nindent 10 }}
-        {{- with (.Values.helperImages.checkFid.securityContext | default .Values.helperSecurityContext) }}
+        {{- with (.Values.helperImages.checkFid.securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
         securityContext:
           {{- toYaml . | nindent 10 }}
         {{- end }}
@@ -103,7 +103,7 @@ spec:
         image: "{{ include "fid.mainImage" . }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 10 }}
+          {{- include "fid.containerSecurityContext" . | nindent 10 }}
         lifecycle:
           postStart:
             exec:
@@ -139,17 +139,17 @@ spec:
             port: 2636
           initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
           timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
-          periodSeconds: 30
-          failureThreshold: 5
-          successThreshold: 1
+          periodSeconds: {{ .Values.fid.readinessProbe.periodSeconds | default 30 }}
+          failureThreshold: {{ .Values.fid.readinessProbe.failureThreshold | default 5 }}
+          successThreshold: {{ .Values.fid.readinessProbe.successThreshold | default 1 }}
         livenessProbe:
           exec:
             command: [ "/opt/radiantone/check", "run", "-type", "liveness" ]
           initialDelaySeconds: {{ .Values.fid.livenessProbe.initialDelaySeconds }}
           timeoutSeconds: {{ .Values.fid.livenessProbe.timeoutSeconds }}
-          periodSeconds: 30
-          failureThreshold: 5
-          successThreshold: 1
+          periodSeconds: {{ .Values.fid.livenessProbe.periodSeconds | default 30 }}
+          failureThreshold: {{ .Values.fid.livenessProbe.failureThreshold | default 5 }}
+          successThreshold: {{ .Values.fid.livenessProbe.successThreshold | default 1 }}
         envFrom:
         - configMapRef:
             name: {{ template "fid.fullname" . }}

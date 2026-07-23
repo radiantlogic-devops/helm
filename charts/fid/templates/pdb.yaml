@@ -1,3 +1,14 @@
+{{- /*
+PodDisruptionBudget for the main FID StatefulSet.
+
+Rendered by default (historical behaviour). Set podDisruptionBudget.enabled=false to
+drop it entirely — useful on single-replica dev installs, where a PDB can block node
+drains and cluster-autoscaler scale-down.
+
+Exactly one of maxUnavailable / minAvailable may be set. The chart defaults to
+maxUnavailable: 1, which is what this chart has always rendered.
+*/ -}}
+{{- if .Values.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -5,9 +16,19 @@ metadata:
   labels:
     {{- include "fid.labels" . | nindent 4 }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
+    {{- include "fid.commonLabels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  maxUnavailable: 1
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable | default 1 }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/core-name: {{ include "fid.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

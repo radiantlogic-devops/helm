@@ -130,6 +130,138 @@ Resolve the metrics/exporter sidecar image. `metrics.image` is a bare repository
 {{- end }}
 
 {{/*
+Security posture presets.
+
+These supply DEFAULTS ONLY. Anything set explicitly in values.yaml
+(podSecurityContext / securityContext / helperSecurityContext) is deep-merged on top and WINS.
+
+  vanilla   - the chart's historical behaviour. No securityContext hardening at all.
+              This is a fully supported destination, not a legacy state: if you want root,
+              privileged and no restrictions, stay here.
+  baseline  - roughly Pod Security Standards "baseline". No privilege escalation,
+              RuntimeDefault seccomp. Safe for essentially every workload.
+  hardened  - roughly PSS "restricted". Non-root, all capabilities dropped, read-only
+              root filesystem on the helper containers.
+  paranoid  - hardened, plus a read-only root filesystem on the FID container itself.
+              REQUIRES writable volume mounts for every path FID writes to - see the
+              security.profile notes in values.yaml. Verify before using in production.
+  custom    - no preset at all. You supply every field yourself.
+
+To REMOVE a field a preset sets (rather than override its value), use profile: custom,
+or fid.podSpecPatch, which is applied after everything else.
+*/}}
+{{- define "fid.securityPresets" -}}
+vanilla:
+  pod: {}
+  container: {}
+  helper: {}
+baseline:
+  pod: {}
+  container:
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+  helper:
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+hardened:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  container:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  helper:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+paranoid:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  container:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  helper:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+custom:
+  pod: {}
+  container: {}
+  helper: {}
+{{- end }}
+
+{{/*
+Look up one layer ("pod" | "container" | "helper") of the active security preset.
+*/}}
+{{- define "fid.securityPreset" -}}
+{{- $profile := ((.context.Values.security).profile | default "vanilla") -}}
+{{- $all := fromYaml (include "fid.securityPresets" .context) -}}
+{{- $sel := index $all $profile -}}
+{{- if not $sel }}{{ fail (printf "security.profile %q is not one of: vanilla, baseline, hardened, paranoid, custom" $profile) }}{{ end -}}
+{{- toYaml (index $sel .layer | default dict) -}}
+{{- end }}
+
+{{/*
+Effective pod-level securityContext: preset defaults, with values.yaml merged over the top.
+*/}}
+{{- define "fid.podSecurityContext" -}}
+{{- $preset := fromYaml (include "fid.securityPreset" (dict "layer" "pod" "context" .)) -}}
+{{- toYaml (mergeOverwrite (deepCopy $preset) (.Values.podSecurityContext | default dict)) -}}
+{{- end }}
+
+{{/*
+Effective container-level securityContext for the FID container.
+*/}}
+{{- define "fid.containerSecurityContext" -}}
+{{- $preset := fromYaml (include "fid.securityPreset" (dict "layer" "container" "context" .)) -}}
+{{- toYaml (mergeOverwrite (deepCopy $preset) (.Values.securityContext | default dict)) -}}
+{{- end }}
+
+{{/*
+Effective securityContext for the helper / init containers.
+*/}}
+{{- define "fid.helperSecurityContext" -}}
+{{- $preset := fromYaml (include "fid.securityPreset" (dict "layer" "helper" "context" .)) -}}
+{{- toYaml (mergeOverwrite (deepCopy $preset) (.Values.helperSecurityContext | default dict)) -}}
+{{- end }}
+
+{{/*
 Common labels applied to every object the chart renders, on top of "fid.labels".
 Purely additive: renders nothing unless .Values.commonLabels is set.
 */}}
