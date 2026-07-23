@@ -66,48 +66,41 @@ spec:
       initContainers:
   {{- if .Values.zk.external }}
       - name: check-zk
-        image: alpine:latest
+        image: {{ include "fid.image" (dict "image" .Values.helperImages.checkZk "context" $) }}
         resources:
-          limits:
-            cpu: 100m
-            memory: 128Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-        imagePullPolicy: IfNotPresent
+          {{- toYaml (.Values.helperImages.checkZk.resources | default .Values.helperResources) | nindent 10 }}
+        imagePullPolicy: {{ .Values.helperImages.checkZk.pullPolicy | default "IfNotPresent" }}
+        {{- with (.Values.helperImages.checkZk.securityContext | default .Values.helperSecurityContext) }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for zookeeper -- $0:$1;sleep 2; done; echo Connection to zookeeper ok -- $0:$1', '{{ (split ":" .Values.zk.connectionString)._0 }}', '{{ (split ":" .Values.zk.connectionString)._1 }}']
   {{- end }}
       - name: check-fid
-        image: alpine:latest
-        imagePullPolicy: IfNotPresent
+        image: {{ include "fid.image" (dict "image" .Values.helperImages.checkFid "context" $) }}
+        imagePullPolicy: {{ .Values.helperImages.checkFid.pullPolicy | default "IfNotPresent" }}
         resources:
-          limits:
-            cpu: 100m
-            memory: 128Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
+          {{- toYaml (.Values.helperImages.checkFid.resources | default .Values.helperResources) | nindent 10 }}
+        {{- with (.Values.helperImages.checkFid.securityContext | default .Values.helperSecurityContext) }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command: ['sh', '-c', 'until nc -w 2 -z $0 $1; do echo Waiting for FID -- $0:$1;sleep 2; done; echo Connection to FID ok -- $0:$1', '{{ include "fid.fullname" . }}-app', '2636']
   {{- if hasKey .Values.sysctl "enabled" }}
   {{- if .Values.sysctl.enabled }}
       - name: sysctl
-        image: busybox:latest
-        imagePullPolicy: IfNotPresent
+        image: {{ include "fid.image" (dict "image" .Values.helperImages.sysctl "context" $) }}
+        imagePullPolicy: {{ .Values.helperImages.sysctl.pullPolicy | default "IfNotPresent" }}
         resources:
-          limits:
-            cpu: 100m
-            memory: 128Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
+          {{- toYaml (.Values.helperImages.sysctl.resources | default .Values.helperResources) | nindent 10 }}
         command: ["/bin/sh", "-c", "sysctl -w vm.max_map_count=262144 && set -e && ulimit -n 65536"]
         securityContext:
-          privileged: true
+          {{- toYaml (.Values.helperImages.sysctl.securityContext | default (dict "privileged" true)) | nindent 10 }}
   {{- end }}
   {{- end }}
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ include "fid.mainImage" . }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
@@ -244,7 +237,7 @@ spec:
             ./run.sh fg
 {{- if .Values.metrics.enabled }}
       - name: {{ .Chart.Name }}-exporter
-        image: {{ .Values.metrics.image }}:{{ .Values.metrics.imageTag }}
+        image: {{ include "fid.metricsImage" . }}
         resources:
           limits:
             cpu: 1000m

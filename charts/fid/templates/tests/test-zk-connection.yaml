@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
     - name: zk-ruok
-      image: busybox
+      image: {{ include "fid.image" (dict "image" .Values.helperImages.testBusybox "context" $) }}
       command: ['wget']
       args: ['{{ .Values.zk.ruok }}']
   restartPolicy: Never

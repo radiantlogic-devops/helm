@@ -21,7 +21,18 @@ spec:
       restartPolicy: Never
       containers:
       - name: pre-install-job
-        image: alpine
+        image: {{ include "fid.image" (dict "image" .Values.helperImages.hooks "context" $) }}
+        {{- with .Values.helperImages.hooks.pullPolicy }}
+        imagePullPolicy: {{ . }}
+        {{- end }}
+        {{- with (.Values.helperImages.hooks.resources | default .Values.hookResources) }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with (.Values.helperImages.hooks.securityContext | default .Values.helperSecurityContext) }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command: ["/bin/sh", "-c"]
         args:
           - |

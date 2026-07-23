@@ -12,7 +12,14 @@ spec:
           serviceAccountName: {{ include "fid.fullname" . }}-hook-account
           containers:
           - name: migration-cronjob
-            image: alpine
+            image: {{ include "fid.image" (dict "image" .Values.helperImages.hooks "context" $) }}
+            {{- with .Values.helperImages.hooks.pullPolicy }}
+            imagePullPolicy: {{ . }}
+            {{- end }}
+            {{- with (.Values.helperImages.hooks.resources | default .Values.hookResources) }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
             imagePullPolicy: IfNotPresent
             command: ["/bin/sh", "-c"]
             args:

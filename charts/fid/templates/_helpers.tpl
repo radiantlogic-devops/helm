@@ -83,6 +83,100 @@ Create image pull credentials
 
 
 {{/*
+Resolve an image reference from an image dict.
+
+Accepts a dict of {registry, repository, tag, digest} and renders "<registry>/<repository>:<tag>"
+or "<registry>/<repository>@<digest>" when a digest is set (digest wins over tag).
+
+Registry precedence: image.registry > global.imageRegistry > "" (bare Docker Hub reference).
+A tag of "" renders the bare repository, preserving pre-existing untagged references.
+
+Usage: {{ include "fid.image" (dict "image" .Values.initImages.checkZk "context" $) }}
+*/}}
+{{- define "fid.image" -}}
+{{- $img := .image | default dict -}}
+{{- $ctx := .context -}}
+{{- $registry := $img.registry | default (($ctx.Values.global).imageRegistry) | default "" -}}
+{{- $repo := $img.repository -}}
+{{- if $registry }}
+{{- $repo = printf "%s/%s" (trimSuffix "/" $registry) $repo -}}
+{{- end }}
+{{- if $img.digest }}
+{{- printf "%s@%s" $repo $img.digest -}}
+{{- else if $img.tag }}
+{{- printf "%s:%s" $repo ($img.tag | toString) -}}
+{{- else }}
+{{- $repo -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Resolve the main FID image, preserving the historical `image.tag | default .Chart.AppVersion`
+fallback while adding registry and digest support.
+*/}}
+{{- define "fid.mainImage" -}}
+{{- $img := .Values.image | default dict -}}
+{{- $tag := $img.tag | default .Chart.AppVersion -}}
+{{- include "fid.image" (dict "image" (merge (dict "tag" $tag) (omit $img "tag")) "context" .) -}}
+{{- end }}
+
+{{/*
+Resolve the metrics/exporter sidecar image. `metrics.image` is a bare repository string
+(historical shape), so it is adapted into the standard image dict here.
+*/}}
+{{- define "fid.metricsImage" -}}
+{{- $m := .Values.metrics | default dict -}}
+{{- include "fid.image" (dict "image" (dict "repository" $m.image "tag" $m.imageTag "registry" $m.registry "digest" $m.digest) "context" .) -}}
+{{- end }}
+
+{{/*
+Common labels applied to every object the chart renders, on top of "fid.labels".
+Purely additive: renders nothing unless .Values.commonLabels is set.
+*/}}
+{{- define "fid.commonLabels" -}}
+{{- with .Values.commonLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Common annotations applied to every object the chart renders.
+Purely additive: renders nothing unless .Values.commonAnnotations is set.
+*/}}
+{{- define "fid.commonAnnotations" -}}
+{{- with .Values.commonAnnotations }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Apply a strategic-merge style patch to a rendered object.
+
+This is the chart's "no ceiling" escape hatch: it lets a user set any field on the rendered
+pod spec, including fields the chart does not model. The patch is deep-merged LAST, so it wins
+over every typed value and every posture preset.
+
+mergeOverwrite mutates its first argument, so the base is deep-copied first.
+
+Usage:
+  {{- $spec := include "fid.podSpec" . | fromYaml }}
+  {{- include "fid.applyPatch" (dict "base" $spec "patch" .Values.fid.podSpecPatch) }}
+
+Note: list-valued fields (containers, volumes) are REPLACED wholesale by the patch, not merged
+by name — this is Helm's mergeOverwrite semantics, not kubectl's strategic-merge. To adjust a
+single container, prefer the typed values; use the patch for fields the chart does not expose.
+*/}}
+{{- define "fid.applyPatch" -}}
+{{- $base := .base | default dict -}}
+{{- $patch := .patch | default dict -}}
+{{- if $patch -}}
+{{- toYaml (mergeOverwrite (deepCopy $base) $patch) -}}
+{{- else -}}
+{{- toYaml $base -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 This helper template generates the fluent.conf dynamically based on the inputs from values.yaml file.
 The supported aggregators are ELASTICSEARCH, OPENSEARCH, SPLUNK
 */}}

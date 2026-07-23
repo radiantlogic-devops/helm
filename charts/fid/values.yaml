@@ -1,12 +1,134 @@
 # Default values for fid.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+
+## Global values, shared with subcharts.
+##
+global:
+  ## Registry prefix applied to EVERY image the chart renders (main, init, hooks, tests)
+  ## that does not set its own `registry`. Set this to install from a mirror, a private
+  ## registry, or an airgapped environment without overriding each image individually.
+  ## e.g. imageRegistry: "123456789012.dkr.ecr.us-west-2.amazonaws.com"
+  ##
+  imageRegistry: ""
+  ## Pull secrets merged into every pod the chart renders, in addition to .Values.imagePullSecrets.
+  ##
+  imagePullSecrets: []
+
+## Labels and annotations added to every object the chart renders.
+## Both are purely additive — leaving them empty changes nothing.
+##
+commonLabels: {}
+commonAnnotations: {}
+
 replicaCount: 1
 image:
   repository: radiantone/fid
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
+  ## Optional. Pin by digest instead of tag. When set, this WINS over `tag`.
+  ## e.g. digest: "sha256:002ac4c24f9bc131b0..."
+  ##
+  digest: ""
+  ## Optional per-image registry override. Falls back to global.imageRegistry.
+  ##
+  registry: ""
+
+## Images for the chart's helper containers.
+##
+## Previously these were hardcoded in the templates, which made mirrored/airgapped installs
+## impossible and pinned every install to whatever ":latest" happened to be that day.
+## The defaults below reproduce the historical references EXACTLY, so upgrading the chart
+## changes nothing until you override something here.
+##
+## Each entry accepts: registry, repository, tag, digest, pullPolicy.
+## Setting `digest` wins over `tag`. Setting `tag: ""` renders a bare, untagged reference.
+##
+## Recommendation for production: pin every one of these by digest.
+##
+## Fallback resources for helper containers that do not set their own
+## `helperImages.<name>.resources`. Also the single knob for changing them all at once.
+##
+helperResources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## Fallback securityContext for helper containers that do not set their own
+## `helperImages.<name>.securityContext`. Empty by default (historical behaviour).
+## The `hardened` security profile populates this.
+##
+helperSecurityContext: {}
+
+## Resources for the lifecycle hook Jobs and the migration CronJob.
+## Empty by default, which reproduces the historical templates (no resources block at all).
+##
+## Set this if your namespace enforces a LimitRange or ResourceQuota — without it the
+## hook Jobs are rejected at admission and the install/upgrade fails.
+## e.g. hookResources: {limits: {cpu: 100m, memory: 128Mi}, requests: {cpu: 50m, memory: 64Mi}}
+##
+hookResources: {}
+
+helperImages:
+  ## Init container that waits for ZooKeeper's TCP port (fid + follower StatefulSets).
+  checkZk:
+    repository: alpine
+    tag: latest
+    pullPolicy: IfNotPresent
+    resources:
+      limits: {cpu: 100m, memory: 128Mi}
+      requests: {cpu: 100m, memory: 128Mi}
+  ## Init container that waits for ZooKeeper to leave read-only mode (fid StatefulSet).
+  checkZkReadonly:
+    repository: alpine/curl
+    tag: latest
+    pullPolicy: IfNotPresent
+    resources:
+      limits: {cpu: 100m, memory: 128Mi}
+      requests: {cpu: 100m, memory: 128Mi}
+  ## Init container that waits for the FID leader to be reachable (follower StatefulSet).
+  checkFid:
+    repository: alpine
+    tag: latest
+    pullPolicy: IfNotPresent
+    resources:
+      limits: {cpu: 100m, memory: 128Mi}
+      requests: {cpu: 100m, memory: 128Mi}
+  ## Privileged init container that raises vm.max_map_count (only when sysctl.enabled).
+  ## NOTE: this one runs privileged by necessity — it writes a kernel parameter.
+  ## Its securityContext is set in the template, not here, so that nulling
+  ## helperSecurityContext cannot silently drop the privilege it needs to function.
+  sysctl:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent
+    resources:
+      limits: {cpu: 100m, memory: 128Mi}
+      requests: {cpu: 100m, memory: 128Mi}
+  ## Init container that downloads and applies fid.migration.url.
+  migration:
+    repository: alpine/curl
+    tag: latest
+    pullPolicy: IfNotPresent
+    resources:
+      limits: {cpu: 100m, memory: 512Mi}
+      requests: {cpu: 100m, memory: 128Mi}
+  ## Job image for the lifecycle hooks (pre/post install, upgrade, delete, rollback)
+  ## and for the migration CronJob. Historically untagged, hence tag: "".
+  hooks:
+    repository: alpine
+    tag: ""
+  ## Images used by `helm test` pods.
+  testCurl:
+    repository: alpine/curl
+    tag: ""
+  testBusybox:
+    repository: busybox
+    tag: ""
 fid:
   ## FID root user name
   ## Default values cn=Directory Manager
