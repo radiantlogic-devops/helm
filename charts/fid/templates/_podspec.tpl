@@ -54,8 +54,12 @@ initContainers:
 {{- toYaml (.Values.helperImages.sysctl.securityContext | default (dict "privileged" true)) | nindent 10 }}
 {{- end }}
 {{- end }}
-{{- if hasKey .Values.fid.migration "url" }}
-{{- if .Values.fid.migration.url }}
+{{- /* Migration artifact fetch.
+       Advanced takes precedence and is EXCLUSIVE: when enabled the legacy
+       fid.migration.url / .script fields are ignored entirely, matching helm-v8. */}}
+{{- if (((.Values.fid.migration).advanced).enabled) }}
+{{- include "fid.migrationAdvanced" . | nindent 0 }}
+{{- else if (.Values.fid.migration).url }}
 - name: migration
   image: {{ include "fid.image" (dict "image" .Values.helperImages.migration "context" $) }}
   imagePullPolicy: {{ .Values.helperImages.migration.pullPolicy | default "IfNotPresent" }}
@@ -93,12 +97,12 @@ initContainers:
     mountPath: /opt/radiantone/scripts
 {{- end }}
 {{- end }}
+{{- end }}
 
+{{- /* extraInitContainers used to be nested inside the migration.url conditional,
+       so it silently did nothing unless a migration URL happened to be set. */}}
 {{- with .Values.extraInitContainers }}
-{{- tpl (toYaml .) | nindent 2 }}
-{{- end }}
-
-{{- end }}
+{{- tpl (toYaml .) $ | nindent 0 }}
 {{- end }}
 containers:
 - name: {{ .Chart.Name }}
@@ -230,6 +234,14 @@ containers:
   - name: "{{ tpl $key $ }}"
     value: "{{ tpl (print $value) $ }}"
 {{- end }}
+{{- /* envValueFrom: name is templated, value is a raw EnvVarSource (configMapKeyRef,
+       secretKeyRef, fieldRef, resourceFieldRef). Declared in values.yaml for a long
+       time but never rendered - setting it did nothing. */}}
+{{- range $key, $value := .Values.envValueFrom }}
+  - name: "{{ tpl $key $ }}"
+    valueFrom:
+  {{- tpl (toYaml $value) $ | nindent 6 }}
+{{- end }}
   resources:
 {{- toYaml .Values.resources | nindent 12 }}
   volumeMounts:
@@ -293,13 +305,18 @@ containers:
 {{- if .Values.metrics.enabled }}
 - name: {{ .Chart.Name }}-exporter
   image: {{ include "fid.metricsImage" . }}
+  imagePullPolicy: {{ (.Values.metrics).pullPolicy | default .Values.image.pullPolicy }}
+  {{- /* The sidecar's memory limit was hardcoded at 1Gi. This container runs Fluentd (the
+         name "fid-exporter" is historical and misleading), and it OOMs at 1Gi on busy nodes
+         when the log aggregator is too slow to drain its buffer - the single most common
+         cause of "FID pod restarted" that is not FID at all. Now values-driven so it can be
+         raised without forking, with the historical values as the default. */}}
   resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 100m
-      memory: 128Mi
+{{- toYaml ((.Values.metrics).resources | default (dict "limits" (dict "cpu" "1000m" "memory" "1Gi") "requests" (dict "cpu" "100m" "memory" "128Mi"))) | nindent 4 }}
+{{- with ((.Values.metrics).securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
+  securityContext:
+{{- toYaml . | nindent 4 }}
+{{- end }}
   ports:
   - containerPort: 9095
     name: exporter
@@ -390,6 +407,7 @@ volumes:
 {{- if .Values.extraVolumes }}
 {{- include "common.tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 6 }}
 {{- end }}
+{{- include "fid.migrationAdvancedVolumes" . | nindent 0 }}
 {{- with .Values.extraContainerVolumes }}
 {{- tpl (toYaml .) | nindent 8 }}
 {{- end }}

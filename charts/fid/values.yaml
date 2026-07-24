@@ -111,6 +111,178 @@ networkPolicy:
   #   - to: [{podSelector: {matchLabels: {app: zookeeper}}}]
   #     ports: [{port: 2181, protocol: TCP}]
 
+## ---------------------------------------------------------------------------------------
+## INGRESS / EXTERNAL ACCESS
+## ---------------------------------------------------------------------------------------
+##
+## One block drives NGINX, Traefik and Istio. Enable a controller with true/false, give it
+## a hostname, and the same `routes` map is used by whichever you pick — switching
+## controller does not mean redescribing your topology.
+##
+## The legacy `ingress:`, `gateway:` and `virtualservice:` blocks further down still work
+## and are untouched. Use `networking:` for anything new.
+##
+## Ports, for reference:
+##   HTTP   7070/7171  Classic Control Panel   -> <release>-ext
+##          8089/8090  FID REST / HTTP API     -> <release>-app
+##          9100/9101  Admin REST service      -> <release>-admin
+##   TCP    2389       LDAP                    -> <release>-app   (exposed as 389)
+##          2636       LDAPS                   -> <release>-app   (exposed as 636)
+##
+networking:
+  ## Primary hostname for all HTTP routes. Required when any controller is enabled —
+  ## the chart fails the render rather than emitting a host-less rule that would swallow
+  ## every request reaching the controller.
+  hostname: ""
+  extraHostnames: []
+
+  tls:
+    enabled: false
+    ## Pre-created TLS secret. For Istio this is the gateway `credentialName` and must live
+    ## in the istio-ingress namespace, NOT this release's namespace.
+    secretName: ""
+
+  ## HTTP routes. Add your own entries freely — anything with
+  ## {enabled, path, service, port} renders. controlPanel/api/admin have built-in defaults
+  ## so you only need `enabled: true`.
+  ##
+  ## `order` controls match precedence (lower first). Controllers match in declaration
+  ## order, so specific paths must precede "/". Defaults already do this.
+  routes:
+    controlPanel:
+      enabled: true
+      # path: /
+      # order: 30
+    api:
+      enabled: false
+      # path: /rest-service
+      # order: 10
+    admin:
+      enabled: false
+      # path: /admin-service
+      # order: 20
+    ## Example of an extra route (service + port are required for unknown names):
+    # custom:
+    #   enabled: true
+    #   path: /my-app
+    #   service: my-service
+    #   port: 8080
+    #   order: 5
+
+  ## LDAPS exposed on 636, forwarded to FID's 2636.
+  ##
+  ## TLS is PASSED THROUGH, not terminated at the edge: FID presents its own directory
+  ## certificate. Terminating at the ingress breaks certificate-based (SASL EXTERNAL)
+  ## client authentication, which is the usual reason for exposing LDAPS at all.
+  ldaps:
+    enabled: false
+    exposedPort: 636
+    targetPort: 2636
+    # hostSNI: "*"          # traefik only; "*" also matches clients that send no SNI
+    # tlsPassthrough: true  # traefik only
+
+  ## Plain LDAP on 389 -> 2389. Off by default: unencrypted directory traffic.
+  ldap:
+    enabled: false
+    exposedPort: 389
+    targetPort: 2389
+
+  nginx:
+    enabled: false
+    ingressClassName: nginx
+    ## Set when a route targets a TLS port (7171/8090/9101); without it nginx speaks HTTP
+    ## to an HTTPS upstream and you get 502s.
+    backendProtocolHTTPS: false
+    annotations: {}
+      # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    ## Raw TCP in ingress-nginx comes from a ConfigMap in the CONTROLLER's namespace
+    ## (--tcp-services-configmap), not this release's.
+    ##
+    ## manageConfigMap: true makes this chart write it. Leave it false unless this release
+    ## is the only thing managing that ConfigMap — ingress-nginx honours exactly one, so
+    ## two charts writing it will clobber each other. You must ALSO publish the port on the
+    ## controller's Service; a ConfigMap entry alone does nothing.
+    tcp:
+      manageConfigMap: false
+      controllerNamespace: ingress-nginx
+      configMapName: tcp-services
+
+  traefik:
+    enabled: false
+    ## These entryPoints must already exist on your Traefik install — ports are declared
+    ## there, not here. The chart cannot create them.
+    entryPoints:
+      web: web
+      websecure: websecure
+      ldaps: ldaps
+      ldap: ldap
+    annotations: {}
+    middlewares: []          # e.g. [redirect-https, rate-limit]
+    # certResolver: letsencrypt
+    # serversTransport: insecure-transport   # for self-signed FID certs on HTTPS upstreams
+
+  istio:
+    enabled: false
+    selector:
+      istio: ingressgateway
+    httpPort: 80
+    httpsPort: 443
+    httpsRedirect: true
+    tlsMode: SIMPLE
+    # timeout: 60s
+    # retries: {attempts: 3, perTryTimeout: 10s}
+
+## ---------------------------------------------------------------------------------------
+## EXTERNAL SECRETS OPERATOR (ESO) SHIM
+## ---------------------------------------------------------------------------------------
+##
+## Materialise FID's credentials from a vault or cloud secrets manager instead of putting
+## them in values.yaml. Works with any ESO provider: AWS Secrets Manager, HashiCorp Vault,
+## OpenBao, GCP Secret Manager, Azure Key Vault, Conjur, Infisical.
+##
+## Requires the External Secrets Operator to be installed in the cluster.
+##
+## USAGE — two settings make the swap:
+##   externalSecret.enabled: true          renders the ExternalSecret
+##   fid.existingSecret: rootcreds-<rel>   makes FID consume it (chart renders no Secret)
+## The default target name is exactly what the chart's own Secret would be called, so those
+## two line up automatically.
+##
+## KEYS (five on this chart line, verified live):
+##   fid-root-username  fid-root-password  fid-license  zk-username  zk-password
+## `zk-username` is the one people forget; omitting it breaks ZooKeeper auth in a way that
+## looks like an unrelated startup failure.
+##
+## ORDERING: ESO writes the Secret asynchronously, so on a fresh install FID may restart a
+## few times until it appears. That is expected, not a failure.
+##
+externalSecret:
+  enabled: false
+  # apiVersion: external-secrets.io/v1beta1   # use .../v1 on newer ESO
+  # name: ""                                  # defaults to <release>-fid-credentials
+  refreshInterval: 1h
+  secretStoreRef:
+    name: ""                                  # REQUIRED when enabled
+    kind: SecretStore                         # or ClusterSecretStore
+  target:
+    # name: ""                                # defaults to rootcreds-<release>
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  ## SIMPLEST FORM: one remote secret whose properties are named exactly as FID expects.
+  # remoteKey: "fid/prod/credentials"
+  ##
+  ## EXPLICIT MAPPING: use when external key names differ from FID's (the common case).
+  # data:
+  #   - secretKey: fid-root-password
+  #     remoteRef: {key: prod/fid, property: rootPassword}
+  #   - secretKey: zk-username
+  #     remoteRef: {key: prod/fid, property: zkUser}
+  ##
+  ## PULL EVERYTHING from one external secret (keys must already match):
+  # dataFrom:
+  #   - extract: {key: fid/prod/credentials}
+
 ## Preflight checks.
 ##
 ## Render-time guards that stop an install or upgrade which would otherwise fail in a
@@ -189,26 +361,46 @@ hookResources: {}
 ##
 ## Recommendation for production: pin every one of these by digest.
 ##
+## FIRST-PARTY HELPER IMAGES
+##
+## These default to RadiantOne's own images, matching helm-v8, rather than upstream
+## alpine/busybox. Benefits: one vendor to patch for CVEs, no Docker Hub anonymous
+## rate-limit exposure, and predictable contents.
+##
+## All verified PUBLIC (anonymous pull, no regcred needed) and tool-verified on a live
+## cluster:
+##   radiantone/init-tools:latest  nc at /usr/bin/nc, runs as uid 65532 (nonroot)
+##   radiantone/curl:latest        curl + grep at /usr/bin, runs as uid 0
+##   radiantone/kubectl:latest     kubectl at /opt/bitnami/kubectl/bin, uid 1001
+##   busybox:latest                Docker Official (kept for sysctl, as helm-v8 does)
+##
+## NOTE: adopting these changes the rendered pod template, so the first upgrade after
+## taking this chart version performs a rolling restart. Set the repositories back to
+## alpine / alpine/curl / busybox if you need to avoid that.
+##
 helperImages:
   ## Init container that waits for ZooKeeper's TCP port (fid + follower StatefulSets).
+  ## Needs `nc`.
   checkZk:
-    repository: alpine
+    repository: radiantone/init-tools
     tag: latest
     pullPolicy: IfNotPresent
     resources:
       limits: {cpu: 100m, memory: 128Mi}
       requests: {cpu: 100m, memory: 128Mi}
   ## Init container that waits for ZooKeeper to leave read-only mode (fid StatefulSet).
+  ## Needs `curl` and `grep`.
   checkZkReadonly:
-    repository: alpine/curl
+    repository: radiantone/curl
     tag: latest
     pullPolicy: IfNotPresent
     resources:
       limits: {cpu: 100m, memory: 128Mi}
       requests: {cpu: 100m, memory: 128Mi}
   ## Init container that waits for the FID leader to be reachable (follower StatefulSet).
+  ## Needs `nc`.
   checkFid:
-    repository: alpine
+    repository: radiantone/init-tools
     tag: latest
     pullPolicy: IfNotPresent
     resources:
@@ -226,8 +418,9 @@ helperImages:
       limits: {cpu: 100m, memory: 128Mi}
       requests: {cpu: 100m, memory: 128Mi}
   ## Init container that downloads and applies fid.migration.url.
+  ## Needs `curl`.
   migration:
-    repository: alpine/curl
+    repository: radiantone/curl
     tag: latest
     pullPolicy: IfNotPresent
     resources:
@@ -235,13 +428,16 @@ helperImages:
       requests: {cpu: 100m, memory: 128Mi}
   ## Job image for the lifecycle hooks (pre/post install, upgrade, delete, rollback)
   ## and for the migration CronJob. Historically untagged, hence tag: "".
+  ## Hook Jobs and the migration CronJob. radiantone/kubectl ships kubectl, which is what
+  ## the commented-out hook scripts try to curl down at runtime - use it instead of
+  ## downloading a binary inside a hook.
   hooks:
-    repository: alpine
-    tag: ""
+    repository: radiantone/kubectl
+    tag: latest
   ## Images used by `helm test` pods.
   testCurl:
-    repository: alpine/curl
-    tag: ""
+    repository: radiantone/curl
+    tag: latest
   testBusybox:
     repository: busybox
     tag: ""
@@ -521,7 +717,28 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, azure-disk on
   ##   Azure, standard on GKE, AWS & OpenStack)
   ##
+  ## Accepts:
+  ##   "auto"     pick the best class present in the cluster (see below)
+  ##   "-"        no class at all — disables dynamic provisioning
+  ##   ""         omit the field, letting the cluster's default class apply
+  ##   <name>     use that class verbatim
+  ##
+  ## NOTE ON THE DEFAULT: "default" is a class NAME, not an instruction to use the cluster
+  ## default. Most clusters (EKS, GKE, kind) have no class called "default", so PVCs stay
+  ## Pending with no obvious cause. AKS is the exception — it really does ship one.
+  ## The preflight storageClassCheck catches this before you hit it.
+  ##
+  ## "auto" ranks what actually exists, best first: encrypted+expandable+default, then
+  ## encrypted+expandable, then expandable+default, then expandable, then default.
+  ## Encryption is inferred from the class name or its parameters, since Kubernetes has no
+  ## portable field for it. Verified on a live EKS cluster: picks `encrypted-gp3`
+  ## (encrypted, expandable) over `gp3` (cluster default but unencrypted).
+  ##
+  ## `lookup` is inert during `helm template`/`--dry-run`, so an offline render of "auto"
+  ## omits the field. Use `--dry-run=server` to see what it will actually choose.
+  ##
   # storageClass: "-"
+  # storageClass: "auto"
   storageClass: "default"
   accessModes:
   - ReadWriteOnce
@@ -535,12 +752,57 @@ persistence:
 # For splunk, to provide, custom source, sourcetype, index, use individual logs (splunk_index,splunk_source, splunk_sourcetype)
 # Aggregators, Logs and key:value pairs for logs and aggregators can be added dynamically
 # custom_index can be provided for each log individually and it takes precedence
+## METRICS / LOGGING SIDECAR
+##
+## Despite the name, this sidecar runs BOTH a metrics exporter and Fluentd. The container
+## is called "fid-exporter" for historical reasons; when metrics.fluentd.enabled is true it
+## is Fluentd doing the work, which is why it is the container that OOMs, not FID.
+##
+## EXPORTER FLAVOUR
+##   fid-exporter  (default) radiantone/fid-exporter - the shipping exporter. PUBLIC.
+##   rl-exporter             radiantone/rl-exporter - the first-party successor that folds
+##                           fid-exporter + zk-exporter + metrics-service into one image,
+##                           reads metrics from the Admin REST API instead of LDAP
+##                           cn=Monitor, and fixes the OOM with per-worker on-disk buffers.
+##
+## rl-exporter is NOT the default yet for one concrete reason: as of this chart version its
+## image is not published to a public registry (ghcr.io/radiantlogic-devops/rl-exporter
+## returns 403 and there is no Docker Hub repo), so defaulting to it would break every
+## install that cannot authenticate. Flip to it with:
+##
+##   metrics:
+##     flavor: rl-exporter
+##     imageRepository: ghcr.io/radiantlogic-devops/rl-exporter   # or wherever you publish
+##     tag: <version>
+##     resources: {limits: {memory: 512Mi}}   # 128Mi is not enough for rl-exporter
+##
+## When rl-exporter is published publicly, change `flavor` below to rl-exporter and the
+## repository default in _helpers.tpl (fid.metricsImage) to match.
+##
 metrics:
   enabled: false
-  image: radiantone/fid-exporter
-  imageTag: latest
+  ## fid-exporter | rl-exporter
+  flavor: fid-exporter
+  ## Preferred keys. `image` / `imageTag` still work (deprecated, see NOTES on upgrade).
+  imageRepository: radiantone/fid-exporter
+  ## Pinned to an immutable tag rather than `latest`, which silently rolled a new Fluentd
+  ## into every pod restart. iddm-8.4.5 verified PUBLIC.
+  tag: iddm-8.4.5
+  # digest: "sha256:..."     # pin harder for production
+  # registry: ""             # falls back to global.imageRegistry
+  # pullPolicy: IfNotPresent
   securityContext:
     runAsUser: 0
+  ## The 1Gi limit was hardcoded in the template. This sidecar buffers logs, so a slow or
+  ## unreachable Elasticsearch makes it grow until the kernel kills it - taking the whole
+  ## pod's restart count with it. Raise this before blaming FID.
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
   annotations: {}
   pushMode: true
   pushGateway: http://prometheus-server:9091

@@ -1,0 +1,15 @@
+# Advanced migration from S3 with credentials sourced from a Secret.
+fid:
+  license: "[FID Cluster License]"
+  migration:
+    advanced:
+      enabled: true
+      source:
+        type: s3
+        s3:
+          bucket: my-exports
+          key: fid/export.zip
+          region: us-west-2
+          auth:
+            accessKeyIdSecretRef: {name: aws-creds, key: access-key-id}
+            secretAccessKeySecretRef: {name: aws-creds, key: secret-access-key}

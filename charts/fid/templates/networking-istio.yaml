@@ -1,0 +1,159 @@
+{{- /*
+Istio ingress: Gateway + VirtualService for HTTP, plus a TCP Gateway/VirtualService pair
+for LDAP/LDAPS.
+
+This is separate from the pre-existing `gateway:` / `virtualservice:` values, which are
+kept untouched for backward compatibility. Use `networking.istio` for new deployments —
+it shares the same `networking.routes` map as the nginx and traefik paths, so switching
+controller does not mean redescribing your topology.
+
+LDAPS over Istio uses protocol TCP (not TLS) with passthrough semantics: FID terminates
+TLS itself. Declaring it as TLS with a credentialName would terminate at the gateway and
+break certificate-based (SASL EXTERNAL) client authentication, which is the whole reason
+customers put LDAPS through the mesh edge in the first place.
+
+NOTE: the istio-ingressgateway Service must also publish the port. A Gateway resource
+alone does not open :636 on the load balancer.
+*/ -}}
+{{- $i := (.Values.networking).istio | default dict -}}
+{{- if $i.enabled }}
+{{- include "fid.networking.requireHost" . }}
+{{- $hosts := fromJsonArray (include "fid.networking.hosts" .) }}
+{{- $routes := fromJsonArray (include "fid.networking.routes" .) }}
+{{- $tls := (.Values.networking).tls | default dict }}
+{{- $fullname := include "fid.fullname" . }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ $fullname }}-gw
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  selector:
+    {{- toYaml ($i.selector | default (dict "istio" "ingressgateway")) | nindent 4 }}
+  servers:
+    - port:
+        number: {{ $i.httpPort | default 80 }}
+        name: http
+        protocol: HTTP
+      hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- if and $tls.enabled ($i.httpsRedirect | default true) }}
+      tls:
+        httpsRedirect: true
+      {{- end }}
+    {{- if $tls.enabled }}
+    - port:
+        number: {{ $i.httpsPort | default 443 }}
+        name: https
+        protocol: HTTPS
+      hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      tls:
+        mode: {{ $i.tlsMode | default "SIMPLE" }}
+        {{- with $tls.secretName }}
+        credentialName: {{ . }}
+        {{- end }}
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ $fullname }}-vs
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  hosts:
+    {{- range $hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  gateways:
+    - {{ $fullname }}-gw
+  http:
+    {{- range $r := $routes }}
+    - name: {{ $r.name }}
+      match:
+        - uri:
+            prefix: {{ $r.path | quote }}
+      route:
+        - destination:
+            host: {{ $r.service }}
+            port:
+              number: {{ $r.port }}
+      {{- with $i.timeout }}
+      timeout: {{ . }}
+      {{- end }}
+      {{- with $i.retries }}
+      retries:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+{{- /* ------------------------------------------------------------ TCP: LDAPS and LDAP */}}
+{{- $ldaps := (.Values.networking).ldaps | default dict }}
+{{- $ldap := (.Values.networking).ldap | default dict }}
+{{- if or $ldaps.enabled $ldap.enabled }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ $fullname }}-tcp-gw
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  selector:
+    {{- toYaml ($i.selector | default (dict "istio" "ingressgateway")) | nindent 4 }}
+  servers:
+    {{- if $ldaps.enabled }}
+    - port:
+        number: {{ $ldaps.exposedPort | default 636 }}
+        name: tcp-ldaps
+        protocol: TCP
+      hosts: ["*"]
+    {{- end }}
+    {{- if $ldap.enabled }}
+    - port:
+        number: {{ $ldap.exposedPort | default 389 }}
+        name: tcp-ldap
+        protocol: TCP
+      hosts: ["*"]
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ $fullname }}-tcp-vs
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  hosts: ["*"]
+  gateways:
+    - {{ $fullname }}-tcp-gw
+  tcp:
+    {{- if $ldaps.enabled }}
+    - match:
+        - port: {{ $ldaps.exposedPort | default 636 }}
+      route:
+        - destination:
+            host: {{ $fullname }}-app
+            port:
+              number: {{ $ldaps.targetPort | default 2636 }}
+    {{- end }}
+    {{- if $ldap.enabled }}
+    - match:
+        - port: {{ $ldap.exposedPort | default 389 }}
+      route:
+        - destination:
+            host: {{ $fullname }}-app
+            port:
+              number: {{ $ldap.targetPort | default 2389 }}
+    {{- end }}
+{{- end }}
+{{- end }}

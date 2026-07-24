@@ -237,6 +237,63 @@ false
 {{- end }}
 
 {{/*
+Resolve the effective storageClass for the FID PVC.
+
+persistence.storageClass accepts:
+  "auto"   discover the best class in the cluster (see ranking below)
+  "-"      explicitly no class (disables dynamic provisioning)
+  ""       omit the field entirely, letting the cluster default apply
+  <name>   use that class verbatim
+
+WHY "auto" AND WHY IT IS NOT THE DEFAULT
+The historical default was the literal string "default", which is a class NAME. Most
+clusters (EKS, GKE, kind) have no class called "default", so PVCs sat Pending forever with
+no obvious cause. "auto" fixes that class of mistake by looking at what actually exists.
+
+RANKING, best first — encryption and expandability are what matter for a directory that
+grows and holds identity data:
+  1. default-annotated class that is BOTH encrypted and expandable
+  2. any class that is both encrypted and expandable
+  3. default-annotated class that is expandable
+  4. any expandable class
+  5. the cluster's default-annotated class
+  6. nothing -> omit storageClassName and let the cluster decide
+
+"Encrypted" is inferred from the class name or its parameters (encrypted: "true", or a
+kms/encryption key parameter), since there is no portable API field for it.
+
+`lookup` returns nothing during `helm template`, `--dry-run` and `helm lint`, so an
+offline render of "auto" omits the field rather than guessing — the same result as an
+empty value. Always check the resolved class with a real `--dry-run=server` or by
+inspecting the created PVC.
+*/}}
+{{- define "fid.storageClass" -}}
+{{- $want := (.Values.persistence).storageClass | default "" -}}
+{{- if ne $want "auto" -}}
+{{- $want -}}
+{{- else -}}
+{{- $classes := (lookup "storage.k8s.io/v1" "StorageClass" "" "") -}}
+{{- $best := "" -}}
+{{- $bestScore := -1 -}}
+{{- range (($classes).items | default list) -}}
+{{- $isDefault := or (eq (index (.metadata.annotations | default dict) "storageclass.kubernetes.io/is-default-class") "true") (eq (index (.metadata.annotations | default dict) "storageclass.beta.kubernetes.io/is-default-class") "true") -}}
+{{- $expandable := eq (toString .allowVolumeExpansion) "true" -}}
+{{- $p := .parameters | default dict -}}
+{{- $encrypted := or (eq (toString (index $p "encrypted")) "true") (hasKey $p "kmsKeyId") (hasKey $p "encryptionKey") (hasKey $p "diskEncryptionSetID") (contains "encrypt" (lower .metadata.name)) -}}
+{{- $score := 0 -}}
+{{- if and $encrypted $expandable $isDefault }}{{ $score = 60 }}
+{{- else if and $encrypted $expandable }}{{ $score = 50 }}
+{{- else if and $expandable $isDefault }}{{ $score = 40 }}
+{{- else if $expandable }}{{ $score = 30 }}
+{{- else if $isDefault }}{{ $score = 20 }}
+{{- else }}{{ $score = 10 }}{{ end -}}
+{{- if gt $score $bestScore }}{{ $bestScore = $score }}{{ $best = .metadata.name }}{{ end -}}
+{{- end -}}
+{{- $best -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Security posture presets.
 
 These supply DEFAULTS ONLY. Anything set explicitly in values.yaml

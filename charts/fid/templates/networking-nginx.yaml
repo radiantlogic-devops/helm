@@ -1,0 +1,98 @@
+{{- /*
+NGINX ingress: HTTP/HTTPS routes + LDAP/LDAPS over TCP.
+
+HTTP is a normal Ingress. TCP is NOT — ingress-nginx exposes raw TCP through a ConfigMap
+read by the controller (`--tcp-services-configmap`), which lives in the CONTROLLER's
+namespace, not this release's. Two consequences:
+
+  1. `networking.nginx.tcp.manageConfigMap: true` makes this chart render that ConfigMap
+     into the controller namespace. It only works if your release's ServiceAccount may
+     write there, and it will FIGHT any other release that manages the same ConfigMap —
+     ingress-nginx supports exactly one, so entries from multiple charts collide.
+     Default is false, and the chart prints the exact entry to add instead.
+  2. The controller Service must also publish the port. Adding a ConfigMap entry alone
+     does nothing if :636 is not on the LoadBalancer.
+
+That is why this is opt-in rather than automatic: getting it wrong silently does nothing,
+and getting it aggressive breaks a shared controller.
+*/ -}}
+{{- $n := (.Values.networking).nginx | default dict -}}
+{{- if $n.enabled }}
+{{- include "fid.networking.requireHost" . }}
+{{- $hosts := fromJsonArray (include "fid.networking.hosts" .) }}
+{{- $routes := fromJsonArray (include "fid.networking.routes" .) }}
+{{- $tls := (.Values.networking).tls | default dict }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "fid.fullname" . }}-nginx
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  annotations:
+    {{- /* FID's Control Panel and REST endpoints speak HTTPS on their TLS ports; when a
+           route targets one, nginx must talk HTTPS upstream or you get a 502. */}}
+    {{- if $n.backendProtocolHTTPS }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    {{- end }}
+    {{- with $n.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with ($n.ingressClassName | default "nginx") }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if $tls.enabled }}
+  tls:
+    - hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- with $tls.secretName }}
+      secretName: {{ . }}
+      {{- end }}
+  {{- end }}
+  rules:
+    {{- range $host := $hosts }}
+    - host: {{ $host | quote }}
+      http:
+        paths:
+          {{- range $r := $routes }}
+          - path: {{ $r.path }}
+            pathType: {{ $r.pathType }}
+            backend:
+              service:
+                name: {{ $r.service }}
+                port:
+                  number: {{ $r.port }}
+          {{- end }}
+    {{- end }}
+{{- range $extra := ($n.extraRules | default list) }}
+{{- toYaml (list $extra) | nindent 4 }}
+{{- end }}
+{{- /* ---------------------------------------------------------------- TCP (LDAP/LDAPS) */}}
+{{- $tcp := $n.tcp | default dict }}
+{{- $ldaps := (.Values.networking).ldaps | default dict }}
+{{- $ldap := (.Values.networking).ldap | default dict }}
+{{- if and $tcp.manageConfigMap (or $ldaps.enabled $ldap.enabled) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $tcp.configMapName | default "tcp-services" }}
+  namespace: {{ $tcp.controllerNamespace | default "ingress-nginx" }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+data:
+  {{- if $ldaps.enabled }}
+  {{ $ldaps.exposedPort | default 636 | quote }}: "{{ .Release.Namespace }}/{{ include "fid.fullname" . }}-app:{{ $ldaps.targetPort | default 2636 }}"
+  {{- end }}
+  {{- if $ldap.enabled }}
+  {{ $ldap.exposedPort | default 389 | quote }}: "{{ .Release.Namespace }}/{{ include "fid.fullname" . }}-app:{{ $ldap.targetPort | default 2389 }}"
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -100,6 +100,9 @@ spec:
           {{- toYaml (.Values.helperImages.sysctl.securityContext | default (dict "privileged" true)) | nindent 10 }}
   {{- end }}
   {{- end }}
+{{- with .Values.extraInitContainers }}
+{{- tpl (toYaml .) $ | nindent 6 }}
+{{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ include "fid.mainImage" . }}"
@@ -216,6 +219,14 @@ spec:
 {{- range $key, $value := .Values.env }}
         - name: "{{ tpl $key $ }}"
           value: "{{ tpl (print $value) $ }}"
+{{- end }}
+{{- /* envValueFrom: name is templated, value is a raw EnvVarSource (configMapKeyRef,
+       secretKeyRef, fieldRef, resourceFieldRef). Declared in values.yaml for a long
+       time but never rendered - setting it did nothing. */}}
+{{- range $key, $value := .Values.envValueFrom }}
+        - name: "{{ tpl $key $ }}"
+          valueFrom:
+        {{- tpl (toYaml $value) $ | nindent 12 }}
 {{- end }}
         resources:
             {{- toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,112 @@
+{{- /*
+Traefik ingress: IngressRoute for HTTP/HTTPS + IngressRouteTCP for LDAP/LDAPS.
+
+Unlike nginx, Traefik models raw TCP as a first-class CRD, so LDAPS needs no ConfigMap in
+another namespace — but it DOES need an entryPoint defined on the Traefik installation
+itself (ports are declared there, not here). Set networking.traefik.entryPoints.ldaps to
+whatever you named it; the chart cannot create it for you.
+
+For LDAPS specifically: `HostSNI(`*`)` matches connections with no SNI, which is what an
+LDAPS client sends. Use `tls.passthrough: true` (the default here) so Traefik hands the
+TLS session to FID rather than terminating it — FID presents its own directory
+certificate, and terminating at the edge breaks certificate-based (SASL EXTERNAL) client
+authentication.
+*/ -}}
+{{- $t := (.Values.networking).traefik | default dict -}}
+{{- if $t.enabled }}
+{{- include "fid.networking.requireHost" . }}
+{{- $hosts := fromJsonArray (include "fid.networking.hosts" .) }}
+{{- $routes := fromJsonArray (include "fid.networking.routes" .) }}
+{{- $tls := (.Values.networking).tls | default dict }}
+{{- $ep := $t.entryPoints | default dict }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "fid.fullname" . }}-traefik
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  {{- with (mergeOverwrite (dict) ($t.annotations | default dict) (.Values.commonAnnotations | default dict)) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  entryPoints:
+    {{- if $tls.enabled }}
+    - {{ $ep.websecure | default "websecure" }}
+    {{- else }}
+    - {{ $ep.web | default "web" }}
+    {{- end }}
+  routes:
+    {{- range $r := $routes }}
+    {{- range $host := $hosts }}
+    - kind: Rule
+      match: Host(`{{ $host }}`) && PathPrefix(`{{ $r.path }}`)
+      {{- with $t.middlewares }}
+      middlewares:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      services:
+        - name: {{ $r.service }}
+          port: {{ $r.port }}
+          {{- with $t.serversTransport }}
+          serversTransport: {{ . }}
+          {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- if $tls.enabled }}
+  tls:
+    {{- with $tls.secretName }}
+    secretName: {{ . }}
+    {{- end }}
+    {{- with $t.certResolver }}
+    certResolver: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- /* ------------------------------------------------------------ TCP: LDAPS and LDAP */}}
+{{- $ldaps := (.Values.networking).ldaps | default dict }}
+{{- if $ldaps.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: {{ include "fid.fullname" . }}-ldaps
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  entryPoints:
+    - {{ $ep.ldaps | default "ldaps" }}
+  routes:
+    - match: HostSNI(`{{ $ldaps.hostSNI | default "*" }}`)
+      services:
+        - name: {{ include "fid.fullname" . }}-app
+          port: {{ $ldaps.targetPort | default 2636 }}
+  {{- if ne ($ldaps.tlsPassthrough | default true) false }}
+  tls:
+    passthrough: true
+  {{- end }}
+{{- end }}
+{{- $ldap := (.Values.networking).ldap | default dict }}
+{{- if $ldap.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: {{ include "fid.fullname" . }}-ldap
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  entryPoints:
+    - {{ $ep.ldap | default "ldap" }}
+  routes:
+    {{- /* Plain LDAP carries no SNI at all, so HostSNI(`*`) is the only match that works. */}}
+    - match: HostSNI(`*`)
+      services:
+        - name: {{ include "fid.fullname" . }}-app
+          port: {{ $ldap.targetPort | default 2389 }}
+{{- end }}
+{{- end }}

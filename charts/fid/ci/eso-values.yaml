@@ -1,0 +1,8 @@
+# ESO shim + bring-your-own Secret, the intended pairing.
+externalSecret:
+  enabled: true
+  secretStoreRef: {name: aws-sm, kind: ClusterSecretStore}
+  remoteKey: fid/prod/credentials
+fid:
+  existingSecret: "rootcreds-t-fid"
+  license: "[FID Cluster License]"
