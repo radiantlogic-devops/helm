@@ -61,37 +61,14 @@ extraContainers: []
 #       endpoints: [{port: exporter}]
 extraObjects: []
 
-## Mount the ServiceAccount token into the FID pod.
-##
-## Left unset by default, so Kubernetes applies its own default (true) and the rendered
-## pod spec is unchanged. The hardened and paranoid profiles default it to false: FID
-## never calls the Kubernetes API, only the hook Jobs do, and they use their own account.
-##
-## An explicit value here always wins, including forcing it back to true under hardened.
-##
+## Mount the ServiceAccount token into the FID pod. Unset = Kubernetes default (true);
+## hardened/paranoid default it to false. An explicit value always wins. Docs: docs/03.
 # automountServiceAccountToken: false
 
-## NetworkPolicy for the FID pods.
-##
-## enabled is tri-state:
-##   unset  follow the security profile — on for hardened/paranoid, off otherwise
-##   true   always render
-##   false  never render, whatever the profile says
-##
-## The default policy allows ingress to the FID ports from pods in this release (so
-## FID-to-FID and ZooKeeper traffic keeps working). Egress is unrestricted unless you set
-## it: FID needs DNS, ZooKeeper and every backend your virtual view federates, and
-## guessing that set wrong fails in ways that are hard to diagnose.
-##
-## IMPORTANT — enforcement is a cluster property, not a chart one. Creating a
-## NetworkPolicy object does nothing unless the CNI enforces it:
-##   - EKS with the AWS VPC CNI needs the node agent started with
-##     `--enable-network-policy=true` (check:
-##     kubectl -n kube-system get ds aws-node -o jsonpath='{..args}')
-##     With it false, the object is accepted by the API server and silently ignored.
-##   - Calico, Cilium, Antrea and Weave enforce by default.
-## Verify on your cluster before relying on this for isolation.
-##
+## NetworkPolicy for the FID pods. `enabled` is tri-state: unset = follow the security
+## profile (on for hardened/paranoid), true/false always win. Default allows ingress to the
+## FID ports from this release's pods; egress open unless set. NOTE: only takes effect if
+## your CNI enforces NetworkPolicy. Full guide + enforcement check: docs/05-ingress.md
 networkPolicy:
   # enabled: true
   ## Extra `from` selectors added to the default ingress rule, e.g. your ingress controller:
@@ -283,24 +260,12 @@ externalSecret:
   # dataFrom:
   #   - extract: {key: fid/prod/credentials}
 
-## Preflight checks.
-##
-## Render-time guards that stop an install or upgrade which would otherwise fail in a
-## confusing way. Each can be switched off individually — a check you cannot bypass is a
-## restriction, and this chart does not restrict.
-##
-##   mountSecretsVersionCheck  fid.mountSecrets: true with a pre-8.0.0 image tag. A 7.x
-##                             image cannot read mounted secret files, so FID starts
-##                             without credentials and never becomes ready.
-##   immutableFieldCheck       an upgrade that would change the StatefulSet's selector or
-##                             volumeClaimTemplates. Kubernetes rejects both in place, so
-##                             the upgrade would fail half-applied. The error explains the
-##                             --cascade=orphan recovery.
-##   storageClassCheck         persistence.storageClass names a class that does not exist
-##                             in the cluster, which leaves PVCs Pending forever.
-##
-## The last two use `lookup`, so they are inert during `helm template` and `--dry-run`.
-##
+## Render-time guards that stop an install/upgrade which would fail confusingly. Each is
+## individually bypassable (no check in this chart is mandatory):
+##   mountSecretsVersionCheck  fid.mountSecrets: true on a pre-8.0.0 image (7.x can't read it)
+##   immutableFieldCheck       upgrade changing the STS selector/volumeClaimTemplates
+##   storageClassCheck         persistence.storageClass names a class that doesn't exist
+## Details + recovery steps: docs/10-upgrades-and-rollback.md
 preflight:
   mountSecretsVersionCheck: true
   immutableFieldCheck: true
@@ -349,35 +314,11 @@ helperSecurityContext: {}
 ##
 hookResources: {}
 
-## Images for the chart's helper containers.
-##
-## Previously these were hardcoded in the templates, which made mirrored/airgapped installs
-## impossible and pinned every install to whatever ":latest" happened to be that day.
-## The defaults below reproduce the historical references EXACTLY, so upgrading the chart
-## changes nothing until you override something here.
-##
-## Each entry accepts: registry, repository, tag, digest, pullPolicy.
-## Setting `digest` wins over `tag`. Setting `tag: ""` renders a bare, untagged reference.
-##
-## Recommendation for production: pin every one of these by digest.
-##
-## FIRST-PARTY HELPER IMAGES
-##
-## These default to RadiantOne's own images, matching helm-v8, rather than upstream
-## alpine/busybox. Benefits: one vendor to patch for CVEs, no Docker Hub anonymous
-## rate-limit exposure, and predictable contents.
-##
-## All verified PUBLIC (anonymous pull, no regcred needed) and tool-verified on a live
-## cluster:
-##   radiantone/init-tools:latest  nc at /usr/bin/nc, runs as uid 65532 (nonroot)
-##   radiantone/curl:latest        curl + grep at /usr/bin, runs as uid 0
-##   radiantone/kubectl:latest     kubectl at /opt/bitnami/kubectl/bin, uid 1001
-##   busybox:latest                Docker Official (kept for sysctl, as helm-v8 does)
-##
-## NOTE: adopting these changes the rendered pod template, so the first upgrade after
-## taking this chart version performs a rolling restart. Set the repositories back to
-## alpine / alpine/curl / busybox if you need to avoid that.
-##
+## Images for the chart's helper/init/hook/test containers. Each takes
+## registry/repository/tag/digest/pullPolicy (digest wins over tag). Defaults are
+## first-party RadiantOne images (all PUBLIC, tool-verified), matching helm-v8; busybox
+## kept for sysctl. Pin by digest for production. Airgap via global.imageRegistry.
+## Full table + which image ships which tool: docs/02-images-and-registries.md
 helperImages:
   ## Init container that waits for ZooKeeper's TCP port (fid + follower StatefulSets).
   ## Needs `nc`.
@@ -557,29 +498,18 @@ fid:
     ## Detach from cluster on termination
     detach: true
 
-  ## Probes.
-  ##
-  ## Every field below is the value this chart has always rendered. periodSeconds,
-  ## failureThreshold and successThreshold used to be hardcoded in the template with no way
-  ## to change them; they are surfaced here so you can tune them without forking the chart.
-  ##
-  ## WHEN TO RAISE THESE: FID can block for a long time during a large Lucene index commit
-  ## or a full GC on the leader. While blocked it stops answering the liveness exec probe,
-  ## kubelet kills the container (exit 137 — looks like an OOM, but is not) and the cluster
-  ## re-elects, turning a slow operation into an outage. If you run large branches or see
-  ## unexplained restarts under load, raise timeoutSeconds first, then failureThreshold.
-  ##
+  ## Probes. Timing fields below are what the chart has always rendered. Beyond these you
+  ## can also set a handler (exec/httpGet/tcpSocket/grpc, replaces the default) or an
+  ## `overrides` map (any raw probe field, merged last). Raise timeouts if FID is killed
+  ## during long index commits/GC (exit 137, looks like OOM). Full guide: docs/09.
   livenessProbe:
     initialDelaySeconds: 60
     timeoutSeconds: 5
     periodSeconds: 30
     failureThreshold: 5
     successThreshold: 1
-    ## Replace the liveness command entirely, e.g. to point at a different check binary:
-    # command: ["/opt/radiantone/check", "run", "-type", "liveness"]
-    ##
-    ## Suggested where index commits are known to stall 30s or more:
-    # timeoutSeconds: 30
+    # command: ["/opt/radiantone/check", "run", "-type", "liveness"]   # exec override
+    # timeoutSeconds: 30   # suggested where index commits stall 30s+
     # failureThreshold: 10
   readinessProbe:
     initialDelaySeconds: 120
@@ -587,20 +517,11 @@ fid:
     periodSeconds: 30
     failureThreshold: 5
     successThreshold: 1
-    ## LDAPS port dialled by the readiness TCP check.
-    # port: 2636
+    # port: 2636           # LDAPS port for the readiness TCP check
 
-  ## Startup probe. DISABLED by default — the chart has never rendered one, and turning it
-  ## on changes the pod template, which means a rolling restart.
-  ##
-  ## WHEN TO ENABLE: a startup probe gives FID a long, generous window to come up
-  ## (failureThreshold x periodSeconds) WITHOUT slackening the liveness probe that protects
-  ## it for the rest of its life. This is the right fix for "FID gets killed while still
-  ## loading a large dataset" — much better than inflating livenessProbe.initialDelaySeconds,
-  ## which weakens the probe permanently.
-  ##
-  ## The defaults below give 15 x 20s = 5 minutes of startup grace.
-  ##
+  ## Startup probe. Off by default (enabling changes the pod template = rolling restart).
+  ## Gives FID a long window to come up WITHOUT slackening the liveness probe — the right
+  ## fix for "killed while loading a large dataset". Defaults = 15 x 20s = 5 min. Docs/09.
   startupProbe:
     enabled: false
     initialDelaySeconds: 0
@@ -661,54 +582,31 @@ podSecurityContext:
 ## Container-level security context for the FID container.
 ## Merged over the active profile's container defaults. Empty = whatever the profile says.
 ##
+## The hardened/paranoid profiles set these for you; set here to harden on vanilla or to
+## override a profile's choice. What each profile sets: docs/03-security-profiles.md
 securityContext: {}
-  ## The `hardened` profile sets all of the following for you. Set them here only if you
-  ## want them on the `vanilla` profile, or want to override what a profile chose.
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true      # see the `paranoid` note above before enabling
+  # capabilities: {drop: [ALL]}
+  # readOnlyRootFilesystem: true      # paranoid-only; needs writable extraVolumes
   # runAsNonRoot: true
   # runAsUser: 1000
   # allowPrivilegeEscalation: false
-  # seccompProfile:
-  #   type: RuntimeDefault
-# Service type to expose Control Panel service
+  # seccompProfile: {type: RuntimeDefault}
+## Control Panel service type/port.
 service:
   type: ClusterIP
   port: 7070
+
+## LEGACY single-controller Ingress. Prefer `networking:` (nginx/traefik/istio + LDAPS)
+## above — see docs/05-ingress.md. Kept for backward compatibility.
 ingress:
   enabled: false
   annotations: {}
-  # annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
   hosts:
     - host: chart-example.local
-      paths:
-        - "/"
+      paths: ["/"]
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-# resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-# resources:
-#  limits:
-#    cpu: 4
-#    memory: 8Gi
-#  requests:
-#    cpu: 2
-#    memory: 2Gi
+## FID container resources. Followers use the same values. A fully-loaded FID can need
+## far more (18Gi+ heap on busy followers) — size to your dataset.
 resources:
   limits:
     cpu: 1
@@ -970,73 +868,14 @@ observability:
         #   protocol: "grpc"
 
 ## ---------------------------------------------------------------------------------------
-## METRICS / LOGGING SIDECAR (legacy — used only when observability.enabled is false)
+## METRICS / LOGGING SIDECAR  (legacy — used only when observability.enabled is false)
 ## ---------------------------------------------------------------------------------------
-## METRICS / LOGGING SIDECAR
-##
-## Despite the name, this sidecar runs BOTH a metrics exporter and Fluentd. The container
-## is called "fid-exporter" for historical reasons; when metrics.fluentd.enabled is true it
-## is Fluentd doing the work, which is why it is the container that OOMs, not FID.
-##
-## EXPORTER FLAVOUR
-##   fid-exporter  (default) radiantone/fid-exporter - the shipping exporter. PUBLIC.
-##   rl-exporter             radiantone/rl-exporter - the first-party successor that folds
-##                           fid-exporter + zk-exporter + metrics-service into one image,
-##                           reads metrics from the Admin REST API instead of LDAP
-##                           cn=Monitor, and fixes the OOM with per-worker on-disk buffers.
-##
-## rl-exporter is NOT the default yet for one concrete reason: as of this chart version its
-## image is not published to a public registry (ghcr.io/radiantlogic-devops/rl-exporter
-## returns 403 and there is no Docker Hub repo), so defaulting to it would break every
-## install that cannot authenticate. Flip to it with:
-##
-##   metrics:
-##     flavor: rl-exporter
-##     imageRepository: ghcr.io/radiantlogic-devops/rl-exporter   # or wherever you publish
-##     tag: <version>
-##     resources: {limits: {memory: 512Mi}}   # 128Mi is not enough for rl-exporter
-##
-## When rl-exporter is published publicly, change `flavor` below to rl-exporter and the
-## repository default in _helpers.tpl (fid.metricsImage) to match.
-##
-## PUSH vs PULL — verified against radiantone/fid-exporter:iddm-8.4.5 on a live cluster.
-##
-## `pushMode` does more than pick a transport: it decides whether the exporter binary runs
-## AT ALL. The image's entrypoint starts it only when PUSH_MODE=true.
-##
-##   pushMode: false  ->  no exporter process, nothing listens on :9095, and there is
-##                        nothing for Prometheus to scrape. Metrics are simply off.
-##   pushMode: true   ->  the exporter runs, serves :9095 locally, AND a cron pushes to
-##                        pushGateway every pushMetricCron.
-##
-## You CAN scrape :9095 directly with Prometheus (verified: 65 series served there), but
-## read the warning below first — you still need a reachable pushGateway.
-##
-## ⚠️  A PUSHGATEWAY OUTAGE SILENTLY KILLS LOG SHIPPING.
-##
-## The image's entrypoint runs `verify_pushgateway || exit 1` BEFORE it starts Fluentd. If
-## pushGateway is unreachable the entrypoint blocks there and never reaches the logging
-## block, so Fluentd never starts — with no error in the container logs saying so. The
-## container stays Running and Ready the whole time.
-##
-## Proven on a live cluster: with the gateway deleted, 0 fluentd processes and no indices;
-## with it restored, 5 fluentd processes, 8 files tailed and 1,013 documents shipped —
-## same values, same chart, only the gateway's reachability changed.
-##
-## So if you enable pushMode you must keep a Pushgateway reachable, even when you intend to
-## scrape :9095 instead of using it. To run logging WITHOUT that coupling, set
-## pushMode: false — Fluentd then starts unconditionally, and you get no metrics.
-##
-## Prometheus' own guidance is that a Pushgateway is the wrong shape for long-lived
-## services: it breaks up/down detection and staleness. Prefer scraping :9095.
-##
-## Verified both paths: 70 FID metric series (ldap_connection, ldap_connection_count,
-## ldap_connection_max, ...) reached a Pushgateway within one cron interval, and 65 series
-## were readable directly from :9095 at the same time.
-##
-## To scrape with the Prometheus Operator, add a ServiceMonitor via extraObjects — the
-## chart does not render one (see docs/07-metrics-and-logging.md).
-##
+## The "fid-exporter" sidecar runs a metrics exporter AND Fluentd. flavor picks the image
+## (fid-exporter default | rl-exporter). Two sharp edges, both documented in docs/07:
+##   - pushMode gates whether metrics run at all (false = no metrics), and
+##   - with pushMode: true an unreachable pushGateway silently stops log shipping too.
+## For the new named-aggregator logging model prefer `observability:` above.
+## Full guide: docs/07-metrics-and-logging.md
 metrics:
   enabled: false
   ## fid-exporter | rl-exporter
