@@ -74,16 +74,6 @@ rules:
     verbs:
       - get
       - list
-  # Custom resources - Nebula Graph
-  - apiGroups:
-      - apps.nebula-graph.io
-    resources:
-      - nebulaclusters
-    verbs:
-      - get
-      - list
-      - delete
-      - deletecollection
   # Custom resources - Flink
   - apiGroups:
       - flink.apache.org

@@ -1315,8 +1315,8 @@ velero:
     volumeSnapshotLocation: []
   initContainers:
     - name: velero-plugin-for-aws
-      # image: "velero/velero-plugin-for-aws:v1.11.1"
-      image: "velero/velero-plugin-for-aws:v1.12.2"
+      # Compatible with Velero 1.18.x (chart 12.1.0 / app 1.18.1)
+      image: "velero/velero-plugin-for-aws:v1.14.2"
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
@@ -1435,33 +1435,6 @@ cloudnative-pg:
         grafana_dashboard: "1"
 
 # -----------------------------------------------------------------
-# -- Identity Observability - Nebula Operator for Graph Database
-# -----------------------------------------------------------------
-nebula-operator:
-  enabled: false
-  nameOverride: nebula
-  imagePullSecrets: []
-
-  controllerManager:
-    replicas: 1
-
-  scheduler:
-    replicas: 1
-
-  admissionWebhook:
-    contollerManagerAdmissionWebhook:
-      create: false
-    autoscalerAdmissionWebhook:
-      create: false
-
-  # -- don't use Nebula provided job to avoid any issue with ArgoCD
-  upgradeCRD: false
-
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-# -----------------------------------------------------------------
 # -- Identity Observability - Flink Operator for Apache Flink data processor
 # -----------------------------------------------------------------
 flink-kubernetes-operator:
@@ -1492,7 +1465,7 @@ backupManager:
   replicas: 1
   image:
     repository: radiantone/eoc-backup-manager
-    tag: "1.16.0"
+    tag: "1.18.1"
     pullPolicy: Always
   imagePullSecrets: []
   service:
@@ -1516,14 +1489,18 @@ backupManager:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # log.format: json (production default) or console (human-readable). Must match
+  # backup-manager LOG_FORMAT (text is no longer accepted).
   log:
-    format: text
+    format: json
     level: info
-  swagger:
-    enabled: false
-    host: localhost
-    port: 8080
   podsWaitTimeout: "5m"
+  # Extra container env vars (name -> value). Empty by default; Go defaults apply
+  # when unset (e.g. HTTP_READ_HEADER_TIMEOUT defaults to 1m in backup-manager).
+  # Example:
+  #   env:
+  #     HTTP_READ_HEADER_TIMEOUT: "30s"
+  env: {}
   webhook:
     enabled: false
     syncPeriod: "1m"
@@ -1553,16 +1530,22 @@ velero-ui:
       # veleroNamespace: velero
 
 # -----------------------------------------------------------------
-# Loki -- https://grafana.com/docs/loki/latest/setup/install
-# https://github.com/grafana/loki/blob/main/production/helm/loki/
+# Loki -- grafana-community chart (OSS)
+# https://grafana.com/docs/loki/latest/setup/install
+# https://grafana.com/docs/loki/latest/setup/upgrade/upgrade-to-community/
 # -----------------------------------------------------------------
 loki:
   enabled: false
   fullnameOverride: loki
 
-  # --> JMC: change deployment mode from SingleBinary to SimpleScalable
+  # Explicit SimpleScalable (community chart default is Monolithic)
   deploymentMode: SimpleScalable
   imagePullSecrets: []
+
+  # Pin SA name for IRSA / pod identity stability across upgrades
+  serviceAccount:
+    create: true
+    name: loki
 
   test:
     enabled: false
@@ -1579,14 +1562,13 @@ loki:
       prometheus.io/path: "/metrics"
     # multi-tenancy disabled by default
     auth_enabled: false
-    # --> JMC: change replication factor for SimpleScalable mode to be equal to the number of write replicas
+    # replication_factor aligned with write replicas below
     commonConfig:
       replication_factor: 1
     schemaConfig:
       configs:
         - from: "2024-04-01"
           store: tsdb
-          # --> JMC: change persistent storage for chunks to be in S3 bucket (not local filesystem)
           object_store: s3
           schema: v13
           index:
@@ -1596,7 +1578,7 @@ loki:
     storage_config:
       aws: {}
         # region: eu-west-3
-        # bucketnames: duploservices-rli-ops10-svc-common-125328463501
+        # bucketnames: <chunks-bucket>
         # s3forcepathstyle: true
 
     ingester:
@@ -1642,17 +1624,19 @@ loki:
     compactor:
       retention_enabled: true
       retention_delete_delay: 1h
-      delete_request_store: filesystem
+      delete_request_store: s3
 
+    # Must match schema object_store (SimpleScalable + S3)
+    # Override bucketNames / region in overlays; secrets/IRSA stay out of Git.
     storage:
-      type: filesystem
-      # bucketNames: {}
-        # chunks: duploservices-rli-ops10-svc-common-125328463501
-        # ruler: duploservices-rli-ops10-svc-common-125328463501
-        # admin: duploservices-rli-ops10-svc-common-125328463501
-      # s3: {}
+      type: s3
+      bucketNames: {}
+        # chunks: <chunks-bucket>
+        # ruler: <ruler-bucket>
+        # admin: <admin-bucket>
+      s3: {}
         # region: eu-west-3
-        # s3forcepathstyle: true
+        # s3ForcePathStyle: true
 
   chunksCache:
     replicas: 1
@@ -1665,7 +1649,6 @@ loki:
     nodeSelector: {}
 
   backend:
-    # --> JMC: change number of replicas for backend to be equal to the number of write replicas
     replicas: 1
     persistence:
       # Usage:
@@ -1679,15 +1662,17 @@ loki:
       #  Example:
       #  - 30GB daily ingestion × 30 days retention × 0.1 = 90GB minimum
       size: 100Gi
+      # Explicit Retain (community default is Delete when auto-delete PVC is on)
+      enableStatefulSetAutoDeletePVC: true
+      whenScaled: Retain
+      whenDeleted: Retain
     nodeSelector: {}
 
   read:
-    # --> JMC: change number of replicas for read to be equal to the number of write replicas
     replicas: 1
     nodeSelector: {}
 
   write:
-    # --> JMC: change number of replicas for write to be equal to the number of write replicas
     replicas: 1
     persistence:
       # Usage:
@@ -1702,9 +1687,10 @@ loki:
       #   - 20MB/s ingestion × 300s flush × 3 = 18GB minimum
       #   - Recommendation: 50GB for comfort
       size: 50Gi
+      enableStatefulSetAutoDeletePVC: false
     nodeSelector: {}
 
-  # Monitoring configuration
+  # Monitoring configuration (grafana-community chart 18.x)
   monitoring:
     serviceMonitor:
       enabled: false
@@ -1716,7 +1702,8 @@ loki:
         grafana_dashboard: "1"
     rules:
       enabled: false
-      alerting: true
+    alerts:
+      enabled: false
 
 # -----------------------------------------------------------------
 # Alloy
@@ -1729,6 +1716,10 @@ alloy:
 
   image:
     pullSecrets: []
+
+  # Keep DaemonSet topology (no clustering / StatefulSet)
+  controller:
+    type: daemonset
 
   # Service configuration with Prometheus annotations
   service:

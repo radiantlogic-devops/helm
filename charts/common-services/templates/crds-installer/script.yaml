@@ -24,6 +24,84 @@ data:
     # Trap to ensure cleanup on exit
     trap cleanup EXIT
 
+    # Remove finalizers from a resource if present (best-effort).
+    # Usage: strip_finalizers <kubectl-resource-args...>
+    #   e.g. strip_finalizers crd my.crd.io
+    #        strip_finalizers nebulaclusters.apps.nebula-graph.io my-cluster -n myns
+    strip_finalizers() {
+      if kubectl get "$@" -o jsonpath='{.metadata.finalizers}' 2>/dev/null | grep -q .; then
+        kubectl patch "$@" --type=json -p='[{"op":"remove","path":"/metadata/finalizers"}]' >/dev/null 2>&1 || true
+      fi
+    }
+
+    # Forced cleanup: delete all CR instances for matching CRDs, then delete the CRDs.
+    # Idempotent / non-fail-closed: existing CRs are purged, absence is a no-op.
+    cleanup_crds() {
+      local name=$1
+      local crd_pattern=$2
+
+      echo "🗑️  === Cleaning up CRDs for $name ==="
+      echo "   ℹ️  CRD Pattern: $crd_pattern"
+
+      local crds
+      crds=$(kubectl get crd -o name 2>/dev/null | grep -E "$crd_pattern" || true)
+
+      if [ -z "$crds" ]; then
+        echo "✅ No CRDs matching $crd_pattern — nothing to clean up"
+        echo
+        return 0
+      fi
+
+      for crd in $crds; do
+        local crd_name plural group scope
+        crd_name=${crd#customresourcedefinition.apiextensions.k8s.io/}
+        echo "🔍 Processing CRD $crd_name..."
+
+        plural=$(kubectl get "$crd" -o jsonpath='{.spec.names.plural}' 2>/dev/null || true)
+        group=$(kubectl get "$crd" -o jsonpath='{.spec.group}' 2>/dev/null || true)
+        scope=$(kubectl get "$crd" -o jsonpath='{.spec.scope}' 2>/dev/null || true)
+
+        if [ -n "$plural" ] && [ -n "$group" ]; then
+          local api="$plural.$group"
+          echo "🧹 Deleting all instances of $api (scope=$scope)..."
+
+          if [ "$scope" = "Namespaced" ]; then
+            kubectl get "$api" -A -o json 2>/dev/null \
+              | jq -r '.items[]? | "\(.metadata.namespace)\t\(.metadata.name)"' \
+              | while IFS="$(printf '\t')" read -r ns inst; do
+                  [ -z "${inst:-}" ] && continue
+                  echo "   → deleting $api/$inst (ns=$ns)"
+                  kubectl delete "$api" "$inst" -n "$ns" --wait=false --timeout=30s 2>/dev/null || true
+                  strip_finalizers "$api" "$inst" -n "$ns"
+                  kubectl delete "$api" "$inst" -n "$ns" --wait=false --timeout=30s --force --grace-period=0 2>/dev/null || true
+                done
+          else
+            kubectl get "$api" -o json 2>/dev/null \
+              | jq -r '.items[]? | .metadata.name' \
+              | while read -r inst; do
+                  [ -z "${inst:-}" ] && continue
+                  echo "   → deleting $api/$inst"
+                  kubectl delete "$api" "$inst" --wait=false --timeout=30s 2>/dev/null || true
+                  strip_finalizers "$api" "$inst"
+                  kubectl delete "$api" "$inst" --wait=false --timeout=30s --force --grace-period=0 2>/dev/null || true
+                done
+          fi
+        else
+          echo "   ⚠️  Could not resolve plural/group for $crd_name — skipping instance purge"
+        fi
+
+        echo "🗑️  Deleting CRD $crd_name..."
+        strip_finalizers crd "$crd_name"
+        kubectl delete crd "$crd_name" --wait=false --timeout=60s 2>/dev/null || true
+        strip_finalizers crd "$crd_name"
+        kubectl delete crd "$crd_name" --wait=false --timeout=30s --force --grace-period=0 2>/dev/null || true
+        echo "✅ CRD $crd_name cleanup attempted"
+      done
+
+      echo "✅ === $name CRD cleanup completed ==="
+      echo
+    }
+
     # Function to install CRDs for a given chart
     install_crds() {
       local name=$1
@@ -31,7 +109,6 @@ data:
       local version=$3
       local crd_pattern=$4
       local chart_name=$5
-      local enabled=$6
 
       echo "🚀 === Installing CRDs for $name ==="
       echo "   ℹ️  Repository: $repository"
@@ -84,7 +161,7 @@ data:
       exit 1
     fi
     
-    # Parse YAML and install CRDs for each enabled chart
+    # Parse YAML and process each enabled entry
     echo "🔍 Parsing CRDs configuration..."
     
     # Validate YAML syntax first
@@ -95,17 +172,32 @@ data:
     echo "✅ Configuration file validated successfully"
     echo
     
-    # Check if there are any enabled CRDs to install
+    # Check if there are any enabled entries
     if [ ! -n "$(yq eval -r '.[] | select(.enabled == true)' "$CONFIG_FILE")" ]; then
-      echo "⚠️ No CRDs to install or update, probably because charts with CRDs are disabled or not part of this process"
+      echo "⚠️ No CRDs to install, update, or clean up"
       exit 0
     fi
         
-    # Read and execute CRDs configuration
-    while IFS=$'\t' read -r name repository version crd_pattern chart_name enabled; do
-        install_crds "$name" "$repository" "$version" "$crd_pattern" "$chart_name" "$enabled"
-    done < <(
-        yq eval -r '.[] | select(.enabled == true) | [.name, .repository, .version, .crd_pattern, .chart_name, .enabled] | @tsv' "$CONFIG_FILE"
-    )
+    # Process each enabled entry (install or delete/cleanup)
+    entry_count=$(yq eval '[.[] | select(.enabled == true)] | length' "$CONFIG_FILE")
+    i=0
+    while [ "$i" -lt "$entry_count" ]; do
+      name=$(yq eval -r "[.[] | select(.enabled == true)][$i].name" "$CONFIG_FILE")
+      action=$(yq eval -r "[.[] | select(.enabled == true)][$i].action // \"install\"" "$CONFIG_FILE")
+      cleanup_flag=$(yq eval -r "[.[] | select(.enabled == true)][$i].cleanup // false" "$CONFIG_FILE")
+      crd_pattern=$(yq eval -r "[.[] | select(.enabled == true)][$i].crd_pattern" "$CONFIG_FILE")
+      repository=$(yq eval -r "[.[] | select(.enabled == true)][$i].repository // \"\"" "$CONFIG_FILE")
+      version=$(yq eval -r "[.[] | select(.enabled == true)][$i].version // \"\"" "$CONFIG_FILE")
+      chart_name=$(yq eval -r "[.[] | select(.enabled == true)][$i].chart_name // \"\"" "$CONFIG_FILE")
+
+      if [ "$action" = "delete" ] || [ "$cleanup_flag" = "true" ]; then
+        # Non-fail-closed: cleanup must not block the sync if leftovers are stubborn
+        cleanup_crds "$name" "$crd_pattern" || true
+      else
+        install_crds "$name" "$repository" "$version" "$crd_pattern" "$chart_name"
+      fi
+
+      i=$((i + 1))
+    done
     
-    echo "✅ All CRDs installations completed successfully!"
+    echo "✅ All CRDs operations completed successfully!"
