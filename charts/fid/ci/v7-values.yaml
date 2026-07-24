@@ -1,0 +1,7 @@
+# A 7.x image must render without tripping preflight, given mountSecrets is off.
+image:
+  repository: radiantone/fid
+  tag: "7.4.23"
+fid:
+  mountSecrets: false
+  license: "[FID Cluster License]"

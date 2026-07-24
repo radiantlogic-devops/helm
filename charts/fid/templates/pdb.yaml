@@ -16,7 +16,7 @@ metadata:
   labels:
     {{- include "fid.labels" . | nindent 4 }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
-    {{- include "fid.commonLabels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
   {{- with .Values.commonAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

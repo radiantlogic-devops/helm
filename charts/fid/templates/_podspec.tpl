@@ -10,9 +10,12 @@ conditional straddled two YAML levels (pod spec and StatefulSet spec), so it has
 into two inverse conditions. Rendered output is unchanged.
 */}}
 {{- define "fid.podSpec" -}}
-{{- with .Values.imagePullSecrets }}
+{{- with (include "fid.imagePullSecrets" . | trim) }}
 imagePullSecrets:
-{{- toYaml . | nindent 6 }}
+{{- . | nindent 6 }}
+{{- end }}
+{{- with (include "fid.automountServiceAccountToken" .) }}
+automountServiceAccountToken: {{ . }}
 {{- end }}
 securityContext:
 {{- include "fid.podSecurityContext" . | nindent 8 }}
@@ -361,6 +364,9 @@ affinity:
 {{- with .Values.tolerations }}
 tolerations:
 {{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.extraContainers }}
+{{- tpl (toYaml .) $ | nindent 0 }}
 {{- end }}
 {{- if .Values.sidecars }}
 {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $ ) | nindent 6 }}

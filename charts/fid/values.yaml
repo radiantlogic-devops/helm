@@ -35,6 +35,73 @@ image:
   ##
   registry: ""
 
+## Extra containers appended to the FID pod (sidecars the chart does not model).
+## Rendered through `tpl`, so values and release metadata may be referenced.
+##
+# extraContainers:
+#   - name: my-sidecar
+#     image: busybox:1.36
+#     command: ["sh","-c","sleep infinity"]
+extraContainers: []
+
+## Arbitrary extra manifests attached to this release. Each entry may be a mapping or a
+## string; both are rendered through `tpl`.
+##
+## This is the object-level escape hatch: ServiceMonitor, ExternalSecret, VPA, extra
+## Services or PVCs — anything the chart does not model — without forking it.
+##
+# extraObjects:
+#   - apiVersion: monitoring.coreos.com/v1
+#     kind: ServiceMonitor
+#     metadata:
+#       name: "{{ include \"fid.fullname\" . }}"
+#     spec:
+#       selector:
+#         matchLabels: {app.kubernetes.io/instance: "{{ .Release.Name }}"}
+#       endpoints: [{port: exporter}]
+extraObjects: []
+
+## Mount the ServiceAccount token into the FID pod.
+##
+## Left unset by default, so Kubernetes applies its own default (true) and the rendered
+## pod spec is unchanged. The hardened and paranoid profiles default it to false: FID
+## never calls the Kubernetes API, only the hook Jobs do, and they use their own account.
+##
+## An explicit value here always wins, including forcing it back to true under hardened.
+##
+# automountServiceAccountToken: false
+
+## NetworkPolicy for the FID pods.
+##
+## enabled is tri-state:
+##   unset  follow the security profile — on for hardened/paranoid, off otherwise
+##   true   always render
+##   false  never render, whatever the profile says
+##
+## The default policy allows ingress to the FID ports from pods in this release (so
+## FID-to-FID and ZooKeeper traffic keeps working). Egress is unrestricted unless you set
+## it: FID needs DNS, ZooKeeper and every backend your virtual view federates, and
+## guessing that set wrong fails in ways that are hard to diagnose.
+##
+networkPolicy:
+  # enabled: true
+  ## Extra `from` selectors added to the default ingress rule, e.g. your ingress controller:
+  # extraIngressFrom:
+  #   - namespaceSelector:
+  #       matchLabels: {kubernetes.io/metadata.name: ingress-nginx}
+  extraIngressFrom: []
+  ## Replace the default ingress rules entirely:
+  # ingress:
+  #   - from: [{podSelector: {}}]
+  #     ports: [{port: 2389, protocol: TCP}]
+  ##
+  ## Add egress restrictions (setting this adds Egress to policyTypes):
+  # egress:
+  #   - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}}]
+  #     ports: [{port: 53, protocol: UDP}]
+  #   - to: [{podSelector: {matchLabels: {app: zookeeper}}}]
+  #     ports: [{port: 2181, protocol: TCP}]
+
 ## Preflight checks.
 ##
 ## Render-time guards that stop an install or upgrade which would otherwise fail in a
@@ -641,8 +708,35 @@ cronjob:
 ## Helm Hooks
 
 hooks:
+  ## ServiceAccount + Role + RoleBinding for the lifecycle hook Jobs.
+  ##
+  ## These are hook resources (hook-weight -5), so they exist before any pre-install hook
+  ## runs. Previously they were plain manifests created after pre-install hooks, so an
+  ## enabled pre-install hook referenced a ServiceAccount that did not exist yet.
+  ##
   hooks_sa:
     enabled: false
+  ## RBAC granted to the hook ServiceAccount.
+  ##
+  ## The default (see templates/hooks/hooks-sa.yaml) is deliberately narrow: read pods and
+  ## pod logs, exec into pods, read/patch statefulsets and deployments. The historical Role
+  ## granted `resources: ["*"]` on the core and apps API groups, which included every Secret
+  ## in the namespace.
+  ##
+  ## Set `rules` to replace the default rule set entirely — the chart does not restrict what
+  ## your hook scripts may do, it just stops granting namespace-admin by default.
+  ##
+  ## e.g. to restore the historical wide-open Role:
+  # rbac:
+  #   rules:
+  #     - apiGroups: [""]
+  #       resources: ["*"]
+  #       verbs: ["get","list","delete","create","update","patch","watch"]
+  #     - apiGroups: ["apps"]
+  #       resources: ["*"]
+  #       verbs: ["get","list","delete","create","update","patch","watch"]
+  rbac:
+    rules: []
   pre_install:
     enabled: false
   post_install:

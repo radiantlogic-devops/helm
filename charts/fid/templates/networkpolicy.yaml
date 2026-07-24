@@ -1,0 +1,70 @@
+{{- /*
+NetworkPolicy for the FID pods.
+
+Disabled by default. The `hardened` and `paranoid` profiles turn it on unless you say
+otherwise, because a default-deny ingress posture is most of the value of "hardened" in a
+shared cluster — securityContext alone does nothing about network reachability.
+
+networkPolicy.enabled is tri-state:
+  unset  -> follow the security profile (on for hardened/paranoid, off otherwise)
+  true   -> always render
+  false  -> never render, whatever the profile says
+
+The default policy allows ingress to the FID ports from pods carrying this release's
+labels (so FID-to-FID cluster traffic and the ZooKeeper subchart keep working), plus any
+namespace/pod selectors you add. Egress is left unrestricted by default: FID needs DNS,
+ZooKeeper, and whatever backends your virtual view federates, and guessing that set wrong
+breaks the product in ways that are hard to debug. Set networkPolicy.egress to lock it down.
+*/ -}}
+{{- $profileWants := has ((.Values.security).profile | default "vanilla") (list "hardened" "paranoid") }}
+{{- $enabled := $profileWants }}
+{{- if not (kindIs "invalid" (.Values.networkPolicy).enabled) }}
+{{- $enabled = .Values.networkPolicy.enabled }}
+{{- end }}
+{{- if $enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fid.fullname" . }}
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "fid.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    {{- if (.Values.networkPolicy).egress }}
+    - Egress
+    {{- end }}
+  ingress:
+    {{- with (.Values.networkPolicy).ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- else }}
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- range (.Values.networkPolicy).extraIngressFrom }}
+        - {{- toYaml . | nindent 10 }}
+        {{- end }}
+      ports:
+        - {port: 2389, protocol: TCP}   # LDAP
+        - {port: 2636, protocol: TCP}   # LDAPS
+        - {port: 7070, protocol: TCP}   # Control Panel HTTP
+        - {port: 7171, protocol: TCP}   # Control Panel HTTPS
+        - {port: 9100, protocol: TCP}   # Admin HTTP
+        - {port: 9101, protocol: TCP}   # Admin HTTPS
+        - {port: 8089, protocol: TCP}
+        - {port: 8090, protocol: TCP}
+    {{- end }}
+  {{- with (.Values.networkPolicy).egress }}
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

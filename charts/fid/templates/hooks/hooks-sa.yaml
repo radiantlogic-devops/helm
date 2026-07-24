@@ -1,40 +1,83 @@
+{{- /*
+ServiceAccount + Role + RoleBinding used by the lifecycle hook Jobs.
+
+Two fixes over the historical template:
+
+ 1. These objects are now hook resources themselves, at hook-weight -5. Previously they
+    were ordinary manifests, so on a fresh install they were created AFTER pre-install
+    hooks ran — meaning any enabled pre-install hook referenced a ServiceAccount that did
+    not exist yet. `before-hook-creation` is deliberately NOT in the delete policy: the
+    Role must outlive each Job so later hooks in the same release can still use it.
+
+ 2. The Role no longer grants `resources: ["*"]` on the core and apps API groups. That was
+    effectively namespace-admin — it included every Secret in the namespace, and because
+    the objects were not hook-scoped it persisted for the entire life of the release.
+    The default below grants only what a hook plausibly needs: read pods, exec into them,
+    and read/patch the workloads.
+
+    Set hooks.rbac.rules to replace the rule set entirely if your hook scripts need more
+    (or less) — the chart does not restrict you, it just stops handing out a blank cheque
+    by default.
+*/ -}}
 {{- if eq .Values.hooks.hooks_sa.enabled true }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ include "fid.fullname" . }}-hook-account
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-failed
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "fid.fullname" . }}-manage-pods
-  #namespace: <namespace_name> 
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-failed
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 rules:
-  - apiGroups: [""] # "" indicates the core API group
-    resources: ["*"]
-    verbs:
-      - get
-      - list
-      - delete
-      - create
-      - update
-      - patch
-      - watch
-  - apiGroups: ["apps"] # Required to manage statefulsets/deployments
-    resources: ["*"]
-    verbs:
-      - get
-      - list
-      - delete
-      - create
-      - update
-      - patch
-      - watch
+{{- with .Values.hooks.rbac.rules }}
+  {{- toYaml . | nindent 2 }}
+{{- else }}
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "deployments"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "fid.fullname" . }}-manage-pods
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-failed
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 subjects:
 - kind: ServiceAccount
   name: {{ include "fid.fullname" . }}-hook-account
@@ -42,5 +85,4 @@ roleRef:
   kind: Role
   name: {{ include "fid.fullname" . }}-manage-pods
   apiGroup: rbac.authorization.k8s.io
-
 {{- end }}

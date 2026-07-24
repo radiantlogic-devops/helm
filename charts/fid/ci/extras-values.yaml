@@ -1,0 +1,21 @@
+security:
+  profile: baseline
+commonLabels:
+  team: identity
+commonAnnotations:
+  owner: platform-eng
+extraContainers:
+  - name: debug-sidecar
+    image: busybox:1.36
+    command: ["sh","-c","sleep infinity"]
+extraObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "{{ include \"fid.fullname\" . }}-extra"
+    data:
+      hello: world
+networkPolicy:
+  enabled: true
+fid:
+  license: "[FID Cluster License]"

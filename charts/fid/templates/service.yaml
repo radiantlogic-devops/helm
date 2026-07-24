@@ -5,6 +5,7 @@ metadata:
   name: {{ include "fid.fullname" . }}-app
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
 spec:
   ports:
     - port: 2389
@@ -26,6 +27,7 @@ metadata:
   name: {{ include "fid.fullname" . }}-admin
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
 spec:
   ports:
     - port: 9100

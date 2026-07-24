@@ -5,6 +5,7 @@ metadata:
   name: {{ include "fid.fullname" . }}-ext
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
 spec:
   ports:
     - port: 7070

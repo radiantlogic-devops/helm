@@ -22,3 +22,12 @@
 2. Login to the Control Panel using these credentials
   kubectl get secret/{{ include "fid.secretName" . }} --namespace {{ .Release.Namespace }}  -o jsonpath="{.data.fid-root-username}" | base64 -d
   kubectl get secret/{{ include "fid.secretName" . }} --namespace {{ .Release.Namespace }}  -o jsonpath="{.data.fid-root-password}" | base64 -d
+{{- with (include "fid.deprecationWarnings" . | fromYamlArray) }}
+
+DEPRECATION WARNINGS
+--------------------
+{{- range . }}
+  ! {{ . }}
+{{- end }}
+These keys still work in this release. Update your values file before the next minor.
+{{- end }}

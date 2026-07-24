@@ -59,6 +59,92 @@ jobs:
       - name: Run chart-testing (install)
         run: ct install --charts=charts/fid --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 --set=postStart.enabled=false" --upgrade --debug
 
+  # Schema + rendered-manifest validation across every supported posture.
+  #
+  # `helm lint` alone passes on this chart even with duplicate YAML keys and invalid API
+  # objects, so it proves very little on its own. This job renders each ci/*-values.yaml
+  # and validates the result against the Kubernetes API schema.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Install kubeconform
+        run: |
+          set -euo pipefail
+          curl -sSLo /tmp/kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kubeconform.tar.gz -C /tmp kubeconform
+
+      - name: Build dependencies
+        run: helm dependency update charts/fid
+
+      - name: Validate values.schema.json accepts the shipped defaults
+        run: helm lint charts/fid
+
+      - name: Render and validate every posture
+        run: |
+          set -euo pipefail
+          rc=0
+          for f in charts/fid/ci/*-values.yaml; do
+            name=$(basename "$f" .yaml)
+            echo "::group::$name"
+            if ! helm template rel charts/fid -f "$f" > "/tmp/$name.yaml"; then
+              echo "render FAILED for $name"; rc=1; echo "::endgroup::"; continue
+            fi
+            # -strict rejects duplicate keys and unknown fields; this is what catches the
+            # class of bug helm lint silently tolerates.
+            if ! /tmp/kubeconform -strict -summary -ignore-missing-schemas \
+                 -kubernetes-version 1.30.0 "/tmp/$name.yaml"; then
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
+
+      - name: Assert the security dial behaves
+        run: |
+          set -euo pipefail
+          # vanilla must stay bare: no hardening keys leak into the default posture.
+          helm template rel charts/fid -f charts/fid/ci/vanilla-values.yaml > /tmp/v.yaml
+          if grep -q "runAsNonRoot" /tmp/v.yaml; then
+            echo "vanilla profile must not set runAsNonRoot"; exit 1
+          fi
+          if grep -q "kind: NetworkPolicy" /tmp/v.yaml; then
+            echo "vanilla profile must not render a NetworkPolicy"; exit 1
+          fi
+          # hardened must actually harden.
+          helm template rel charts/fid -f charts/fid/ci/hardened-values.yaml > /tmp/h.yaml
+          for want in "runAsNonRoot: true" "kind: NetworkPolicy" "automountServiceAccountToken: false"; do
+            grep -q "$want" /tmp/h.yaml || { echo "hardened profile missing: $want"; exit 1; }
+          done
+          # an explicit value must beat the profile, and podSpecPatch must beat everything.
+          helm template rel charts/fid -f charts/fid/ci/override-wins-values.yaml > /tmp/o.yaml
+          grep -q "runAsUser: 0"        /tmp/o.yaml || { echo "explicit securityContext did not win"; exit 1; }
+          grep -q "runtimeClassName: gvisor" /tmp/o.yaml || { echo "podSpecPatch did not apply"; exit 1; }
+          # airgap: nothing may be pulled from outside the mirror.
+          helm template rel charts/fid -f charts/fid/ci/airgap-values.yaml \
+            | grep -E "^\s+image:" | grep -v "registry.internal.example.com" \
+            && { echo "an image escaped global.imageRegistry"; exit 1; }
+          echo "all posture assertions passed"
+
+      - name: Preflight must reject a 7.x image with mountSecrets enabled
+        run: |
+          set -euo pipefail
+          if helm template rel charts/fid --set image.tag=7.4.23 --set fid.mountSecrets=true >/dev/null 2>&1; then
+            echo "preflight failed to reject mountSecrets on a 7.x image"; exit 1
+          fi
+          # ...and must be bypassable, because no check in this chart is mandatory.
+          helm template rel charts/fid --set image.tag=7.4.23 --set fid.mountSecrets=true \
+            --set preflight.mountSecretsVersionCheck=false >/dev/null
+          echo "preflight behaves"
+
   # Temp Helm Chart hosted as an OCI image on ghcr.
   #
   # Mirrors the publish-ghcr job in radiantlogic-devops/helm-v8, so both repos expose a

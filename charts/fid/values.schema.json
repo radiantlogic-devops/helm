@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "fid chart values",
+  "description": "Validates the SHAPE of well-known keys only. additionalProperties is true everywhere on purpose: this chart must never reject a key it does not recognise, so unknown and future keys always pass. The goal is to catch typos and wrong types in the keys we do know about, not to constrain what you may set.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "replicaCount": { "type": "integer", "minimum": 0 },
+    "global": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "imageRegistry": { "type": "string" },
+        "imagePullSecrets": { "type": "array" }
+      }
+    },
+    "commonLabels":      { "type": "object", "additionalProperties": true },
+    "commonAnnotations": { "type": "object", "additionalProperties": true },
+    "extraContainers":   { "type": "array" },
+    "extraObjects":      { "type": "array" },
+    "automountServiceAccountToken": { "type": "boolean" },
+    "image": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "repository": { "type": "string" },
+        "tag":        { "type": ["string", "number"] },
+        "digest":     { "type": "string", "pattern": "^$|^sha256:[a-f0-9]{64}$" },
+        "registry":   { "type": "string" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": ["vanilla", "baseline", "hardened", "paranoid", "custom"],
+          "description": "Security posture preset. Supplies defaults only; explicit securityContext values always win."
+        }
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mountSecretsVersionCheck": { "type": "boolean" },
+        "immutableFieldCheck":      { "type": "boolean" },
+        "storageClassCheck":        { "type": "boolean" }
+      }
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled":        { "type": "boolean" },
+        "maxUnavailable": { "type": ["integer", "string"] },
+        "minAvailable":   { "type": ["integer", "string"] }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled":          { "type": "boolean" },
+        "extraIngressFrom": { "type": "array" },
+        "ingress":          { "type": "array" },
+        "egress":           { "type": "array" }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled":      { "type": "boolean" },
+        "storageClass": { "type": "string" },
+        "size":         { "type": ["string", "number"] },
+        "accessModes":  { "type": "array" }
+      }
+    },
+    "fid": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "rootUser":       { "type": "string" },
+        "rootPassword":   { "type": "string" },
+        "license":        { "type": "string" },
+        "mountSecrets":   { "type": "boolean" },
+        "existingSecret": { "type": "string" },
+        "retainSecret":   { "type": "boolean" },
+        "sealedSecrets":  { "type": "boolean" },
+        "podSpecPatch":   { "type": "object", "additionalProperties": true },
+        "livenessProbe":  { "$ref": "#/definitions/probe" },
+        "readinessProbe": { "$ref": "#/definitions/probe" },
+        "startupProbe":   { "$ref": "#/definitions/probe" }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "rbac": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": { "rules": { "type": "array" } }
+        }
+      }
+    },
+    "helperImages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "repository": { "type": "string" },
+          "tag":        { "type": ["string", "number"] },
+          "digest":     { "type": "string", "pattern": "^$|^sha256:[a-f0-9]{64}$" },
+          "registry":   { "type": "string" },
+          "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "probe": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled":             { "type": "boolean" },
+        "initialDelaySeconds": { "type": "integer", "minimum": 0 },
+        "timeoutSeconds":      { "type": "integer", "minimum": 1 },
+        "periodSeconds":       { "type": "integer", "minimum": 1 },
+        "failureThreshold":    { "type": "integer", "minimum": 1 },
+        "successThreshold":    { "type": "integer", "minimum": 1 },
+        "port":                { "type": "integer" },
+        "command":             { "type": "array" }
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ metadata:
   name: {{ include "fid.fullname" . }}-gateway
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
 spec:
   selector:
     istio: ingressgateway # use istio default controller

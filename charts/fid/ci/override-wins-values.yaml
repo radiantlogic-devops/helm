@@ -1,0 +1,14 @@
+# The dial must not be a cage: an explicit value beats the profile, and podSpecPatch
+# beats everything.
+security:
+  profile: hardened
+securityContext:
+  runAsUser: 0
+  runAsNonRoot: false
+fid:
+  license: "[FID Cluster License]"
+  podSpecPatch:
+    hostAliases:
+      - ip: "10.0.0.9"
+        hostnames: ["legacy.internal"]
+    runtimeClassName: gvisor

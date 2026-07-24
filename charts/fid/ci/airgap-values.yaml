@@ -1,0 +1,9 @@
+# Every image, including the init/hook/test helpers, must come from the mirror.
+global:
+  imageRegistry: "registry.internal.example.com"
+  imagePullSecrets:
+    - name: mirror-creds
+fid:
+  license: "[FID Cluster License]"
+imagePullSecrets:
+  - name: regcred

@@ -48,7 +48,10 @@ spec:
             # install kubectl
             #curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl;
             #chmod +x ./kubectl;
-            mv ./kubectl /usr/local/bin;
+            # NOTE: the curl/chmod lines that would create ./kubectl are commented out
+            # above, so the `mv ./kubectl` that used to live here always failed under
+            # `set -ex`, failing the Job and therefore the whole `helm upgrade`.
+            # Uncomment the download lines above before restoring it.
             #kubectl get po -n {{ .Release.Namespace }};
             # Data Integrity Check
             # Validate Cache Connectors

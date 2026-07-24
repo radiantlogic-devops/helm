@@ -1,0 +1,29 @@
+{{- /*
+Arbitrary user-supplied manifests, rendered with `tpl` so they can reference values and
+release metadata.
+
+The final escape hatch at the object level: anything the chart does not model as a
+first-class resource — a NetworkPolicy, ServiceMonitor, ExternalSecret, VerticalPodAutoscaler,
+extra Service, PVC, whatever — can be attached to this release without forking the chart.
+
+Example:
+
+  extraObjects:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ include \"fid.fullname\" . }}-creds"
+      spec:
+        secretStoreRef: {name: aws-sm, kind: ClusterSecretStore}
+        target: {name: rootcreds-{{ include "fid.fullname" . }}}
+        dataFrom:
+          - extract: {key: fid/prod/credentials}
+*/ -}}
+{{- range .Values.extraObjects }}
+---
+{{- if kindIs "string" . }}
+{{- tpl . $ }}
+{{- else }}
+{{- tpl (toYaml .) $ }}
+{{- end }}
+{{- end }}

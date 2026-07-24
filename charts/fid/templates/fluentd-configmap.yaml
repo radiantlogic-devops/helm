@@ -5,6 +5,7 @@ metadata:
   name: fluentd-config
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
 data:
   fluent.conf: |

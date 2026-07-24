@@ -1,0 +1,8 @@
+# Validated live on qa-self-managed against FID 7.4.23.
+security:
+  profile: hardened
+replicaCount: 2
+fid:
+  license: "[FID Cluster License]"
+podDisruptionBudget:
+  enabled: true

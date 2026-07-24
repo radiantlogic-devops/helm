@@ -1,0 +1,4 @@
+security:
+  profile: baseline
+fid:
+  license: "[FID Cluster License]"

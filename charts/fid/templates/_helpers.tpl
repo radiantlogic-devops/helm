@@ -126,7 +126,54 @@ Resolve the metrics/exporter sidecar image. `metrics.image` is a bare repository
 */}}
 {{- define "fid.metricsImage" -}}
 {{- $m := .Values.metrics | default dict -}}
-{{- include "fid.image" (dict "image" (dict "repository" $m.image "tag" $m.imageTag "registry" $m.registry "digest" $m.digest) "context" .) -}}
+{{- /* coalesce: new key wins, deprecated key still honoured (see fid.deprecationWarnings) */ -}}
+{{- $repo := coalesce $m.imageRepository $m.image -}}
+{{- $tag := coalesce $m.tag $m.imageTag -}}
+{{- include "fid.image" (dict "image" (dict "repository" $repo "tag" $tag "registry" $m.registry "digest" $m.digest) "context" .) -}}
+{{- end }}
+
+{{/*
+Deprecated-key compatibility shims.
+
+Renamed values keep working for at least one minor release. Each shim reads the new key
+first and falls back to the old one, so existing values files do not break on upgrade.
+
+`fid.deprecationWarnings` collects a human-readable list, surfaced in NOTES.txt after
+install/upgrade rather than failing the render — a warning that blocks a deploy is not a
+warning, it is a breaking change.
+
+Currently shimmed:
+  metrics.image / metrics.imageTag  ->  metrics.imageRepository / metrics.tag  (aligns the
+      metrics sidecar with the standard {repository,tag,digest,registry} image shape used
+      everywhere else in this chart)
+*/}}
+{{- define "fid.deprecationWarnings" -}}
+{{- $w := list -}}
+{{- if (.Values.metrics).image -}}
+{{- $w = append $w "metrics.image is deprecated; use metrics.imageRepository (same value)." -}}
+{{- end -}}
+{{- if (.Values.metrics).imageTag -}}
+{{- $w = append $w "metrics.imageTag is deprecated; use metrics.tag (same value)." -}}
+{{- end -}}
+{{- if $w }}{{ toYaml $w }}{{ end -}}
+{{- end }}
+
+{{/*
+Merged image pull secrets: .Values.imagePullSecrets plus .Values.global.imagePullSecrets,
+deduplicated by name. Renders nothing when both are empty, preserving historical output.
+*/}}
+{{- define "fid.imagePullSecrets" -}}
+{{- $all := concat (.Values.imagePullSecrets | default list) ((.Values.global).imagePullSecrets | default list) -}}
+{{- $seen := dict -}}
+{{- $out := list -}}
+{{- range $all -}}
+{{- $n := .name | default (toString .) -}}
+{{- if not (hasKey $seen $n) -}}
+{{- $seen = set $seen $n true -}}
+{{- $out = append $out (dict "name" $n) -}}
+{{- end -}}
+{{- end -}}
+{{- if $out }}{{ toYaml $out }}{{ end -}}
 {{- end }}
 
 {{/*
@@ -167,6 +214,25 @@ true
 {{- if index ($live.data | default dict) "fid-license" -}}
 true
 {{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Effective automountServiceAccountToken.
+
+Renders nothing on the vanilla/baseline profiles (historical behaviour: the field is
+absent, so Kubernetes defaults it to true). The hardened and paranoid profiles default it
+to false, since FID itself never calls the Kubernetes API — only the hook Jobs do, and
+they use their own ServiceAccount.
+
+An explicit .Values.automountServiceAccountToken always wins, including setting it back to
+true under a hardened profile.
+*/}}
+{{- define "fid.automountServiceAccountToken" -}}
+{{- if not (kindIs "invalid" .Values.automountServiceAccountToken) -}}
+{{- .Values.automountServiceAccountToken -}}
+{{- else if has ((.Values.security).profile | default "vanilla") (list "hardened" "paranoid") -}}
+false
 {{- end -}}
 {{- end }}
 
@@ -300,16 +366,6 @@ Effective securityContext for the helper / init containers.
 {{- define "fid.helperSecurityContext" -}}
 {{- $preset := fromYaml (include "fid.securityPreset" (dict "layer" "helper" "context" .)) -}}
 {{- toYaml (mergeOverwrite (deepCopy $preset) (.Values.helperSecurityContext | default dict)) -}}
-{{- end }}
-
-{{/*
-Common labels applied to every object the chart renders, on top of "fid.labels".
-Purely additive: renders nothing unless .Values.commonLabels is set.
-*/}}
-{{- define "fid.commonLabels" -}}
-{{- with .Values.commonLabels }}
-{{ toYaml . }}
-{{- end }}
 {{- end }}
 
 {{/*
