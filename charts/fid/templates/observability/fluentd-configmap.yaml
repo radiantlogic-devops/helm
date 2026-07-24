@@ -1,7 +1,7 @@
 {{- /*
 Fluentd config for the observability sidecar (the new, rl-exporter-oriented path).
 
-Ported from helm-v8's logging/fluentd-configmap.yaml, but reads .Values.metrics.advanced.logging
+Ported from helm-v8's logging/fluentd-configmap.yaml, but reads .Values.observability.logging
 instead of .Values.logging, gates on observability.enabled, and uses fid.labels (this chart
 has no Bitnami common subchart). The aggregator-rendering helpers in _fluentd-helpers.tpl are
 used verbatim.
@@ -9,7 +9,7 @@ used verbatim.
 Named a distinct ConfigMap (<fullname>-observability-fluentd) so it never collides with the
 legacy metrics: path's `fluentd-config`.
 */ -}}
-{{- if and .Values.metrics.advanced.enabled (((.Values.metrics.advanced.logging).fluentd).enabled) }}
+{{- if and .Values.observability.enabled (((.Values.observability.logging).fluentd).enabled) }}
 {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
 {{- $globalCtx := . -}}
 apiVersion: v1
@@ -39,7 +39,7 @@ data:
     # =====================================================================
 
     # Build aggregator dictionary from the array in values
-    {{- $aggList := .Values.metrics.advanced.logging.fluentd.aggregators | default list }}
+    {{- $aggList := .Values.observability.logging.fluentd.aggregators | default list }}
     {{- $aggMap := dict }}
     {{- range $agg := $aggList }}
       {{- if kindIs "map" $agg }}
@@ -51,10 +51,10 @@ data:
     {{- end }}
 
     # Process logs
-    {{- $logs := .Values.metrics.advanced.logging.fluentd.logs | default dict }}
+    {{- $logs := .Values.observability.logging.fluentd.logs | default dict }}
     {{- range $logName, $val := $logs }}
       {{- if $val.enabled }}
-        {{- include "fid.fluentd.source" (dict "val" $val "logName" $logName "posFileDirectory" $.Values.metrics.advanced.logging.fluentd.posFileDirectory "context" $globalCtx) | nindent 8 }}
+        {{- include "fid.fluentd.source" (dict "val" $val "logName" $logName "posFileDirectory" $.Values.observability.logging.fluentd.posFileDirectory "context" $globalCtx) | nindent 8 }}
         {{- include "fid.fluentd.filter" (dict "val" $val "logName" $logName "clusterName" $clusterName "context" $globalCtx) | nindent 8 }}
         {{- include "fid.fluentd.match" (dict "val" $val "logName" $logName "aggregatorsList" $aggMap "clusterName" $clusterName "context" $globalCtx) | nindent 8 }}
       {{- end }}

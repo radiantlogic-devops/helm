@@ -264,15 +264,26 @@
     "metrics": {
       "type": "object",
       "additionalProperties": true,
+      "properties": {}
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": true,
       "properties": {
-        "advanced": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "exporter": {
           "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "enabled": {
-              "type": "boolean"
-            }
-          }
+          "additionalProperties": true
+        },
+        "logging": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "indexCreation": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     }

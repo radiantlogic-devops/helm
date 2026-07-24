@@ -275,7 +275,7 @@ containers:
 {{- end }}
       tail -f /dev/null
 {{- end }}
-{{- if .Values.metrics.advanced.enabled }}
+{{- if .Values.observability.enabled }}
 {{- include "fid.observabilitySidecar" . | nindent 0 }}
 {{- else if .Values.metrics.enabled }}
 - name: {{ .Chart.Name }}-exporter
@@ -414,8 +414,8 @@ volumes:
     defaultMode: 288
     secretName: {{ include "fid.secretName" . }}
 {{- end }}
-{{- if .Values.metrics.advanced.enabled }}
-{{- if ((.Values.metrics.advanced.logging).fluentd).enabled }}
+{{- if .Values.observability.enabled }}
+{{- if ((.Values.observability.logging).fluentd).enabled }}
 - name: observability-fluentd-config
   configMap:
     name: {{ include "fid.fullname" . }}-observability-fluentd

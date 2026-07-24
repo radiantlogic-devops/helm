@@ -157,10 +157,10 @@ Tested end-to-end against FID 7.4.23 with Prometheus, Elasticsearch, Kibana and 
 Both are chart-independent (image behaviour and image packaging); the chart renders
 rl-exporter correctly, verified by the sidecar coming up 2/2 and Prometheus scraping it.
 
-## The `metrics.advanced:` block — new logging model (rl-exporter)
+## The `observability:` block — new logging model (rl-exporter)
 
-`metrics:` (above) is the original path and stays the default. `metrics.advanced:` is a newer,
-opt-in block that **supersedes `metrics:` when `metrics.advanced.enabled: true`** and brings
+`metrics:` (above) is the original path and stays the default. `observability:` is a newer,
+opt-in block that **supersedes `metrics:` when `observability.enabled: true`** and brings
 the full helm-v8 logging model to this chart line:
 
 - **Named aggregators** — define an output once, reference it by name from any log
@@ -170,30 +170,29 @@ the full helm-v8 logging model to this chart line:
 - **Fan-out** — one log to several backends at once
 
 ```yaml
-metrics:
-  advanced:
-    enabled: true                 # supersedes metrics: entirely
-    exporter:
-      flavor: rl-exporter         # default here (metrics: defaults to fid-exporter)
-      imageRepository: ""         # empty => radiantone/rl-exporter
-    logging:
+observability:
+  enabled: true                 # supersedes metrics: entirely
+  exporter:
+    flavor: rl-exporter         # default here (metrics: defaults to fid-exporter)
+    imageRepository: ""         # empty => radiantone/rl-exporter
+  logging:
+    enabled: true
+    fluentd:
       enabled: true
-      fluentd:
-        enabled: true
-        logs:
-          vds_server:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
-            index: vds_server.log
-            retention_days: 30
-            aggregators: ["default", "splunk", "loki"]   # fan out to three
-        aggregators:
-          - {name: default, type: elasticsearch, host: es, port: "9200"}
-          - {name: splunk,  type: splunk_hec, hec_host: splunk, hec_port: "8088", hec_token: T}
-          - {name: loki,    type: loki, url: "http://loki:3100"}
+      logs:
+        vds_server:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+          index: vds_server.log
+          retention_days: 30
+          aggregators: ["default", "splunk", "loki"]   # fan out to three
+      aggregators:
+        - {name: default, type: elasticsearch, host: es, port: "9200"}
+        - {name: splunk,  type: splunk_hec, hec_host: splunk, hec_port: "8088", hec_token: T}
+        - {name: loki,    type: loki, url: "http://loki:3100"}
 ```
 
-When `metrics.advanced.enabled: false` (the default) none of this renders and the chart
+When `observability.enabled: false` (the default) none of this renders and the chart
 behaves exactly as before via `metrics:`.
 
 ### Verified live — and it fixes rl-exporter logging on 7.x
@@ -204,7 +203,7 @@ and Elasticsearch. Result: **~14,800 documents across 5 indices**
 
 This is the important part: the *earlier* rl-exporter test (using the `metrics:` path's
 fid-exporter-shaped wiring) had **logging disabled** — rl-exporter logged "template not
-found" and ran no Fluentd. The `metrics.advanced:` path mounts the **generated fluent.conf**
+found" and ran no Fluentd. The `observability:` path mounts the **generated fluent.conf**
 into the sidecar (the same contract helm-v8 uses), and with it rl-exporter's Fluentd starts,
 tails all the FID logs and ships them. The index names carry the cluster name
 (`…-fid-cluster-…`), confirming the traffic routes through the ported named-aggregator
@@ -212,7 +211,7 @@ config rather than any built-in default.
 
 Metrics are unchanged from the earlier finding: rl-exporter serves `:9095` and Prometheus
 scrapes it, but its rich FID metrics still 404 on the 7.x Admin REST API. So on this chart
-line: **`metrics.advanced:` logging works today with rl-exporter; its metrics wait for an 8.x
+line: **`observability:` logging works today with rl-exporter; its metrics wait for an 8.x
 image.** The block renders and validates now for both.
 
 ## Logging to Elasticsearch / OpenSearch / Splunk

@@ -1,24 +1,23 @@
-# metrics.advanced: rl-exporter + full helm-v8 named-aggregator logging (the nested form).
+# observability: (separate top-level) — rl-exporter + full helm-v8 named-aggregator logging.
 # Fans vds_server out to elasticsearch + splunk + loki to exercise the multi-type model.
-metrics:
-  advanced:
+observability:
+  enabled: true
+  exporter:
+    flavor: rl-exporter
+    imageRepository: ""
+  logging:
     enabled: true
-    exporter:
-      flavor: rl-exporter
-      imageRepository: ""
-    logging:
+    fluentd:
       enabled: true
-      fluentd:
-        enabled: true
-        logs:
-          vds_server:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
-            index: vds_server.log
-            aggregators: ["default", "splunk", "loki"]
-        aggregators:
-          - {name: "default", type: "elasticsearch", host: "elasticsearch", port: "9200"}
-          - {name: "splunk", type: "splunk_hec", hec_host: "splunk", hec_port: "8088", hec_token: "TOK"}
-          - {name: "loki", type: "loki", url: "http://loki:3100"}
+      logs:
+        vds_server:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+          index: vds_server.log
+          aggregators: ["default", "splunk", "loki"]
+      aggregators:
+        - {name: "default", type: "elasticsearch", host: "elasticsearch", port: "9200"}
+        - {name: "splunk", type: "splunk_hec", hec_host: "splunk", hec_port: "8088", hec_token: "TOK"}
+        - {name: "loki", type: "loki", url: "http://loki:3100"}
 fid:
   license: "[FID Cluster License]"

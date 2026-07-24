@@ -793,194 +793,199 @@ metrics:
     initialDelaySeconds: 120
     timeoutSeconds: 5
 
-  ## ADVANCED — rl-exporter + helm-v8 named-aggregator logging. Opt-in; when
-  ## advanced.enabled is true it SUPERSEDES the legacy metrics sidecar above. Providers
-  ## (rl-exporter image, aggregator backends) must be available. Full guide: docs/07.
-  advanced:
-    enabled: false
-
-    ## The exporter sidecar. Defaults to rl-exporter (pull-native, serves :9095, no Pushgateway).
-    exporter:
-      ## fid-exporter | rl-exporter. Drives the image default, the container command and the
-      ## env surface, just like metrics.flavor — but here rl-exporter is the default.
-      flavor: rl-exporter
-      ## Empty => derived from flavor (radiantone/rl-exporter). Override for a mirror or the
-      ## current dev build (rahulnutakki/rl-exporter:dev).
-      imageRepository: ""
-      tag: ""
-      # digest: ""
-      # registry: ""
-      # pullPolicy: IfNotPresent
-      metricsPort: 9095
-      ## Admin REST API rl-exporter scrapes for FID metrics. Defaults to the pod's admin HTTPS.
-      # adminApiUrl: "https://localhost:9101"
-      # zkConn: "zookeeper-app:2181"
-      securityContext:
-        runAsUser: 0
-      resources:
-        limits:   {cpu: 1000m, memory: 512Mi}
-        requests: {cpu: 100m,  memory: 128Mi}
-      annotations: {}
-
-    ## Automatically create Kibana index patterns / ES ILM policies for the indices below.
-    indexCreation:
-      enabled: false
-      rbac:
-        enabled: false
-      kibana:
-        scheme: "http"
-        host: "kibana.mycompany.local"
-        port: "5601"
-        # user: ""
-        # password: ""
-
-    ## Full helm-v8 logging model.
-    logging:
-      enabled: false
-      annotations:
-        enabled: false
-        config: {}
-      fluentd:
-        enabled: false
-        posFileDirectory: "/opt/radiantone/vds/work/logging"
-        configFile: /fluentd/etc/fluent.conf
-
-        ## Log sources. Each: enabled, path, index, retention_days, aggregators (by NAME),
-        ## optional custom_index / splunk_* / parse / shards / replicas / refresh_interval.
-        logs:
-          vds_server:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
-            index: vds_server.log
-            retention_days: 30
-            aggregators: ["default"]
-          vds_server_access:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
-            index: vds_server_access.log
-            retention_days: 30
-            aggregators: ["default"]
-            parse: |-
-              <parse>
-                @type tsv
-                keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
-                types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
-              </parse>
-          vds_events:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
-            index: vds_events.log
-            retention_days: 30
-            aggregators: ["default"]
-          periodiccache:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
-            index: periodiccache.log
-            retention_days: 30
-            aggregators: ["default"]
-          web:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/jetty/web.log"
-            index: web.log
-            retention_days: 30
-            aggregators: ["default"]
-          web_access:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/jetty/web_access.log"
-            index: web_access.log
-            retention_days: 30
-            aggregators: ["default"]
-          sync_engine:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log"
-            index: sync_engine.log
-            retention_days: 30
-            aggregators: ["default"]
-          alerts:
-            enabled: true
-            path: "/opt/radiantone/vds/logs/alerts.log"
-            index: alerts.log
-            retention_days: 30
-            aggregators: ["default"]
-          adap_access:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
-            index: adap_access.log
-            retention_days: 30
-            aggregators: ["default"]
-          admin_rest_api_access:
-            enabled: true
-            path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
-            index: admin_rest_api_access.log
-            retention_days: 30
-            aggregators: ["default"]
-          connector:
-            enabled: true
-            path: "/opt/radiantone/vds/logs/sync_agents/*/connector.log"
-            index: connector.log
-            retention_days: 30
-            aggregators: ["default"]
-
-        ## NAMED aggregators. Each log references these by name in its `aggregators: [...]`.
-        ## Supported types: elasticsearch, opensearch, splunk_hec, loki, sumologic, s3,
-        ## azure_event_hubs, opentelemetry. Only the default is active; the rest are examples.
-        aggregators:
-          - name: "default"
-            type: "elasticsearch"
-            host: "elasticsearch-master.common-services.svc.cluster.local"
-            port: "9200"
-            # scheme: "https"
-            # user: "elastic"
-            # password: "changeme"
-            # ssl: {verify: false}
-            # ca_file: "/path/to/ca.pem"
-            # client_cert: "/path/to/client-cert.pem"
-          # - name: "opensearch-prod"
-          #   type: "opensearch"
-          #   host: "opensearch-cluster-master.svc.cluster.local"
-          #   port: "9200"
-          #   scheme: "https"
-          #   ssl: {verify: true}
-          # - name: "splunk-prod"
-          #   type: "splunk_hec"
-          #   hec_host: "splunk-service.svc.cluster.local"
-          #   hec_port: "8088"
-          #   hec_token: "YOUR-HEC-TOKEN"
-          #   protocol: "https"
-          #   index: "myindex"
-          #   sourcetype: "_json"
-          # - name: "loki-prod"
-          #   type: "loki"
-          #   username: "fid-service"
-          #   password: "LOKI_PASSWORD"
-          #   ssl: {verify: true}
-          # - name: "sumo-prod"
-          #   type: "sumologic"
-          #   endpoint: "https://collectors.us2.sumologic.com/receiver/v1/http/COLLECTOR_ID"
-          #   compress: true
-          # - name: "s3-archive"
-          #   type: "s3"
-          #   region: "us-west-2"
-          #   path: "logs/%Y/%m/%d/"
-          #   store_as: "gzip"
-          # - name: "azure-events"
-          #   type: "azure_event_hubs"
-          #   connection_string: "Endpoint=sb://<ns>.servicebus.windows.net/;SharedAccessKeyName=<policy>;SharedAccessKey=<key>"
-          #   hub_name: "fid-logs"
-          # - name: "otel-collector"
-          #   type: "opentelemetry"
-          #   endpoint: "http://otel-collector.monitoring.svc.cluster.local:4317"
-          #   protocol: "grpc"
-
   ## ---------------------------------------------------------------------------------------
-  ## METRICS / LOGGING SIDECAR  (legacy — used unless metrics.advanced.enabled is true)
+  ## METRICS / LOGGING SIDECAR  (legacy — used unless observability.enabled is true)
   ## ---------------------------------------------------------------------------------------
   ## The "fid-exporter" sidecar runs a metrics exporter AND Fluentd. flavor picks the image
   ## (fid-exporter default | rl-exporter). Two sharp edges, both documented in docs/07:
   ##   - pushMode gates whether metrics run at all (false = no metrics), and
   ##   - with pushMode: true an unreachable pushGateway silently stops log shipping too.
-  ## For the new named-aggregator logging model + rl-exporter, use `metrics.advanced` above.
+  ## For the new named-aggregator logging model + rl-exporter, use the `observability:` block.
   ## Full guide: docs/07-metrics-and-logging.md
+
+
+## ========================================================================================
+## OBSERVABILITY  (separate, opt-in — rl-exporter + helm-v8 named-aggregator logging)
+## ========================================================================================
+## Independent of `metrics:` above. Default off, so it never affects a legacy metrics
+## deployment or its upgrades. When observability.enabled is true it drives the exporter
+## sidecar (rl-exporter by default) and SUPERSEDES the legacy metrics sidecar. Kept as a
+## separate top-level block (like helm-v8) for flexibility. Full guide: docs/07.
+observability:
+  enabled: false
+
+  ## The exporter sidecar. Defaults to rl-exporter (pull-native, serves :9095, no Pushgateway).
+  exporter:
+    ## fid-exporter | rl-exporter. Drives the image default, the container command and the
+    ## env surface, just like metrics.flavor — but here rl-exporter is the default.
+    flavor: rl-exporter
+    ## Empty => derived from flavor (radiantone/rl-exporter). Override for a mirror or the
+    ## current dev build (rahulnutakki/rl-exporter:dev).
+    imageRepository: ""
+    tag: ""
+    # digest: ""
+    # registry: ""
+    # pullPolicy: IfNotPresent
+    metricsPort: 9095
+    ## Admin REST API rl-exporter scrapes for FID metrics. Defaults to the pod's admin HTTPS.
+    # adminApiUrl: "https://localhost:9101"
+    # zkConn: "zookeeper-app:2181"
+    securityContext:
+      runAsUser: 0
+    resources:
+      limits:   {cpu: 1000m, memory: 512Mi}
+      requests: {cpu: 100m,  memory: 128Mi}
+    annotations: {}
+
+  ## Automatically create Kibana index patterns / ES ILM policies for the indices below.
+  indexCreation:
+    enabled: false
+    rbac:
+      enabled: false
+    kibana:
+      scheme: "http"
+      host: "kibana.mycompany.local"
+      port: "5601"
+      # user: ""
+      # password: ""
+
+  ## Full helm-v8 logging model.
+  logging:
+    enabled: false
+    annotations:
+      enabled: false
+      config: {}
+    fluentd:
+      enabled: false
+      posFileDirectory: "/opt/radiantone/vds/work/logging"
+      configFile: /fluentd/etc/fluent.conf
+
+      ## Log sources. Each: enabled, path, index, retention_days, aggregators (by NAME),
+      ## optional custom_index / splunk_* / parse / shards / replicas / refresh_interval.
+      logs:
+        vds_server:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+          index: vds_server.log
+          retention_days: 30
+          aggregators: ["default"]
+        vds_server_access:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
+          index: vds_server_access.log
+          retention_days: 30
+          aggregators: ["default"]
+          parse: |-
+            <parse>
+              @type tsv
+              keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
+              types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
+            </parse>
+        vds_events:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
+          index: vds_events.log
+          retention_days: 30
+          aggregators: ["default"]
+        periodiccache:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
+          index: periodiccache.log
+          retention_days: 30
+          aggregators: ["default"]
+        web:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/jetty/web.log"
+          index: web.log
+          retention_days: 30
+          aggregators: ["default"]
+        web_access:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/jetty/web_access.log"
+          index: web_access.log
+          retention_days: 30
+          aggregators: ["default"]
+        sync_engine:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log"
+          index: sync_engine.log
+          retention_days: 30
+          aggregators: ["default"]
+        alerts:
+          enabled: true
+          path: "/opt/radiantone/vds/logs/alerts.log"
+          index: alerts.log
+          retention_days: 30
+          aggregators: ["default"]
+        adap_access:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
+          index: adap_access.log
+          retention_days: 30
+          aggregators: ["default"]
+        admin_rest_api_access:
+          enabled: true
+          path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
+          index: admin_rest_api_access.log
+          retention_days: 30
+          aggregators: ["default"]
+        connector:
+          enabled: true
+          path: "/opt/radiantone/vds/logs/sync_agents/*/connector.log"
+          index: connector.log
+          retention_days: 30
+          aggregators: ["default"]
+
+      ## NAMED aggregators. Each log references these by name in its `aggregators: [...]`.
+      ## Supported types: elasticsearch, opensearch, splunk_hec, loki, sumologic, s3,
+      ## azure_event_hubs, opentelemetry. Only the default is active; the rest are examples.
+      aggregators:
+        - name: "default"
+          type: "elasticsearch"
+          host: "elasticsearch-master.common-services.svc.cluster.local"
+          port: "9200"
+          # scheme: "https"
+          # user: "elastic"
+          # password: "changeme"
+          # ssl: {verify: false}
+          # ca_file: "/path/to/ca.pem"
+          # client_cert: "/path/to/client-cert.pem"
+        # - name: "opensearch-prod"
+        #   type: "opensearch"
+        #   host: "opensearch-cluster-master.svc.cluster.local"
+        #   port: "9200"
+        #   scheme: "https"
+        #   ssl: {verify: true}
+        # - name: "splunk-prod"
+        #   type: "splunk_hec"
+        #   hec_host: "splunk-service.svc.cluster.local"
+        #   hec_port: "8088"
+        #   hec_token: "YOUR-HEC-TOKEN"
+        #   protocol: "https"
+        #   index: "myindex"
+        #   sourcetype: "_json"
+        # - name: "loki-prod"
+        #   type: "loki"
+        #   username: "fid-service"
+        #   password: "LOKI_PASSWORD"
+        #   ssl: {verify: true}
+        # - name: "sumo-prod"
+        #   type: "sumologic"
+        #   endpoint: "https://collectors.us2.sumologic.com/receiver/v1/http/COLLECTOR_ID"
+        #   compress: true
+        # - name: "s3-archive"
+        #   type: "s3"
+        #   region: "us-west-2"
+        #   path: "logs/%Y/%m/%d/"
+        #   store_as: "gzip"
+        # - name: "azure-events"
+        #   type: "azure_event_hubs"
+        #   connection_string: "Endpoint=sb://<ns>.servicebus.windows.net/;SharedAccessKeyName=<policy>;SharedAccessKey=<key>"
+        #   hub_name: "fid-logs"
+        # - name: "otel-collector"
+        #   type: "opentelemetry"
+        #   endpoint: "http://otel-collector.monitoring.svc.cluster.local:4317"
+        #   protocol: "grpc"
 
 cronjob:
   migration:
