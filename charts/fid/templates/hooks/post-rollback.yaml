@@ -5,6 +5,7 @@ metadata:
   name: {{ include "fid.fullname" . }}-post-rollback-job
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
     app.kubernetes.io/core-name: {{ include "fid.name" . }}
   annotations:
     # This is what defines this resource as a hook. Without this line, the

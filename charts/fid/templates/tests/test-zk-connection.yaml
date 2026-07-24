@@ -5,6 +5,7 @@ metadata:
   name: "{{ include "fid.fullname" . }}-test-zk-connection"
   labels:
     {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
   annotations:
     "helm.sh/hook": test-success
 spec:

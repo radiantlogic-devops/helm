@@ -3,6 +3,13 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "fid.fullname" . }}-migration-cronjob-job
+  labels:
+    {{- include "fid.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   schedule: {{ .Values.cronjob.migration.schedule | default "0 * * * *" }}
   jobTemplate:
