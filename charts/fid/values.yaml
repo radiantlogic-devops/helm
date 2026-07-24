@@ -484,19 +484,22 @@ fid:
   mountSecrets: true
   # Set sealedSecrets id using sealedSecrets
   sealedSecrets: false
-  ## Deploy a readonly/follower-only sts, that joins current FID cluster
-  ##
+  ## Read-only / follower-only StatefulSet that joins the current FID cluster.
+  ## The follower pods share ALL of the main pod's configuration surface — images, security
+  ## profile, probes (incl. startup), env/envValueFrom, extra volumes/mounts and resources —
+  ## so those top-level values apply to both. Follower-specific escape hatch below.
   followerOnly:
-    enabled: false
-    # Enable this with caution
+    enabled: false            # enable with caution
     autoscaling:
       enabled: false
     minReplicas: 1
     maxReplicas: 3
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
-    ## Detach from cluster on termination
-    detach: true
+    detach: true              # detach from the cluster on pod termination
+    ## Deep-merged over the follower pod spec (any field, like fid.podSpecPatch). Falls back
+    ## to fid.podSpecPatch when unset. See docs/11-escape-hatches.md.
+    # podSpecPatch: {}
 
   ## Probes. Timing fields below are what the chart has always rendered. Beyond these you
   ## can also set a handler (exec/httpGet/tcpSocket/grpc, replaces the default) or an

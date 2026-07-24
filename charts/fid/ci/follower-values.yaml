@@ -1,0 +1,10 @@
+# Follower-only StatefulSet with its own podSpecPatch — verifies the extraction preserves
+# the pod spec and the follower escape hatch applies.
+fid:
+  followerOnly:
+    enabled: true
+    minReplicas: 2
+    podSpecPatch:
+      runtimeClassName: gvisor
+      terminationGracePeriodSeconds: 90
+  license: "[FID Cluster License]"

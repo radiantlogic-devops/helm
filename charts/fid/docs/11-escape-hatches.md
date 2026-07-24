@@ -68,6 +68,17 @@ fid:
 merged by name — this is Helm's `mergeOverwrite`, not kubectl's strategic merge. To adjust
 one container, prefer the typed values; use the patch for fields the chart does not expose.
 
+### The follower StatefulSet
+
+The follower-only pods share the main pod's whole configuration surface (images, security
+profile, probes, env, volumes, resources) and have their own patch:
+
+```yaml
+fid:
+  followerOnly:
+    podSpecPatch: {runtimeClassName: gvisor}   # falls back to fid.podSpecPatch when unset
+```
+
 ## 4. Bring your own objects
 
 ```yaml
