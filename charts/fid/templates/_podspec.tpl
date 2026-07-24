@@ -393,6 +393,10 @@ affinity:
 tolerations:
 {{- toYaml . | nindent 8 }}
 {{- end }}
+{{- with .Values.topologySpreadConstraints }}
+topologySpreadConstraints:
+{{- toYaml . | nindent 8 }}
+{{- end }}
 {{- with .Values.extraContainers }}
 {{- tpl (toYaml .) $ | nindent 0 }}
 {{- end }}

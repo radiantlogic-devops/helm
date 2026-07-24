@@ -96,8 +96,10 @@ networkPolicy:
 ## a hostname, and the same `routes` map is used by whichever you pick — switching
 ## controller does not mean redescribing your topology.
 ##
-## The legacy `ingress:` block further down still works. The old istio `gateway:` /
-## `virtualservice:` blocks were removed — use `networking.istio` instead.
+## The legacy single-Ingress `ingress:` block sits directly below for reference. Do NOT
+## enable both a networking HTTP controller and legacy ingress — you'd get two overlapping
+## Ingresses (preflight.ingressConflictCheck guards this). The old istio gateway/
+## virtualservice blocks were removed — use networking.istio.
 ##
 ## Ports, for reference:
 ##   HTTP   7070/7171  Classic Control Panel   -> <release>-ext
@@ -234,6 +236,18 @@ networking:
 ## ORDERING: ESO writes the Secret asynchronously, so on a fresh install FID may restart a
 ## few times until it appears. That is expected, not a failure.
 ##
+
+## LEGACY single-controller Ingress. Prefer `networking:` (nginx/traefik/istio + LDAPS)
+## above — see docs/05-ingress.md. Kept for backward compatibility.
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths: ["/"]
+  tls: []
+## FID container resources. Followers use the same values. A fully-loaded FID can need
+## far more (18Gi+ heap on busy followers) — size to your dataset.
 externalSecret:
   enabled: false
   # apiVersion: external-secrets.io/v1beta1   # use .../v1 on newer ESO
@@ -265,11 +279,13 @@ externalSecret:
 ##   mountSecretsVersionCheck  fid.mountSecrets: true on a pre-8.0.0 image (7.x can't read it)
 ##   immutableFieldCheck       upgrade changing the STS selector/volumeClaimTemplates
 ##   storageClassCheck         persistence.storageClass names a class that doesn't exist
+##   ingressConflictCheck      legacy ingress: + a networking: HTTP controller both enabled
 ## Details + recovery steps: docs/10-upgrades-and-rollback.md
 preflight:
   mountSecretsVersionCheck: true
   immutableFieldCheck: true
   storageClassCheck: true
+  ingressConflictCheck: true     # fail if legacy ingress + a networking HTTP controller both on
 
 ## PodDisruptionBudget for the main FID StatefulSet.
 ##
@@ -399,65 +415,18 @@ fid:
   ##
   readonly: false
   ## Seed a new cluster from an existing export.zip at first install.
-  ## Full guide (all source types, credential handling): docs/08-migration.md
+  ## The common case is a plain URL (below). Advanced sources — http | s3 | gcs | azure |
+  ## git | db, with Secret-ref credentials — are set under `migration.advanced` (default
+  ## off; when advanced.enabled is true it takes over and url/script are ignored). The full
+  ## advanced values tree + examples live in docs/08-migration.md.
   migration:
-    ## Legacy path — a plain URL. Ignored when advanced.enabled is true.
     url:                       # https://.../export.zip
     script:                    # optional post-migration configure_fid.sh URL
-    ## Advanced path — fetch from http | s3 | gcs | azure | git | db. Exclusive: when
-    ## enabled, url/script above are ignored. Credentials come from Secret refs, never
-    ## literals. Same shape as helm-v8. Details + examples: docs/08-migration.md
-    advanced:
-      enabled: false
-      source:
-        type: ""               # http | s3 | gcs | azure | git | db
-        http:
-          url: ""
-          flags: ""            # extra curl flags, e.g. "-L"
-        s3:
-          bucket: ""
-          key: ""
-          region: ""
-          endpoint: ""         # for S3-compatible stores (optional)
-          auth:
-            irsa: true         # use ambient IRSA/instance creds; else the *SecretRef below
-            accessKeyIdSecretRef: {name: "", key: "access-key-id"}
-            secretAccessKeySecretRef: {name: "", key: "secret-access-key"}
-        gcs:
-          bucket: ""
-          object: ""
-          auth:
-            workloadIdentity: true
-        azure:
-          accountName: ""
-          container: ""
-          blob: ""
-          auth:
-            managedIdentity: true
-            sasTokenSecretRef: {name: "", key: "sas-token"}
-            accountKeySecretRef: {name: "", key: "account-key"}
-        git:
-          repo: ""             # git@github.com:org/repo.git OR https://github.com/org/repo.git
-          ref: "main"
-          path: "export.zip"
-          auth:
-            sshKeySecretRef: {name: "", key: "ssh-privatekey"}
-            knownHostsConfigMapRef: {name: "", key: "known_hosts"}
-            usernameSecretRef: {name: "", key: "username"}
-            tokenSecretRef: {name: "", key: "token"}
-        db:
-          driver: ""           # postgres | mysql
-          host: ""
-          port: 0
-          database: ""
-          query: ""
-          outputEncoding: "raw" # raw | base64
-          auth:
-            usernameSecretRef: {name: "", key: "username"}
-            passwordSecretRef: {name: "", key: "password"}
-      ## Optional per-source image overrides (else sensible defaults, see docs/08).
-      # image:
-      #   s3: {repository: amazon/aws-cli, tag: "2.15.40"}
+    # advanced:                # see docs/08-migration.md for the full source/auth tree
+    #   enabled: true
+    #   source:
+    #     type: s3
+    #     s3: {bucket: "", key: "", auth: {irsa: true}}
   ## Bring your own credentials Secret instead of letting the chart create one.
   ##
   ## When set, the chart renders NO Secret and every consumer (env secretKeyRef and the
@@ -599,17 +568,6 @@ service:
   type: ClusterIP
   port: 7070
 
-## LEGACY single-controller Ingress. Prefer `networking:` (nginx/traefik/istio + LDAPS)
-## above — see docs/05-ingress.md. Kept for backward compatibility.
-ingress:
-  enabled: false
-  annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths: ["/"]
-  tls: []
-## FID container resources. Followers use the same values. A fully-loaded FID can need
-## far more (18Gi+ heap on busy followers) — size to your dataset.
 resources:
   limits:
     cpu: 1
@@ -624,12 +582,18 @@ autoscaling:
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
-# nodeSelector is the simplest recommended form of node selection constraint.
+# Scheduling. Applied to BOTH the main and follower StatefulSets.
 nodeSelector: {}
-# Tolerations allow the scheduler to schedule pods with matching taints.
 tolerations: []
-# Node affinity is conceptually similar to nodeSelector, allowing you to constrain which nodes your Pod can be scheduled on based on node labels.
 affinity: {}
+## Spread pods across zones/nodes. e.g. one per zone, soft:
+# topologySpreadConstraints:
+#   - maxSkew: 1
+#     topologyKey: topology.kubernetes.io/zone
+#     whenUnsatisfiable: ScheduleAnyway
+#     labelSelector:
+#       matchLabels: {app.kubernetes.io/name: fid}
+topologySpreadConstraints: []
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##

@@ -255,6 +255,10 @@ affinity:
 tolerations:
 {{- toYaml . | nindent 2 }}
 {{- end }}
+{{- with .Values.topologySpreadConstraints }}
+topologySpreadConstraints:
+{{- toYaml . | nindent 2 }}
+{{- end }}
 {{- if .Values.sidecars }}
 {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $ ) | nindent 0 }}
 {{- end }}

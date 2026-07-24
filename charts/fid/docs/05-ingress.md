@@ -3,8 +3,34 @@
 One `networking` block drives **NGINX, Traefik and Istio** off a shared route map, so
 switching controller does not mean redescribing your topology.
 
-> The legacy `ingress:`, `gateway:` and `virtualservice:` blocks still work and are
+> The legacy single-Ingress `ingress:` block still work and are
 > untouched. Use `networking:` for anything new.
+
+
+## `networking:` vs the legacy `ingress:`
+
+Two ways to get an HTTP Ingress, and you should use exactly one:
+
+| | `networking:` (preferred) | `ingress:` (legacy) |
+|---|---|---|
+| Controllers | nginx, traefik, istio | one nginx-style Ingress |
+| LDAPS/LDAP TCP | yes | no |
+| Multi-route / multi-host | yes (shared `routes` map) | single host |
+
+Enabling the legacy `ingress:` **and** a `networking:` HTTP controller (nginx/traefik/istio)
+at the same time renders **two overlapping Ingress objects** for FID — a confusing,
+half-working setup. The chart stops this with a preflight check:
+
+```
+PREFLIGHT: both the legacy `ingress:` and a `networking:` HTTP controller are enabled...
+Fix:    set ingress.enabled: false (keep networking), or disable the networking controller.
+Bypass: set preflight.ingressConflictCheck: false
+```
+
+`networking.ldaps` / `networking.ldap` are TCP and do **not** conflict with the legacy HTTP
+`ingress:` — you can run legacy HTTP ingress and networking LDAPS together if you bypass the
+check, though using `networking:` for both is cleaner.
+
 
 ## Ports
 

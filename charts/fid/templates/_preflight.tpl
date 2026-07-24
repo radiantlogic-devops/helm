@@ -83,4 +83,21 @@ Included from statefulset.yaml so it runs on every render.
 {{- end }}
 {{- end }}
 
+{{- /* ------------------------------------------------------------------------------
+     4. Legacy ingress vs networking conflict.
+
+     `ingress:` (legacy, single HTTP Ingress) and `networking:` (the multi-controller
+     block) both render HTTP Ingress objects. Enabling the legacy ingress alongside an HTTP
+     networking controller produces TWO Ingresses for the same service, usually with
+     different hosts — a confusing, half-working setup. LDAPS/LDAP TCP under networking does
+     NOT conflict (different protocol), so this only fires for the HTTP controllers.
+     ------------------------------------------------------------------------------ */}}
+{{- if ne $pf.ingressConflictCheck false }}
+{{- $net := .Values.networking | default dict }}
+{{- $httpController := or (($net.nginx).enabled) (($net.traefik).enabled) (($net.istio).enabled) }}
+{{- if and (.Values.ingress).enabled $httpController }}
+{{- fail "\n\nPREFLIGHT: both the legacy `ingress:` and a `networking:` HTTP controller\n(nginx/traefik/istio) are enabled. They each render an HTTP Ingress for FID, so you would\nget two overlapping Ingress objects.\n\nUse ONE:\n  - networking:  (preferred) multi-controller + LDAPS, see docs/05-ingress.md\n  - ingress:     legacy single Ingress\n\nFix:    set ingress.enabled: false (keep networking), or disable the networking controller.\nBypass: set preflight.ingressConflictCheck: false\n" }}
+{{- end }}
+{{- end }}
+
 {{- end }}

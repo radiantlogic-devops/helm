@@ -135,3 +135,67 @@ cronjob:
 
 The init container writes into `/migrations`; FID imports it during initial setup. It does
 not re-import on every restart. To re-run, reinstall or drive the import manually.
+
+
+## Full `fid.migration.advanced` values reference
+
+The chart reads this whole tree; only the keys for your chosen `source.type` matter.
+Credentials always come from Secret refs (`{name, key}`), never literals.
+
+```yaml
+fid:
+  migration:
+    url:                       # legacy: plain URL (ignored when advanced.enabled: true)
+    script:                    # legacy: optional post-migration script URL
+    advanced:
+      enabled: false
+      source:
+        type: ""               # http | s3 | gcs | azure | git | db
+        http:
+          url: ""
+          flags: ""            # extra curl flags, e.g. "-L"
+        s3:
+          bucket: ""
+          key: ""
+          region: ""
+          endpoint: ""         # S3-compatible stores (optional)
+          auth:
+            irsa: true         # ambient IRSA/instance creds; else the SecretRefs below
+            accessKeyIdSecretRef:     {name: "", key: "access-key-id"}
+            secretAccessKeySecretRef: {name: "", key: "secret-access-key"}
+        gcs:
+          bucket: ""
+          object: ""
+          auth:
+            workloadIdentity: true    # ambient GKE Workload Identity
+        azure:
+          accountName: ""
+          container: ""
+          blob: ""
+          auth:
+            managedIdentity: true
+            sasTokenSecretRef:    {name: "", key: "sas-token"}
+            accountKeySecretRef:  {name: "", key: "account-key"}
+        git:
+          repo: ""             # git@github.com:org/repo.git OR https://github.com/org/repo.git
+          ref: "main"
+          path: "export.zip"
+          auth:
+            sshKeySecretRef:        {name: "", key: "ssh-privatekey"}
+            knownHostsConfigMapRef: {name: "", key: "known_hosts"}
+            usernameSecretRef:      {name: "", key: "username"}
+            tokenSecretRef:         {name: "", key: "token"}
+        db:
+          driver: ""           # postgres | mysql
+          host: ""
+          port: 0
+          database: ""
+          query: ""
+          outputEncoding: "raw" # raw | base64
+          auth:
+            usernameSecretRef: {name: "", key: "username"}
+            passwordSecretRef: {name: "", key: "password"}
+      ## Optional per-source image overrides (else sensible defaults):
+      # image:
+      #   s3: {repository: amazon/aws-cli, tag: "2.15.40"}
+```

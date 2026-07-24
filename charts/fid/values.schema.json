@@ -307,6 +307,13 @@
           "additionalProperties": true
         }
       }
+    },
+    "topologySpreadConstraints": {
+      "type": "array"
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
   "definitions": {
