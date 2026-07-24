@@ -9,7 +9,7 @@ used verbatim.
 Named a distinct ConfigMap (<fullname>-observability-fluentd) so it never collides with the
 legacy metrics: path's `fluentd-config`.
 */ -}}
-{{- if and .Values.observability.enabled (((.Values.observability.logging).fluentd).enabled) }}
+{{- if and ((.Values.observability).enabled) (((.Values.observability).logging).fluentd).enabled }}
 {{- $clusterName := .Values.zk.clusterName | default "fid-cluster" }}
 {{- $globalCtx := . -}}
 apiVersion: v1

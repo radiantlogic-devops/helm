@@ -8,7 +8,7 @@ drains and cluster-autoscaler scale-down.
 Exactly one of maxUnavailable / minAvailable may be set. The chart defaults to
 maxUnavailable: 1, which is what this chart has always rendered.
 */ -}}
-{{- if .Values.podDisruptionBudget.enabled }}
+{{- if ((.Values.podDisruptionBudget).enabled) }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

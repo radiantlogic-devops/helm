@@ -5,6 +5,7 @@ as the main StatefulSet. nindent values are rebased to column 0. Output unchange
 patch is set.
 */}}
 {{- define "fid.followerPodSpec" -}}
+{{- include "fid.helperImagesInit" . -}}
 {{- with (include "fid.imagePullSecrets" . | trim) }}
 imagePullSecrets:
 {{- . | nindent 0 }}

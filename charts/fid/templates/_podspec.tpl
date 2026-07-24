@@ -10,6 +10,7 @@ conditional straddled two YAML levels (pod spec and StatefulSet spec), so it has
 into two inverse conditions. Rendered output is unchanged.
 */}}
 {{- define "fid.podSpec" -}}
+{{- include "fid.helperImagesInit" . -}}
 {{- with (include "fid.imagePullSecrets" . | trim) }}
 imagePullSecrets:
 {{- . | nindent 6 }}
@@ -275,7 +276,7 @@ containers:
 {{- end }}
       tail -f /dev/null
 {{- end }}
-{{- if .Values.observability.enabled }}
+{{- if ((.Values.observability).enabled) }}
 {{- include "fid.observabilitySidecar" . | nindent 0 }}
 {{- else if .Values.metrics.enabled }}
 - name: {{ .Chart.Name }}-exporter
@@ -414,8 +415,8 @@ volumes:
     defaultMode: 288
     secretName: {{ include "fid.secretName" . }}
 {{- end }}
-{{- if .Values.observability.enabled }}
-{{- if ((.Values.observability.logging).fluentd).enabled }}
+{{- if ((.Values.observability).enabled) }}
+{{- if (((.Values.observability).logging).fluentd).enabled }}
 - name: observability-fluentd-config
   configMap:
     name: {{ include "fid.fullname" . }}-observability-fluentd

@@ -1,3 +1,4 @@
+{{- include "fid.helperImagesInit" . -}}
 {{- if .Values.hooks.pre_install.enabled }}
 apiVersion: batch/v1
 kind: Job

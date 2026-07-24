@@ -1,3 +1,4 @@
+{{- include "fid.helperImagesInit" . -}}
 {{- if eq .Values.cronjob.migration.enabled true }}
 apiVersion: batch/v1
 kind: CronJob

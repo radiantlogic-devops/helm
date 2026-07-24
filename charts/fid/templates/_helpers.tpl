@@ -626,7 +626,33 @@ The supported aggregators are ELASTICSEARCH, OPENSEARCH, SPLUNK
   {{- end }}
 {{- end }}
 
+{{/*
+Built-in defaults for helperImages — kept identical to values.yaml.
 
+Their reason for existing is `helm upgrade --reuse-values`: that flag reuses ONLY the prior
+release's values and does NOT layer the new chart's values.yaml on top, so a release
+installed from an older chart (which had no `helperImages:` block at all) would render the
+new templates with `.Values.helperImages` nil and crash on the first `.checkZk` index.
 
+`fid.helperImagesInit` backfills any missing key with `merge` (user values always win), so:
+  * default render is byte-identical (the user already has every key → merge is a no-op), and
+  * --reuse-values from any prior chart still resolves every helper image.
+
+Consuming templates call `{{- include "fid.helperImagesInit" . -}}` once, up top.
+*/}}
+{{- define "fid.helperImagesDefaults" -}}
+checkZk:         {repository: radiantone/init-tools, tag: latest, pullPolicy: IfNotPresent, resources: {limits: {cpu: 100m, memory: 128Mi}, requests: {cpu: 100m, memory: 128Mi}}}
+checkZkReadonly: {repository: radiantone/curl,       tag: latest, pullPolicy: IfNotPresent, resources: {limits: {cpu: 100m, memory: 128Mi}, requests: {cpu: 100m, memory: 128Mi}}}
+checkFid:        {repository: radiantone/init-tools, tag: latest, pullPolicy: IfNotPresent, resources: {limits: {cpu: 100m, memory: 128Mi}, requests: {cpu: 100m, memory: 128Mi}}}
+sysctl:          {repository: busybox,               tag: latest, pullPolicy: IfNotPresent, resources: {limits: {cpu: 100m, memory: 128Mi}, requests: {cpu: 100m, memory: 128Mi}}}
+migration:       {repository: radiantone/curl,       tag: latest, pullPolicy: IfNotPresent, resources: {limits: {cpu: 100m, memory: 512Mi}, requests: {cpu: 100m, memory: 128Mi}}}
+hooks:           {repository: radiantone/kubectl,    tag: latest}
+testCurl:        {repository: radiantone/curl,       tag: latest}
+testBusybox:     {repository: busybox,               tag: ""}
+{{- end }}
+
+{{- define "fid.helperImagesInit" -}}
+{{- $_ := set .Values "helperImages" (merge (.Values.helperImages | default dict) (fromYaml (include "fid.helperImagesDefaults" .))) -}}
+{{- end }}
 
 
