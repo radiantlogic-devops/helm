@@ -5,29 +5,67 @@
   "type": "object",
   "additionalProperties": true,
   "properties": {
-    "replicaCount": { "type": "integer", "minimum": 0 },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 0
+    },
     "global": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "imageRegistry": { "type": "string" },
-        "imagePullSecrets": { "type": "array" }
+        "imageRegistry": {
+          "type": "string"
+        },
+        "imagePullSecrets": {
+          "type": "array"
+        }
       }
     },
-    "commonLabels":      { "type": "object", "additionalProperties": true },
-    "commonAnnotations": { "type": "object", "additionalProperties": true },
-    "extraContainers":   { "type": "array" },
-    "extraObjects":      { "type": "array" },
-    "automountServiceAccountToken": { "type": "boolean" },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "extraContainers": {
+      "type": "array"
+    },
+    "extraObjects": {
+      "type": "array"
+    },
+    "automountServiceAccountToken": {
+      "type": "boolean"
+    },
     "image": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "repository": { "type": "string" },
-        "tag":        { "type": ["string", "number"] },
-        "digest":     { "type": "string", "pattern": "^$|^sha256:[a-f0-9]{64}$" },
-        "registry":   { "type": "string" },
-        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^$|^sha256:[a-f0-9]{64}$"
+        },
+        "registry": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        }
       }
     },
     "security": {
@@ -36,7 +74,13 @@
       "properties": {
         "profile": {
           "type": "string",
-          "enum": ["vanilla", "baseline", "hardened", "paranoid", "custom"],
+          "enum": [
+            "vanilla",
+            "baseline",
+            "hardened",
+            "paranoid",
+            "custom"
+          ],
           "description": "Security posture preset. Supplies defaults only; explicit securityContext values always win."
         }
       }
@@ -45,55 +89,115 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "mountSecretsVersionCheck": { "type": "boolean" },
-        "immutableFieldCheck":      { "type": "boolean" },
-        "storageClassCheck":        { "type": "boolean" }
+        "mountSecretsVersionCheck": {
+          "type": "boolean"
+        },
+        "immutableFieldCheck": {
+          "type": "boolean"
+        },
+        "storageClassCheck": {
+          "type": "boolean"
+        }
       }
     },
     "podDisruptionBudget": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "enabled":        { "type": "boolean" },
-        "maxUnavailable": { "type": ["integer", "string"] },
-        "minAvailable":   { "type": ["integer", "string"] }
+        "enabled": {
+          "type": "boolean"
+        },
+        "maxUnavailable": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "minAvailable": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
       }
     },
     "networkPolicy": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "enabled":          { "type": "boolean" },
-        "extraIngressFrom": { "type": "array" },
-        "ingress":          { "type": "array" },
-        "egress":           { "type": "array" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "extraIngressFrom": {
+          "type": "array"
+        },
+        "ingress": {
+          "type": "array"
+        },
+        "egress": {
+          "type": "array"
+        }
       }
     },
     "persistence": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "enabled":      { "type": "boolean" },
-        "storageClass": { "type": "string" },
-        "size":         { "type": ["string", "number"] },
-        "accessModes":  { "type": "array" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "storageClass": {
+          "type": "string"
+        },
+        "size": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "accessModes": {
+          "type": "array"
+        }
       }
     },
     "fid": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "rootUser":       { "type": "string" },
-        "rootPassword":   { "type": "string" },
-        "license":        { "type": "string" },
-        "mountSecrets":   { "type": "boolean" },
-        "existingSecret": { "type": "string" },
-        "retainSecret":   { "type": "boolean" },
-        "sealedSecrets":  { "type": "boolean" },
-        "podSpecPatch":   { "type": "object", "additionalProperties": true },
-        "livenessProbe":  { "$ref": "#/definitions/probe" },
-        "readinessProbe": { "$ref": "#/definitions/probe" },
-        "startupProbe":   { "$ref": "#/definitions/probe" }
+        "rootUser": {
+          "type": "string"
+        },
+        "rootPassword": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "mountSecrets": {
+          "type": "boolean"
+        },
+        "existingSecret": {
+          "type": "string"
+        },
+        "retainSecret": {
+          "type": "boolean"
+        },
+        "sealedSecrets": {
+          "type": "boolean"
+        },
+        "podSpecPatch": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "livenessProbe": {
+          "$ref": "#/definitions/probe"
+        },
+        "readinessProbe": {
+          "$ref": "#/definitions/probe"
+        },
+        "startupProbe": {
+          "$ref": "#/definitions/probe"
+        }
       }
     },
     "hooks": {
@@ -103,7 +207,11 @@
         "rbac": {
           "type": "object",
           "additionalProperties": true,
-          "properties": { "rules": { "type": "array" } }
+          "properties": {
+            "rules": {
+              "type": "array"
+            }
+          }
         }
       }
     },
@@ -113,11 +221,90 @@
         "type": "object",
         "additionalProperties": true,
         "properties": {
-          "repository": { "type": "string" },
-          "tag":        { "type": ["string", "number"] },
-          "digest":     { "type": "string", "pattern": "^$|^sha256:[a-f0-9]{64}$" },
-          "registry":   { "type": "string" },
-          "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+          "repository": {
+            "type": "string"
+          },
+          "tag": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^$|^sha256:[a-f0-9]{64}$"
+          },
+          "registry": {
+            "type": "string"
+          },
+          "pullPolicy": {
+            "type": "string",
+            "enum": [
+              "Always",
+              "IfNotPresent",
+              "Never"
+            ]
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "exporter": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "flavor": {
+              "type": "string",
+              "enum": [
+                "fid-exporter",
+                "rl-exporter"
+              ]
+            },
+            "imageRepository": {
+              "type": "string"
+            },
+            "metricsPort": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            }
+          }
+        },
+        "logging": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fluentd": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "aggregators": {
+                  "type": "array"
+                },
+                "logs": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "indexCreation": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     }
@@ -127,14 +314,35 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "enabled":             { "type": "boolean" },
-        "initialDelaySeconds": { "type": "integer", "minimum": 0 },
-        "timeoutSeconds":      { "type": "integer", "minimum": 1 },
-        "periodSeconds":       { "type": "integer", "minimum": 1 },
-        "failureThreshold":    { "type": "integer", "minimum": 1 },
-        "successThreshold":    { "type": "integer", "minimum": 1 },
-        "port":                { "type": "integer" },
-        "command":             { "type": "array" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "successThreshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "port": {
+          "type": "integer"
+        },
+        "command": {
+          "type": "array"
+        }
       }
     }
   }

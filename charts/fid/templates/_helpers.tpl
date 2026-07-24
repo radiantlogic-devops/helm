@@ -330,6 +330,14 @@ strict behaviour and let the pod fail if that is genuinely what you want.
 {{- end }}
 
 {{/*
+Tenant name — the namespace with the Duplo "duploservices-" prefix stripped.
+Used by the fluentd Loki aggregator labels (ported from helm-v8).
+*/}}
+{{- define "tenant.name" -}}
+{{- trimPrefix "duploservices-" .Release.Namespace -}}
+{{- end }}
+
+{{/*
 Security posture presets.
 
 These supply DEFAULTS ONLY. Anything set explicitly in values.yaml
