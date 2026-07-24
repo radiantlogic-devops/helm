@@ -19,6 +19,7 @@ FID 7.x). For FID 8.x / IDDM see the separate `helm-v8` repository.
 | [10 — Upgrades and rollback](10-upgrades-and-rollback.md) | Before you upgrade. Immutable fields, credential preservation |
 | [11 — Escape hatches](11-escape-hatches.md) | The chart does not model the thing you need |
 | [12 — Troubleshooting](12-troubleshooting.md) | Something is broken |
+| [14 — Env, volumes and sidecars](14-env-and-volumes.md) | Injecting config, mounting certs, adding sidecars, lifecycle scripts |
 | [13 — Values reference](13-values-reference.md) | Full annotated key list |
 
 ## The one rule

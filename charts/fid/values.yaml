@@ -619,9 +619,12 @@ zk:
   password: "secret1234"
 sysctl:
   enabled: false
+## Pull secrets referenced by the FID pods. Merged with global.imagePullSecrets (deduped).
+## Alternatively, imageCredentials (below) lets the chart create the Secret for you.
+## Full guide incl. golden images / private registries: docs/02-images-and-registries.md
 imagePullSecrets: []
-# imagePullSecrets:
-# - name: regcred
+  # - name: regcred                 # a docker-registry Secret you already created
+  # - name: ecr-creds               # more than one is fine — all are attached to the pod
 nameOverride: ""
 fullnameOverride: ""
 serviceAccount:
@@ -634,46 +637,12 @@ serviceAccount:
   name: ""
 updateStrategy: RollingUpdate
 podAnnotations: {}
-# Pod level security context
-## ---------------------------------------------------------------------------------------
-## SECURITY POSTURE
-## ---------------------------------------------------------------------------------------
-##
-## `security.profile` selects a set of securityContext DEFAULTS. It is a dial, not a cage:
-## anything you set in podSecurityContext / securityContext / helperSecurityContext below is
-## deep-merged ON TOP of the profile and always wins.
-##
-##   vanilla   (default) No hardening whatsoever — exactly what this chart has always
-##                       rendered. A fully supported destination: if you want root and no
-##                       restrictions, stay here. Nothing about upgrading changes this.
-##   baseline            ~Pod Security Standards "baseline". allowPrivilegeEscalation=false
-##                       and RuntimeDefault seccomp. Safe for effectively any workload and
-##                       the cheapest meaningful hardening step.
-##   hardened            ~PSS "restricted". Non-root (uid 1000), all capabilities dropped,
-##                       read-only root filesystem on the init/helper containers.
-##                       VALIDATED on FID 7.4.23: pod runs as uid/gid 1000 with
-##                       allowPrivilegeEscalation=false, capabilities dropped ALL and
-##                       RuntimeDefault seccomp; the cluster forms, the leader is elected
-##                       and all bundled fid tests pass, with zero restarts.
-##   paranoid            hardened, PLUS a read-only root filesystem on the FID container.
-##                       FID writes to /opt/radiantone at runtime, so this REQUIRES writable
-##                       volume mounts for every such path. Validate in a test namespace
-##                       before production — see extraVolumes / extraVolumeMounts below.
-##   custom              No preset at all. You specify every field yourself.
-##
-## Changing profile alters only mutable pod-template fields, so it is a rolling restart and
-## `helm rollback` reverses it exactly.
-##
-## To REMOVE a field a profile sets (rather than change its value), use profile: custom, or
-## fid.podSpecPatch — the patch is applied last and can delete or override anything.
-##
-## Example — hardened everywhere, but this one image insists on running as uid 0:
-##   security:
-##     profile: hardened
-##   securityContext:
-##     runAsUser: 0
-##     runAsNonRoot: false
-##
+## Security posture — a dial, not a cage. `profile` sets securityContext DEFAULTS;
+## podSecurityContext / securityContext / helperSecurityContext are deep-merged on top and
+## always win. Profiles: vanilla (default, no hardening) | baseline | hardened | paranoid |
+## custom. Changing it is a rolling restart and `helm rollback` reverses it exactly.
+## Full guide — what each profile sets, override precedence, the exporter/root case, what is
+## and isn't validated: docs/03-security-profiles.md
 security:
   profile: vanilla
 
