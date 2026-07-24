@@ -820,9 +820,17 @@ persistence:
 metrics:
   enabled: false
   ## fid-exporter | rl-exporter
+  ##
+  ## The flavour drives BOTH the image default and how the sidecar is wired:
+  ##   fid-exporter  radiantone/fid-exporter, push-mode metrics + shell-orchestrated Fluentd
+  ##   rl-exporter   radiantone/rl-exporter, a single Go binary that serves :9095 for
+  ##                 scraping and ships logs directly (no Pushgateway, no pushgateway gate)
+  ##
+  ## Leave imageRepository empty to let the flavour pick the repository. Set it to override
+  ## (e.g. a mirror, or rahulnutakki/rl-exporter for the current dev build).
   flavor: fid-exporter
-  ## Preferred keys. `image` / `imageTag` still work (deprecated, see NOTES on upgrade).
-  imageRepository: radiantone/fid-exporter
+  ## Empty => derived from flavor. Preferred key; `image`/`imageTag` still work (deprecated).
+  imageRepository: ""
   ## Pinned to an immutable tag rather than `latest`, which silently rolled a new Fluentd
   ## into every pod restart. iddm-8.4.5 verified PUBLIC.
   tag: iddm-8.4.5
@@ -842,6 +850,15 @@ metrics:
       cpu: 100m
       memory: 128Mi
   annotations: {}
+  ## rl-exporter only. The Admin REST API endpoint it scrapes for FID metrics. Defaults to
+  ## the pod's own admin HTTPS port. On FID 7.x these paths 404 (rl-exporter targets 8.x).
+  # adminApiUrl: "https://localhost:9101"
+  ## rl-exporter only. Port it serves /metrics on for Prometheus to scrape.
+  # metricsPort: 9095
+  ## rl-exporter only. ZooKeeper connection for its ZK collector.
+  # zkConn: "zookeeper-app:2181"
+  ##
+  ## ------ fid-exporter only, below ------
   pushMode: true
   pushGateway: http://prometheus-server:9091
   pushMetricCron: "* * * * *"

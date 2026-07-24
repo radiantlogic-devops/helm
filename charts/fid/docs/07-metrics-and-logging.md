@@ -104,18 +104,58 @@ metrics:
 `metrics-service` into one image, reads metrics from the Admin REST API instead of LDAP
 `cn=Monitor`, and fixes the OOM with per-worker on-disk buffers.
 
-**It is not the default** because its image is not published to a public registry yet
-(`ghcr.io/radiantlogic-devops/rl-exporter` returns 403; there is no Docker Hub repo), so
-defaulting to it would break every install that cannot authenticate. Flip it with:
+Setting `flavor: rl-exporter` switches **three** things at once:
+
+- the image default → `radiantone/rl-exporter`
+- the container command → `/fluentd/bin/entry.sh` (rl-exporter's, not fid-exporter's)
+- the env → `METRICS_ENABLED` / `LOGGING_ENABLED` / `ADMIN_API_URL` / `ELASTICSEARCH_HOST`
+  rather than `PUSH_MODE` / `PUSHGATEWAY_URI` / `BIND_DN`
+
+### rl-exporter is pull-native — no Pushgateway, no gate
+
+Unlike fid-exporter, rl-exporter is a single Go binary that serves `:9095` for scraping and
+ships logs directly. **It has none of fid-exporter's coupling**: metrics and logging are
+independent toggles, and there is no `verify_pushgateway` step that can block log shipping.
+Point Prometheus straight at `:9095`.
 
 ```yaml
 metrics:
+  enabled: true
   flavor: rl-exporter
-  imageRepository: ghcr.io/radiantlogic-devops/rl-exporter
+  imageRepository: ""          # empty => radiantone/rl-exporter
   tag: "<version>"
   resources:
     limits: {memory: 512Mi}    # 128Mi is not enough for rl-exporter
+  fluentd:
+    enabled: true
+    aggregators:
+      - {type: elasticsearch, host: elasticsearch, port: 9200}
 ```
+
+### Two caveats, both verified on a live cluster
+
+Tested end-to-end against FID 7.4.23 with Prometheus, Elasticsearch, Kibana and Grafana:
+
+1. **It is not the default**, because `radiantone/rl-exporter` is not published to a public
+   registry yet. Defaulting to it would break every install that cannot authenticate. Set
+   `imageRepository` to wherever you publish it (the current dev build lives at
+   `rahulnutakki/rl-exporter:dev`).
+
+2. **rl-exporter targets FID 8.x.** On 7.4.23 its rich metrics come back empty: the Admin
+   REST API paths it scrapes (`/adminapp/data/metrics/{cluster-info,node-monitor,...}`)
+   return **HTTP 404**, and its bundled Fluentd template is absent from the `dev` image, so
+   **logging is silently disabled**. What DID work on 7.x: it started cleanly, served
+   `:9095`, and Prometheus scraped it healthy (target UP, 0 errors) — but only
+   `fid_service_status` and `rl_exporter_is_primary` carried data. And `fid_service_status`
+   reported the **inverse of reality** (it marked closed ports up and open ports down),
+   because its probe logic assumes the 8.x port layout.
+
+   Bottom line: on this chart line (FID 7.x), **fid-exporter is the working exporter**.
+   rl-exporter is wired and ready for when this chart is pointed at an 8.x image, and for
+   validation once its image is published — but it is not a drop-in on 7.x today.
+
+Both are chart-independent (image behaviour and image packaging); the chart renders
+rl-exporter correctly, verified by the sidecar coming up 2/2 and Prometheus scraping it.
 
 ## Logging to Elasticsearch / OpenSearch / Splunk
 

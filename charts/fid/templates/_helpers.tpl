@@ -126,10 +126,20 @@ Resolve the metrics/exporter sidecar image. `metrics.image` is a bare repository
 */}}
 {{- define "fid.metricsImage" -}}
 {{- $m := .Values.metrics | default dict -}}
-{{- /* coalesce: new key wins, deprecated key still honoured (see fid.deprecationWarnings) */ -}}
-{{- $repo := coalesce $m.imageRepository $m.image -}}
+{{- /* coalesce: new key wins, deprecated key still honoured (see fid.deprecationWarnings).
+       When neither is set, the repository default follows metrics.flavor so switching the
+       flavour actually switches the image rather than only its behaviour. */ -}}
+{{- $flavorRepo := ternary "radiantone/rl-exporter" "radiantone/fid-exporter" (eq ($m.flavor | default "fid-exporter") "rl-exporter") -}}
+{{- $repo := coalesce $m.imageRepository $m.image $flavorRepo -}}
 {{- $tag := coalesce $m.tag $m.imageTag -}}
 {{- include "fid.image" (dict "image" (dict "repository" $repo "tag" $tag "registry" $m.registry "digest" $m.digest) "context" .) -}}
+{{- end }}
+
+{{/*
+Is the metrics sidecar the rl-exporter flavour?
+*/}}
+{{- define "fid.isRlExporter" -}}
+{{- eq ((.Values.metrics).flavor | default "fid-exporter") "rl-exporter" -}}
 {{- end }}
 
 {{/*

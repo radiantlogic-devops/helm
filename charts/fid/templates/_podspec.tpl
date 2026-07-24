@@ -327,8 +327,34 @@ containers:
   securityContext:
 {{- . | nindent 4 }}
 {{- end }}
+{{- if (include "fid.isRlExporter" .) | eq "true" }}
+  {{- /* rl-exporter is a single Go binary that reads env and serves :9095 for scraping.
+         No shell orchestration, and crucially no pushgateway gate on log shipping. */}}
+  command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done; echo \"FID is up!\" && exec /fluentd/bin/entry.sh"]
+{{- else }}
   command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
+{{- end }}
   env:
+{{- if (include "fid.isRlExporter" .) | eq "true" }}
+  {{- /* rl-exporter env surface (verified against the image): pull-native, independent
+         metrics/logging toggles, reads metrics from the Admin REST API. */}}
+  - name: METRICS_ENABLED
+    value: {{ .Values.metrics.enabled | quote }}
+  - name: LOGGING_ENABLED
+    value: {{ (.Values.metrics.fluentd).enabled | default false | quote }}
+  - name: METRICS_PORT
+    value: {{ (.Values.metrics).metricsPort | default 9095 | quote }}
+  - name: LDAP_URI
+    value: "ldaps://localhost:2636"
+  {{- with (.Values.metrics).adminApiUrl }}
+  - name: ADMIN_API_URL
+    value: {{ . | quote }}
+  {{- end }}
+  {{- with (.Values.metrics).zkConn }}
+  - name: ZK_CONN
+    value: {{ . | quote }}
+  {{- end }}
+{{- else }}
 {{- if .Values.metrics.pushMode }}
   - name: PUSH_MODE
     value: {{ .Values.metrics.pushMode | quote }}
@@ -359,12 +385,23 @@ containers:
         name: {{ include "fid.secretName" . }}
         key: fid-root-password
 {{- end }}
+{{- end }}{{/* end flavor if/else for the LDAP/push block */}}
 {{- if hasKey .Values.metrics.fluentd "enabled" }}
 {{- if .Values.metrics.fluentd.enabled }}
   - name: FLUENTD_ENABLE
     value: {{ .Values.metrics.fluentd.enabled | quote }}
+  {{- if (include "fid.isRlExporter" .) | eq "true" }}
+  {{- $agg := first (.Values.metrics.fluentd.aggregators | default list) }}
+  {{- with $agg }}
+  - name: ELASTICSEARCH_HOST
+    value: {{ .host | quote }}
+  - name: ELASTICSEARCH_PORT
+    value: {{ .port | default 9200 | quote }}
+  {{- end }}
+  {{- else }}
   - name: FLUENTD_CONF
     value: {{ .Values.metrics.fluentd.configFile | quote }}
+  {{- end }}
 {{- end }}
 {{- end }}
 

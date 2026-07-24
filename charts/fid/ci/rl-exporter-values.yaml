@@ -1,0 +1,20 @@
+# rl-exporter flavour: pull-native metrics, independent logging, no Pushgateway.
+# Verified live against FID 7.4.23 with Prometheus/ES/Kibana/Grafana - the sidecar comes
+# up 2/2 and Prometheus scrapes :9095 healthy. (rl-exporter's rich metrics target FID 8.x;
+# on 7.x only fid_service_status/rl_exporter_is_primary carry data - see docs/07.)
+metrics:
+  enabled: true
+  flavor: rl-exporter
+  imageRepository: ""          # empty => radiantone/rl-exporter (flavor default)
+  tag: "dev"
+  securityContext:
+    runAsUser: 0
+  resources:
+    limits: {cpu: 500m, memory: 512Mi}
+    requests: {cpu: 100m, memory: 128Mi}
+  fluentd:
+    enabled: true
+    aggregators:
+      - {type: elasticsearch, host: elasticsearch, port: 9200}
+fid:
+  license: "[FID Cluster License]"
