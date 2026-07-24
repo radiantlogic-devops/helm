@@ -1,0 +1,93 @@
+name: TTL Dev Chart (ttl.sh)
+
+# Ephemeral chart publisher for the `dev` integration branch.
+#
+# On every push to `dev` (i.e. every merge of a feature branch), this packages charts/fid
+# and pushes it as an OCI artifact to ttl.sh, the anonymous & ephemeral registry. The chart
+# lives there for ttl.sh's default lifetime (~24h) and can be installed straight away for
+# throwaway testing:
+#
+#   helm install my-fid oci://ttl.sh/radiantlogic-devops-helm-dev/fid --version <printed-version>
+#
+# This is deliberately separate from the two other publish paths and touches neither:
+#   * release.yml           -> released `fid` charts to gh-pages, on push to master
+#   * publish-ghcr (lint-test-fid.yml) -> per-PR throwaway `fid-dev` to GHCR
+#
+# The version is the Chart.yaml version with a `-dev.<short-sha>` suffix, so every merge
+# produces a distinct, installable version and successive merges never overwrite each other
+# within the TTL window. ttl.sh is anonymous, so no registry credentials are needed.
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'charts/fid/**'
+      - '.github/workflows/ttl-dev-chart.yml'
+  workflow_dispatch: {}
+
+# Let each merge publish; do not cancel an in-flight publish when the next merge lands.
+concurrency:
+  group: ttl-dev-chart-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ttl-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Package and push to ttl.sh
+        id: pkg
+        env:
+          # ttl.sh namespace. Public and ephemeral - anyone can pull; nothing sensitive here.
+          TTL_NS: radiantlogic-devops-helm-dev
+          CHART_DIR: charts/fid
+        run: |
+          set -euo pipefail
+          base_version=$(helm show chart "$CHART_DIR" | awk '/^version:/{print $2}')
+          short_sha=${GITHUB_SHA::7}
+          dev_version="${base_version}-dev.${short_sha}"
+
+          # The Chart.yaml zookeeper dependency points at the published gh-pages repo URL,
+          # so `helm dependency update` resolves it without a `helm repo add`. A change to
+          # charts/zookeeper in the same merge is therefore NOT reflected here - the dev fid
+          # chart still bundles the last released zookeeper. Same tradeoff as publish-ghcr.
+          helm dependency update "$CHART_DIR"
+          helm package "$CHART_DIR" --version "$dev_version" --destination /tmp/ttlpkg
+          tgz=$(ls /tmp/ttlpkg/*.tgz)
+
+          helm push "$tgz" "oci://ttl.sh/${TTL_NS}"
+
+          echo "dev_version=$dev_version" >> "$GITHUB_OUTPUT"
+          echo "ttl_ns=$TTL_NS"           >> "$GITHUB_OUTPUT"
+
+      - name: Job summary
+        run: |
+          ns='${{ steps.pkg.outputs.ttl_ns }}'
+          ver='${{ steps.pkg.outputs.dev_version }}'
+          {
+            echo "### 🧪 TTL dev chart pushed to ttl.sh"
+            echo ""
+            echo "Ephemeral OCI chart (ttl.sh default lifetime, ~24h). Install for testing:"
+            echo ""
+            echo '```bash'
+            echo "helm install my-fid oci://ttl.sh/${ns}/fid --version ${ver}"
+            echo '```'
+            echo ""
+            echo "Pull only:"
+            echo ""
+            echo '```bash'
+            echo "helm pull oci://ttl.sh/${ns}/fid --version ${ver}"
+            echo '```'
+            echo ""
+            echo "- commit: \`${GITHUB_SHA}\`"
+            echo "- ref:    \`${GITHUB_REF_NAME}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
