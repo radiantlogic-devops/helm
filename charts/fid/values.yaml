@@ -779,6 +779,24 @@ persistence:
 ## When rl-exporter is published publicly, change `flavor` below to rl-exporter and the
 ## repository default in _helpers.tpl (fid.metricsImage) to match.
 ##
+## PUSH vs PULL — verified against radiantone/fid-exporter:iddm-8.4.5 on a live cluster.
+##
+## This image only exports metrics in PUSH mode. Its entrypoint starts the exporter binary
+## solely when PUSH_MODE=true; with pushMode: false nothing listens on :9095 and Prometheus
+## has nothing to scrape. The containerPort 9095 the chart declares is vestigial for this
+## image — it is kept for exporters that do serve metrics (rl-exporter does).
+##
+## So with fid-exporter you need a Pushgateway:
+##   metrics: {enabled: true, pushMode: true, pushGateway: "http://pushgateway:9091"}
+##
+## Verified: 70 FID metric series (ldap_connection, ldap_connection_count,
+## ldap_connection_max, ...) landed in a Pushgateway within one cron interval, and Fluentd
+## shipped vds_server.log, vds_events.log and web.log to Elasticsearch in the same run.
+##
+## Prometheus' own guidance is that a Pushgateway is the wrong shape for long-lived
+## services (it breaks up/down detection and staleness). rl-exporter serving a scrape
+## endpoint is the better end state; until it is published, this is the working path.
+##
 metrics:
   enabled: false
   ## fid-exporter | rl-exporter

@@ -1,0 +1,23 @@
+# Exporter + Fluentd sidecar on the hardened profile.
+#
+# This posture exists because metrics.enabled defaults to false, so the exporter container
+# was never rendered by any other ci case - which is exactly how a duplicate securityContext
+# key inside it survived a full kubeconform -strict sweep.
+security:
+  profile: hardened
+metrics:
+  enabled: true
+  pushMode: false
+  securityContext:
+    runAsUser: 0        # must read FID's log files; chart adds runAsNonRoot:false for it
+  resources:
+    limits: {cpu: 500m, memory: 512Mi}
+    requests: {cpu: 100m, memory: 128Mi}
+  fluentd:
+    enabled: true
+    aggregators:
+      - type: elasticsearch
+        host: elasticsearch-master
+        port: 9200
+fid:
+  license: "[FID Cluster License]"

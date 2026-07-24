@@ -294,6 +294,32 @@ inspecting the created PVC.
 {{- end }}
 
 {{/*
+Effective securityContext for the metrics/logging sidecar.
+
+This container legitimately needs uid 0: it tails FID's log files, which FID writes as its
+own user with restrictive modes. That collides with a pod-level `runAsNonRoot: true` from
+the hardened/paranoid profiles — kubelet rejects the pod with
+
+    Error: container's runAsUser breaks non-root policy
+
+which is an obscure way to learn about a values conflict. A container-level
+`runAsNonRoot: false` overrides the pod-level policy, so whenever the resolved runAsUser is
+0 we emit it automatically instead of making the operator know this Kubernetes subtlety.
+
+An explicit metrics.securityContext.runAsNonRoot always wins, so you can still force the
+strict behaviour and let the pod fail if that is genuinely what you want.
+*/}}
+{{- define "fid.exporterSecurityContext" -}}
+{{- $sc := ((.Values.metrics).securityContext | default (fromYaml (include "fid.helperSecurityContext" .))) | default dict -}}
+{{- /* NB: `$sc.runAsUser | default ""` would swallow the value, because Go templates
+       treat 0 as empty and `default` fires on it. Compare the raw value. */ -}}
+{{- if and (kindIs "invalid" $sc.runAsNonRoot) (eq (toString $sc.runAsUser) "0") -}}
+{{- $sc = set (deepCopy $sc) "runAsNonRoot" false -}}
+{{- end -}}
+{{- if $sc }}{{ toYaml $sc }}{{ end -}}
+{{- end }}
+
+{{/*
 Security posture presets.
 
 These supply DEFAULTS ONLY. Anything set explicitly in values.yaml

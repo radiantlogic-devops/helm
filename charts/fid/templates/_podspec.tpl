@@ -313,10 +313,6 @@ containers:
          raised without forking, with the historical values as the default. */}}
   resources:
 {{- toYaml ((.Values.metrics).resources | default (dict "limits" (dict "cpu" "1000m" "memory" "1Gi") "requests" (dict "cpu" "100m" "memory" "128Mi"))) | nindent 4 }}
-{{- with ((.Values.metrics).securityContext | default (fromYaml (include "fid.helperSecurityContext" $))) }}
-  securityContext:
-{{- toYaml . | nindent 4 }}
-{{- end }}
   ports:
   - containerPort: 9095
     name: exporter
@@ -327,7 +323,10 @@ containers:
   - name: fluentd-config-volume
     mountPath: /fluentd/etc
 {{- end }}
-  securityContext: {{ .Values.metrics.securityContext | default dict | toYaml | nindent 10 }}
+{{- with (include "fid.exporterSecurityContext" $ | trim) }}
+  securityContext:
+{{- . | nindent 4 }}
+{{- end }}
   command: ["/bin/sh", "-c", "until nc -w 2 -z localhost 2636; do echo Waiting for fid on port 2636;sleep 10; done;echo \"FID is up!\" && /opt/fidexporter/entry.sh"]
   env:
 {{- if .Values.metrics.pushMode }}
