@@ -58,3 +58,75 @@ jobs:
 
       - name: Run chart-testing (install)
         run: ct install --charts=charts/fid --helm-extra-args="--timeout=15m0s" --helm-extra-set-args="--set=fid.license=${{ secrets.RADIANTONE_LICENSE }} --set=dependencies.zookeeper.enabled=true --set=replicaCount=2 --set=postStart.enabled=false" --upgrade --debug
+
+  # Temp Helm Chart hosted as an OCI image on ghcr.
+  #
+  # Mirrors the publish-ghcr job in radiantlogic-devops/helm-v8, so both repos expose a
+  # throwaway chart per PR under the same convention: the chart is renamed to <chart>-dev
+  # and pushed under this repository's own prefix.
+  #
+  #   helm pull oci://ghcr.io/radiantlogic-devops/helm/fid-dev --version <Chart.yaml version>
+  #
+  # The package is separate from everything helm-v8 publishes (which all live under
+  # ghcr.io/radiantlogic-devops/helm-v8/) and from this repo's released charts (gh-pages,
+  # via release.yml on master). Nothing here touches either.
+  #
+  # NOTE: the tag is the raw Chart.yaml version, exactly as helm-v8 does it, so successive
+  # pushes to a PR - and concurrent PRs that do not bump the version - overwrite the same
+  # tag. Pull by digest if you need a specific build pinned.
+  publish-ghcr:
+    # Depending on the org's default workflow permissions (contents read-only vs read-write),
+    # packages: write may be required for the GITHUB_TOKEN to push to GHCR.
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - name: Checkout
+        # v4, not helm-v8's v3: the v3 runner is too old for current GitHub runners.
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Rename so the temp chart cannot be confused with the released `fid`.
+      # Unlike helm-v8, the zookeeper dependency is deliberately left pointing at the
+      # published gh-pages chart: this repo has no zookeeper-dev to point at, and
+      # `helm dependency update` resolves that URL without a `helm repo add`.
+      # Consequence: a PR that changes charts/zookeeper is NOT reflected in the dev fid
+      # chart - it still pulls the last released zookeeper.
+      - name: update-yaml-file
+        uses: mikefarah/yq@v4.44.3
+        id: update_chart
+        with:
+          cmd: yq -i '.name = "fid-dev"' charts/fid/Chart.yaml
+
+      - name: read-yaml-file
+        uses: mikefarah/yq@v4.44.3
+        id: read_chart
+        with:
+          cmd: yq '.version' charts/fid/Chart.yaml
+
+      - name: Chart | Push
+        uses: appany/helm-oci-chart-releaser@v0.4.1
+        with:
+          name: fid-dev
+          repository: helm
+          tag: ${{ steps.read_chart.outputs.result }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          path: charts/fid
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: 'true' # Defaults to false
+
+      - name: Summary
+        run: |
+          {
+            echo "### Temp chart published"
+            echo
+            echo '```bash'
+            echo "helm pull oci://ghcr.io/${{ github.repository_owner }}/helm/fid-dev \\"
+            echo "  --version ${{ steps.read_chart.outputs.result }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
