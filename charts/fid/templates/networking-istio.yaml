@@ -15,12 +15,12 @@ customers put LDAPS through the mesh edge in the first place.
 NOTE: the istio-ingressgateway Service must also publish the port. A Gateway resource
 alone does not open :636 on the load balancer.
 */ -}}
-{{- $i := (.Values.networking).istio | default dict -}}
+{{- $i := ((.Values.ingress).advanced).istio | default dict -}}
 {{- if $i.enabled }}
 {{- include "fid.networking.requireHost" . }}
 {{- $hosts := fromJsonArray (include "fid.networking.hosts" .) }}
 {{- $routes := fromJsonArray (include "fid.networking.routes" .) }}
-{{- $tls := (.Values.networking).tls | default dict }}
+{{- $tls := ((.Values.ingress).advanced).tls | default dict }}
 {{- $fullname := include "fid.fullname" . }}
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
@@ -95,8 +95,8 @@ spec:
       {{- end }}
     {{- end }}
 {{- /* ------------------------------------------------------------ TCP: LDAPS and LDAP */}}
-{{- $ldaps := (.Values.networking).ldaps | default dict }}
-{{- $ldap := (.Values.networking).ldap | default dict }}
+{{- $ldaps := ((.Values.ingress).advanced).ldaps | default dict }}
+{{- $ldap := ((.Values.ingress).advanced).ldap | default dict }}
 {{- if or $ldaps.enabled $ldap.enabled }}
 ---
 apiVersion: networking.istio.io/v1beta1

@@ -91,154 +91,12 @@ networkPolicy:
 ## ---------------------------------------------------------------------------------------
 ## INGRESS / EXTERNAL ACCESS
 ## ---------------------------------------------------------------------------------------
-##
-## One block drives NGINX, Traefik and Istio. Enable a controller with true/false, give it
-## a hostname, and the same `routes` map is used by whichever you pick — switching
-## controller does not mean redescribing your topology.
-##
-## The legacy single-Ingress `ingress:` block sits directly below for reference. Do NOT
-## enable both a networking HTTP controller and legacy ingress — you'd get two overlapping
-## Ingresses (preflight.ingressConflictCheck guards this). The old istio gateway/
-## virtualservice blocks were removed — use networking.istio.
-##
-## Ports, for reference:
-##   HTTP   7070/7171  Classic Control Panel   -> <release>-ext
-##          8089/8090  FID REST / HTTP API     -> <release>-app
-##          9100/9101  Admin REST service      -> <release>-admin
-##   TCP    2389       LDAP                    -> <release>-app   (exposed as 389)
-##          2636       LDAPS                   -> <release>-app   (exposed as 636)
-##
-networking:
-  ## Primary hostname for all HTTP routes. Required when any controller is enabled —
-  ## the chart fails the render rather than emitting a host-less rule that would swallow
-  ## every request reaching the controller.
-  hostname: ""
-  extraHostnames: []
-
-  tls:
-    enabled: false
-    ## Pre-created TLS secret. For Istio this is the gateway `credentialName` and must live
-    ## in the istio-ingress namespace, NOT this release's namespace.
-    secretName: ""
-
-  ## HTTP routes. Add your own entries freely — anything with
-  ## {enabled, path, service, port} renders. controlPanel/api/admin have built-in defaults
-  ## so you only need `enabled: true`.
-  ##
-  ## `order` controls match precedence (lower first). Controllers match in declaration
-  ## order, so specific paths must precede "/". Defaults already do this.
-  routes:
-    controlPanel:
-      enabled: true
-      # path: /
-      # order: 30
-    api:
-      enabled: false
-      # path: /rest-service
-      # order: 10
-    admin:
-      enabled: false
-      # path: /admin-service
-      # order: 20
-    ## Example of an extra route (service + port are required for unknown names):
-    # custom:
-    #   enabled: true
-    #   path: /my-app
-    #   service: my-service
-    #   port: 8080
-    #   order: 5
-
-  ## LDAPS exposed on 636, forwarded to FID's 2636.
-  ##
-  ## TLS is PASSED THROUGH, not terminated at the edge: FID presents its own directory
-  ## certificate. Terminating at the ingress breaks certificate-based (SASL EXTERNAL)
-  ## client authentication, which is the usual reason for exposing LDAPS at all.
-  ldaps:
-    enabled: false
-    exposedPort: 636
-    targetPort: 2636
-    # hostSNI: "*"          # traefik only; "*" also matches clients that send no SNI
-    # tlsPassthrough: true  # traefik only
-
-  ## Plain LDAP on 389 -> 2389. Off by default: unencrypted directory traffic.
-  ldap:
-    enabled: false
-    exposedPort: 389
-    targetPort: 2389
-
-  nginx:
-    enabled: false
-    ingressClassName: nginx
-    ## Set when a route targets a TLS port (7171/8090/9101); without it nginx speaks HTTP
-    ## to an HTTPS upstream and you get 502s.
-    backendProtocolHTTPS: false
-    annotations: {}
-      # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-      # cert-manager.io/cluster-issuer: letsencrypt-prod
-    ## Raw TCP in ingress-nginx comes from a ConfigMap in the CONTROLLER's namespace
-    ## (--tcp-services-configmap), not this release's.
-    ##
-    ## manageConfigMap: true makes this chart write it. Leave it false unless this release
-    ## is the only thing managing that ConfigMap — ingress-nginx honours exactly one, so
-    ## two charts writing it will clobber each other. You must ALSO publish the port on the
-    ## controller's Service; a ConfigMap entry alone does nothing.
-    tcp:
-      manageConfigMap: false
-      controllerNamespace: ingress-nginx
-      configMapName: tcp-services
-
-  traefik:
-    enabled: false
-    ## These entryPoints must already exist on your Traefik install — ports are declared
-    ## there, not here. The chart cannot create them.
-    entryPoints:
-      web: web
-      websecure: websecure
-      ldaps: ldaps
-      ldap: ldap
-    annotations: {}
-    middlewares: []          # e.g. [redirect-https, rate-limit]
-    # certResolver: letsencrypt
-    # serversTransport: insecure-transport   # for self-signed FID certs on HTTPS upstreams
-
-  istio:
-    enabled: false
-    selector:
-      istio: ingressgateway
-    httpPort: 80
-    httpsPort: 443
-    httpsRedirect: true
-    tlsMode: SIMPLE
-    # timeout: 60s
-    # retries: {attempts: 3, perTryTimeout: 10s}
-
-## ---------------------------------------------------------------------------------------
-## EXTERNAL SECRETS OPERATOR (ESO) SHIM
-## ---------------------------------------------------------------------------------------
-##
-## Materialise FID's credentials from a vault or cloud secrets manager instead of putting
-## them in values.yaml. Works with any ESO provider: AWS Secrets Manager, HashiCorp Vault,
-## OpenBao, GCP Secret Manager, Azure Key Vault, Conjur, Infisical.
-##
-## Requires the External Secrets Operator to be installed in the cluster.
-##
-## USAGE — two settings make the swap:
-##   externalSecret.enabled: true          renders the ExternalSecret
-##   fid.existingSecret: rootcreds-<rel>   makes FID consume it (chart renders no Secret)
-## The default target name is exactly what the chart's own Secret would be called, so those
-## two line up automatically.
-##
-## KEYS (five on this chart line, verified live):
-##   fid-root-username  fid-root-password  fid-license  zk-username  zk-password
-## `zk-username` is the one people forget; omitting it breaks ZooKeeper auth in a way that
-## looks like an unrelated startup failure.
-##
-## ORDERING: ESO writes the Secret asynchronously, so on a fresh install FID may restart a
-## few times until it appears. That is expected, not a failure.
-##
-
-## LEGACY single-controller Ingress. Prefer `networking:` (nginx/traefik/istio + LDAPS)
-## above — see docs/05-ingress.md. Kept for backward compatibility.
+## `ingress.enabled` is the legacy single Ingress (backward compatible). For multiple
+## providers (nginx/traefik/istio) and LDAPS TCP, use `ingress.advanced` — enabling any
+## controller there takes precedence over the legacy Ingress, which then yields
+## automatically (no conflict). Providers must already be installed. Ports:
+##   HTTP 7070/7171 Control Panel (-ext) | 8089/8090 API (-app) | 9100/9101 Admin (-admin)
+##   TCP  2389 LDAP | 2636 LDAPS (-app)   Full guide: docs/05-ingress.md
 ingress:
   enabled: false
   annotations: {}
@@ -248,6 +106,138 @@ ingress:
   tls: []
 ## FID container resources. Followers use the same values. A fully-loaded FID can need
 ## far more (18Gi+ heap on busy followers) — size to your dataset.
+
+  ## ADVANCED — multi-controller ingress + LDAPS. Opt-in; overrides the legacy Ingress
+  ## above when any controller is enabled. See docs/05-ingress.md.
+  advanced:
+    ## Primary hostname for all HTTP routes. Required when any controller is enabled —
+    ## the chart fails the render rather than emitting a host-less rule that would swallow
+    ## every request reaching the controller.
+    hostname: ""
+    extraHostnames: []
+
+    tls:
+      enabled: false
+      ## Pre-created TLS secret. For Istio this is the gateway `credentialName` and must live
+      ## in the istio-ingress namespace, NOT this release's namespace.
+      secretName: ""
+
+    ## HTTP routes. Add your own entries freely — anything with
+    ## {enabled, path, service, port} renders. controlPanel/api/admin have built-in defaults
+    ## so you only need `enabled: true`.
+    ##
+    ## `order` controls match precedence (lower first). Controllers match in declaration
+    ## order, so specific paths must precede "/". Defaults already do this.
+    routes:
+      controlPanel:
+        enabled: true
+        # path: /
+        # order: 30
+      api:
+        enabled: false
+        # path: /rest-service
+        # order: 10
+      admin:
+        enabled: false
+        # path: /admin-service
+        # order: 20
+      ## Example of an extra route (service + port are required for unknown names):
+      # custom:
+      #   enabled: true
+      #   path: /my-app
+      #   service: my-service
+      #   port: 8080
+      #   order: 5
+
+    ## LDAPS exposed on 636, forwarded to FID's 2636.
+    ##
+    ## TLS is PASSED THROUGH, not terminated at the edge: FID presents its own directory
+    ## certificate. Terminating at the ingress breaks certificate-based (SASL EXTERNAL)
+    ## client authentication, which is the usual reason for exposing LDAPS at all.
+    ldaps:
+      enabled: false
+      exposedPort: 636
+      targetPort: 2636
+      # hostSNI: "*"          # traefik only; "*" also matches clients that send no SNI
+      # tlsPassthrough: true  # traefik only
+
+    ## Plain LDAP on 389 -> 2389. Off by default: unencrypted directory traffic.
+    ldap:
+      enabled: false
+      exposedPort: 389
+      targetPort: 2389
+
+    nginx:
+      enabled: false
+      ingressClassName: nginx
+      ## Set when a route targets a TLS port (7171/8090/9101); without it nginx speaks HTTP
+      ## to an HTTPS upstream and you get 502s.
+      backendProtocolHTTPS: false
+      annotations: {}
+        # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+        # cert-manager.io/cluster-issuer: letsencrypt-prod
+      ## Raw TCP in ingress-nginx comes from a ConfigMap in the CONTROLLER's namespace
+      ## (--tcp-services-configmap), not this release's.
+      ##
+      ## manageConfigMap: true makes this chart write it. Leave it false unless this release
+      ## is the only thing managing that ConfigMap — ingress-nginx honours exactly one, so
+      ## two charts writing it will clobber each other. You must ALSO publish the port on the
+      ## controller's Service; a ConfigMap entry alone does nothing.
+      tcp:
+        manageConfigMap: false
+        controllerNamespace: ingress-nginx
+        configMapName: tcp-services
+
+    traefik:
+      enabled: false
+      ## These entryPoints must already exist on your Traefik install — ports are declared
+      ## there, not here. The chart cannot create them.
+      entryPoints:
+        web: web
+        websecure: websecure
+        ldaps: ldaps
+        ldap: ldap
+      annotations: {}
+      middlewares: []          # e.g. [redirect-https, rate-limit]
+      # certResolver: letsencrypt
+      # serversTransport: insecure-transport   # for self-signed FID certs on HTTPS upstreams
+
+    istio:
+      enabled: false
+      selector:
+        istio: ingressgateway
+      httpPort: 80
+      httpsPort: 443
+      httpsRedirect: true
+      tlsMode: SIMPLE
+      # timeout: 60s
+      # retries: {attempts: 3, perTryTimeout: 10s}
+
+  ## ---------------------------------------------------------------------------------------
+  ## EXTERNAL SECRETS OPERATOR (ESO) SHIM
+  ## ---------------------------------------------------------------------------------------
+  ##
+  ## Materialise FID's credentials from a vault or cloud secrets manager instead of putting
+  ## them in values.yaml. Works with any ESO provider: AWS Secrets Manager, HashiCorp Vault,
+  ## OpenBao, GCP Secret Manager, Azure Key Vault, Conjur, Infisical.
+  ##
+  ## Requires the External Secrets Operator to be installed in the cluster.
+  ##
+  ## USAGE — two settings make the swap:
+  ##   externalSecret.enabled: true          renders the ExternalSecret
+  ##   fid.existingSecret: rootcreds-<rel>   makes FID consume it (chart renders no Secret)
+  ## The default target name is exactly what the chart's own Secret would be called, so those
+  ## two line up automatically.
+  ##
+  ## KEYS (five on this chart line, verified live):
+  ##   fid-root-username  fid-root-password  fid-license  zk-username  zk-password
+  ## `zk-username` is the one people forget; omitting it breaks ZooKeeper auth in a way that
+  ## looks like an unrelated startup failure.
+  ##
+  ## ORDERING: ESO writes the Secret asynchronously, so on a fresh install FID may restart a
+  ## few times until it appears. That is expected, not a failure.
+  ##
+
 externalSecret:
   enabled: false
   # apiVersion: external-secrets.io/v1beta1   # use .../v1 on newer ESO
@@ -279,13 +269,11 @@ externalSecret:
 ##   mountSecretsVersionCheck  fid.mountSecrets: true on a pre-8.0.0 image (7.x can't read it)
 ##   immutableFieldCheck       upgrade changing the STS selector/volumeClaimTemplates
 ##   storageClassCheck         persistence.storageClass names a class that doesn't exist
-##   ingressConflictCheck      legacy ingress: + a networking: HTTP controller both enabled
 ## Details + recovery steps: docs/10-upgrades-and-rollback.md
 preflight:
   mountSecretsVersionCheck: true
   immutableFieldCheck: true
   storageClassCheck: true
-  ingressConflictCheck: true     # fail if legacy ingress + a networking HTTP controller both on
 
 ## PodDisruptionBudget for the main FID StatefulSet.
 ##
@@ -632,217 +620,6 @@ persistence:
   - ReadWriteOnce
   size: 10Gi
   annotations: {}
-
-## Metrics and Logging for VDS
-# Persisitence need to be enabled to enabled both logging or metrics
-# Fluentd needs to be set to true to enable logging
-# For splunk, to provide source, sourcetype, input them under aggregators.
-# For splunk, to provide, custom source, sourcetype, index, use individual logs (splunk_index,splunk_source, splunk_sourcetype)
-# Aggregators, Logs and key:value pairs for logs and aggregators can be added dynamically
-# custom_index can be provided for each log individually and it takes precedence
-## =======================================================================================
-## OBSERVABILITY (new)  —  supersedes `metrics:` when enabled
-## =======================================================================================
-##
-## A single block for the next-generation exporter (rl-exporter by default) plus the full
-## helm-v8 logging model: NAMED aggregators, per-log retention, and eight output types
-## (elasticsearch, opensearch, splunk_hec, loki, sumologic, s3, azure_event_hubs,
-## opentelemetry) with SSL/TLS options.
-##
-## PRECEDENCE: when observability.enabled is true, this block drives the exporter sidecar
-## and the legacy `metrics:` block below is IGNORED. When false (the default) nothing here
-## renders and the chart behaves exactly as it always has via `metrics:`.
-##
-## STATUS: the metrics path is live today; the logging path is wired to the correct contract
-## (a generated fluent.conf mounted into the sidecar, exactly as helm-v8 does) but depends on
-## the rl-exporter image being ready on this FID line — see docs/07. Everything renders and
-## validates now; log shipping lights up when the image does.
-##
-observability:
-  enabled: false
-
-  ## The exporter sidecar. Defaults to rl-exporter (pull-native, serves :9095, no Pushgateway).
-  exporter:
-    ## fid-exporter | rl-exporter. Drives the image default, the container command and the
-    ## env surface, just like metrics.flavor — but here rl-exporter is the default.
-    flavor: rl-exporter
-    ## Empty => derived from flavor (radiantone/rl-exporter). Override for a mirror or the
-    ## current dev build (rahulnutakki/rl-exporter:dev).
-    imageRepository: ""
-    tag: ""
-    # digest: ""
-    # registry: ""
-    # pullPolicy: IfNotPresent
-    metricsPort: 9095
-    ## Admin REST API rl-exporter scrapes for FID metrics. Defaults to the pod's admin HTTPS.
-    # adminApiUrl: "https://localhost:9101"
-    # zkConn: "zookeeper-app:2181"
-    securityContext:
-      runAsUser: 0
-    resources:
-      limits:   {cpu: 1000m, memory: 512Mi}
-      requests: {cpu: 100m,  memory: 128Mi}
-    annotations: {}
-
-  ## Automatically create Kibana index patterns / ES ILM policies for the indices below.
-  indexCreation:
-    enabled: false
-    rbac:
-      enabled: false
-    kibana:
-      scheme: "http"
-      host: "kibana.mycompany.local"
-      port: "5601"
-      # user: ""
-      # password: ""
-
-  ## Full helm-v8 logging model.
-  logging:
-    enabled: false
-    annotations:
-      enabled: false
-      config: {}
-    fluentd:
-      enabled: false
-      posFileDirectory: "/opt/radiantone/vds/work/logging"
-      configFile: /fluentd/etc/fluent.conf
-
-      ## Log sources. Each: enabled, path, index, retention_days, aggregators (by NAME),
-      ## optional custom_index / splunk_* / parse / shards / replicas / refresh_interval.
-      logs:
-        vds_server:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
-          index: vds_server.log
-          retention_days: 30
-          aggregators: ["default"]
-        vds_server_access:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
-          index: vds_server_access.log
-          retention_days: 30
-          aggregators: ["default"]
-          parse: |-
-            <parse>
-              @type tsv
-              keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
-              types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
-            </parse>
-        vds_events:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
-          index: vds_events.log
-          retention_days: 30
-          aggregators: ["default"]
-        periodiccache:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
-          index: periodiccache.log
-          retention_days: 30
-          aggregators: ["default"]
-        web:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/jetty/web.log"
-          index: web.log
-          retention_days: 30
-          aggregators: ["default"]
-        web_access:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/jetty/web_access.log"
-          index: web_access.log
-          retention_days: 30
-          aggregators: ["default"]
-        sync_engine:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log"
-          index: sync_engine.log
-          retention_days: 30
-          aggregators: ["default"]
-        alerts:
-          enabled: true
-          path: "/opt/radiantone/vds/logs/alerts.log"
-          index: alerts.log
-          retention_days: 30
-          aggregators: ["default"]
-        adap_access:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
-          index: adap_access.log
-          retention_days: 30
-          aggregators: ["default"]
-        admin_rest_api_access:
-          enabled: true
-          path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
-          index: admin_rest_api_access.log
-          retention_days: 30
-          aggregators: ["default"]
-        connector:
-          enabled: true
-          path: "/opt/radiantone/vds/logs/sync_agents/*/connector.log"
-          index: connector.log
-          retention_days: 30
-          aggregators: ["default"]
-
-      ## NAMED aggregators. Each log references these by name in its `aggregators: [...]`.
-      ## Supported types: elasticsearch, opensearch, splunk_hec, loki, sumologic, s3,
-      ## azure_event_hubs, opentelemetry. Only the default is active; the rest are examples.
-      aggregators:
-        - name: "default"
-          type: "elasticsearch"
-          host: "elasticsearch-master.common-services.svc.cluster.local"
-          port: "9200"
-          # scheme: "https"
-          # user: "elastic"
-          # password: "changeme"
-          # ssl: {verify: false}
-          # ca_file: "/path/to/ca.pem"
-          # client_cert: "/path/to/client-cert.pem"
-        # - name: "opensearch-prod"
-        #   type: "opensearch"
-        #   host: "opensearch-cluster-master.svc.cluster.local"
-        #   port: "9200"
-        #   scheme: "https"
-        #   ssl: {verify: true}
-        # - name: "splunk-prod"
-        #   type: "splunk_hec"
-        #   hec_host: "splunk-service.svc.cluster.local"
-        #   hec_port: "8088"
-        #   hec_token: "YOUR-HEC-TOKEN"
-        #   protocol: "https"
-        #   index: "myindex"
-        #   sourcetype: "_json"
-        # - name: "loki-prod"
-        #   type: "loki"
-        #   username: "fid-service"
-        #   password: "LOKI_PASSWORD"
-        #   ssl: {verify: true}
-        # - name: "sumo-prod"
-        #   type: "sumologic"
-        #   endpoint: "https://collectors.us2.sumologic.com/receiver/v1/http/COLLECTOR_ID"
-        #   compress: true
-        # - name: "s3-archive"
-        #   type: "s3"
-        #   region: "us-west-2"
-        #   path: "logs/%Y/%m/%d/"
-        #   store_as: "gzip"
-        # - name: "azure-events"
-        #   type: "azure_event_hubs"
-        #   connection_string: "Endpoint=sb://<ns>.servicebus.windows.net/;SharedAccessKeyName=<policy>;SharedAccessKey=<key>"
-        #   hub_name: "fid-logs"
-        # - name: "otel-collector"
-        #   type: "opentelemetry"
-        #   endpoint: "http://otel-collector.monitoring.svc.cluster.local:4317"
-        #   protocol: "grpc"
-
-## ---------------------------------------------------------------------------------------
-## METRICS / LOGGING SIDECAR  (legacy — used only when observability.enabled is false)
-## ---------------------------------------------------------------------------------------
-## The "fid-exporter" sidecar runs a metrics exporter AND Fluentd. flavor picks the image
-## (fid-exporter default | rl-exporter). Two sharp edges, both documented in docs/07:
-##   - pushMode gates whether metrics run at all (false = no metrics), and
-##   - with pushMode: true an unreachable pushGateway silently stops log shipping too.
-## For the new named-aggregator logging model prefer `observability:` above.
-## Full guide: docs/07-metrics-and-logging.md
 metrics:
   enabled: false
   ## fid-exporter | rl-exporter
@@ -1015,6 +792,196 @@ metrics:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
+
+  ## ADVANCED — rl-exporter + helm-v8 named-aggregator logging. Opt-in; when
+  ## advanced.enabled is true it SUPERSEDES the legacy metrics sidecar above. Providers
+  ## (rl-exporter image, aggregator backends) must be available. Full guide: docs/07.
+  advanced:
+    enabled: false
+
+    ## The exporter sidecar. Defaults to rl-exporter (pull-native, serves :9095, no Pushgateway).
+    exporter:
+      ## fid-exporter | rl-exporter. Drives the image default, the container command and the
+      ## env surface, just like metrics.flavor — but here rl-exporter is the default.
+      flavor: rl-exporter
+      ## Empty => derived from flavor (radiantone/rl-exporter). Override for a mirror or the
+      ## current dev build (rahulnutakki/rl-exporter:dev).
+      imageRepository: ""
+      tag: ""
+      # digest: ""
+      # registry: ""
+      # pullPolicy: IfNotPresent
+      metricsPort: 9095
+      ## Admin REST API rl-exporter scrapes for FID metrics. Defaults to the pod's admin HTTPS.
+      # adminApiUrl: "https://localhost:9101"
+      # zkConn: "zookeeper-app:2181"
+      securityContext:
+        runAsUser: 0
+      resources:
+        limits:   {cpu: 1000m, memory: 512Mi}
+        requests: {cpu: 100m,  memory: 128Mi}
+      annotations: {}
+
+    ## Automatically create Kibana index patterns / ES ILM policies for the indices below.
+    indexCreation:
+      enabled: false
+      rbac:
+        enabled: false
+      kibana:
+        scheme: "http"
+        host: "kibana.mycompany.local"
+        port: "5601"
+        # user: ""
+        # password: ""
+
+    ## Full helm-v8 logging model.
+    logging:
+      enabled: false
+      annotations:
+        enabled: false
+        config: {}
+      fluentd:
+        enabled: false
+        posFileDirectory: "/opt/radiantone/vds/work/logging"
+        configFile: /fluentd/etc/fluent.conf
+
+        ## Log sources. Each: enabled, path, index, retention_days, aggregators (by NAME),
+        ## optional custom_index / splunk_* / parse / shards / replicas / refresh_interval.
+        logs:
+          vds_server:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/vds_server.log"
+            index: vds_server.log
+            retention_days: 30
+            aggregators: ["default"]
+          vds_server_access:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/vds_server_access.csv"
+            index: vds_server_access.log
+            retention_days: 30
+            aggregators: ["default"]
+            parse: |-
+              <parse>
+                @type tsv
+                keys LOGID,LOGDATE,LOGTIME,LOGTYPE,SERVERID,SERVERPORT,SESSIONID,MSGID,CLIENTIP,BINDDN,BINDUSER,CONNNB,OPNB,OPCODE,OPNAME,BASEDN,ATTRIBUTES,SCOPE,FILTER,SIZELIMIT,TIMELIMIT,LDAPCONTROLS,CHANGES,RESULTCODE,ERRORMESSAGE,MATCHEDDN,NBENTRIES,ETIME
+                types LOGID:integer,LOGDATE:string,LOGTIME:string,LOGTYPE:integer,SERVERID:string,SERVERPORT:integer,SESSIONID:integer,MSGID:integer,CLIENTIP:string,BINDDN:string,BINDUSER:string,CONNNB:integer,OPNB:integer,OPCODE:integer,OPNAME:string,BASEDN:string,ATTRIBUTES:string,SCOPE:string,FILTER:string,SIZELIMIT:integer,TIMELIMIT:integer,LDAPCONTROLS:string,CHANGES:string,RESULTCODE:integer,ERRORMESSAGE:string,MATCHEDDN:string,NBENTRIES:integer,ETIME:integer
+              </parse>
+          vds_events:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/vds_events.log"
+            index: vds_events.log
+            retention_days: 30
+            aggregators: ["default"]
+          periodiccache:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/periodiccache.log"
+            index: periodiccache.log
+            retention_days: 30
+            aggregators: ["default"]
+          web:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/jetty/web.log"
+            index: web.log
+            retention_days: 30
+            aggregators: ["default"]
+          web_access:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/jetty/web_access.log"
+            index: web_access.log
+            retention_days: 30
+            aggregators: ["default"]
+          sync_engine:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/sync_engine/sync_engine.log"
+            index: sync_engine.log
+            retention_days: 30
+            aggregators: ["default"]
+          alerts:
+            enabled: true
+            path: "/opt/radiantone/vds/logs/alerts.log"
+            index: alerts.log
+            retention_days: 30
+            aggregators: ["default"]
+          adap_access:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/adap_access.log"
+            index: adap_access.log
+            retention_days: 30
+            aggregators: ["default"]
+          admin_rest_api_access:
+            enabled: true
+            path: "/opt/radiantone/vds/vds_server/logs/admin_rest_api_access.log"
+            index: admin_rest_api_access.log
+            retention_days: 30
+            aggregators: ["default"]
+          connector:
+            enabled: true
+            path: "/opt/radiantone/vds/logs/sync_agents/*/connector.log"
+            index: connector.log
+            retention_days: 30
+            aggregators: ["default"]
+
+        ## NAMED aggregators. Each log references these by name in its `aggregators: [...]`.
+        ## Supported types: elasticsearch, opensearch, splunk_hec, loki, sumologic, s3,
+        ## azure_event_hubs, opentelemetry. Only the default is active; the rest are examples.
+        aggregators:
+          - name: "default"
+            type: "elasticsearch"
+            host: "elasticsearch-master.common-services.svc.cluster.local"
+            port: "9200"
+            # scheme: "https"
+            # user: "elastic"
+            # password: "changeme"
+            # ssl: {verify: false}
+            # ca_file: "/path/to/ca.pem"
+            # client_cert: "/path/to/client-cert.pem"
+          # - name: "opensearch-prod"
+          #   type: "opensearch"
+          #   host: "opensearch-cluster-master.svc.cluster.local"
+          #   port: "9200"
+          #   scheme: "https"
+          #   ssl: {verify: true}
+          # - name: "splunk-prod"
+          #   type: "splunk_hec"
+          #   hec_host: "splunk-service.svc.cluster.local"
+          #   hec_port: "8088"
+          #   hec_token: "YOUR-HEC-TOKEN"
+          #   protocol: "https"
+          #   index: "myindex"
+          #   sourcetype: "_json"
+          # - name: "loki-prod"
+          #   type: "loki"
+          #   username: "fid-service"
+          #   password: "LOKI_PASSWORD"
+          #   ssl: {verify: true}
+          # - name: "sumo-prod"
+          #   type: "sumologic"
+          #   endpoint: "https://collectors.us2.sumologic.com/receiver/v1/http/COLLECTOR_ID"
+          #   compress: true
+          # - name: "s3-archive"
+          #   type: "s3"
+          #   region: "us-west-2"
+          #   path: "logs/%Y/%m/%d/"
+          #   store_as: "gzip"
+          # - name: "azure-events"
+          #   type: "azure_event_hubs"
+          #   connection_string: "Endpoint=sb://<ns>.servicebus.windows.net/;SharedAccessKeyName=<policy>;SharedAccessKey=<key>"
+          #   hub_name: "fid-logs"
+          # - name: "otel-collector"
+          #   type: "opentelemetry"
+          #   endpoint: "http://otel-collector.monitoring.svc.cluster.local:4317"
+          #   protocol: "grpc"
+
+  ## ---------------------------------------------------------------------------------------
+  ## METRICS / LOGGING SIDECAR  (legacy — used unless metrics.advanced.enabled is true)
+  ## ---------------------------------------------------------------------------------------
+  ## The "fid-exporter" sidecar runs a metrics exporter AND Fluentd. flavor picks the image
+  ## (fid-exporter default | rl-exporter). Two sharp edges, both documented in docs/07:
+  ##   - pushMode gates whether metrics run at all (false = no metrics), and
+  ##   - with pushMode: true an unreachable pushGateway silently stops log shipping too.
+  ## For the new named-aggregator logging model + rl-exporter, use `metrics.advanced` above.
+  ## Full guide: docs/07-metrics-and-logging.md
+
 cronjob:
   migration:
     enabled: false

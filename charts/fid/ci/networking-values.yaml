@@ -1,15 +1,16 @@
-# All three ingress controllers + LDAPS TCP, exercised together.
-networking:
-  hostname: fid.example.com
-  extraHostnames: [fid-alt.example.com]
-  tls: {enabled: true, secretName: fid-tls}
-  routes:
-    controlPanel: {enabled: true}
-    api: {enabled: true}
-    admin: {enabled: true}
-  ldaps: {enabled: true}
-  nginx: {enabled: true, tcp: {manageConfigMap: true}}
-  traefik: {enabled: true}
-  istio: {enabled: true}
+# All three ingress controllers + LDAPS TCP under ingress.advanced (the nested form).
+ingress:
+  advanced:
+    hostname: fid.example.com
+    extraHostnames: [fid-alt.example.com]
+    tls: {enabled: true, secretName: fid-tls}
+    routes:
+      controlPanel: {enabled: true}
+      api: {enabled: true}
+      admin: {enabled: true}
+    ldaps: {enabled: true}
+    nginx: {enabled: true, tcp: {manageConfigMap: true}}
+    traefik: {enabled: true}
+    istio: {enabled: true}
 fid:
   license: "[FID Cluster License]"

@@ -1,4 +1,6 @@
-{{- if .Values.ingress.enabled -}}
+{{- /* Legacy single Ingress. Suppressed automatically when an advanced controller
+       (ingress.advanced.nginx/traefik/istio) is enabled, so the two never double up. */}}
+{{- if and .Values.ingress.enabled (not (include "fid.ingress.advancedActive" .)) -}}
 {{- $fullName := include "fid.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}

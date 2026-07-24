@@ -248,72 +248,33 @@
         }
       }
     },
-    "observability": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "exporter": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "flavor": {
-              "type": "string",
-              "enum": [
-                "fid-exporter",
-                "rl-exporter"
-              ]
-            },
-            "imageRepository": {
-              "type": "string"
-            },
-            "metricsPort": {
-              "type": [
-                "integer",
-                "string"
-              ]
-            }
-          }
-        },
-        "logging": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "fluentd": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "aggregators": {
-                  "type": "array"
-                },
-                "logs": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              }
-            }
-          }
-        },
-        "indexCreation": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      }
-    },
     "topologySpreadConstraints": {
       "type": "array"
     },
     "ingress": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": true,
+      "properties": {
+        "advanced": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "advanced": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {

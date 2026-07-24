@@ -12,12 +12,12 @@ render is byte-identical to the pre-observability chart.
 
 {{/* Is the observability exporter the rl-exporter flavour? */}}
 {{- define "fid.obs.isRlExporter" -}}
-{{- eq (((.Values.observability).exporter).flavor | default "rl-exporter") "rl-exporter" -}}
+{{- eq (((.Values.metrics.advanced).exporter).flavor | default "rl-exporter") "rl-exporter" -}}
 {{- end }}
 
 {{/* Resolve the observability exporter image (flavour-driven default). */}}
 {{- define "fid.obs.exporterImage" -}}
-{{- $e := (.Values.observability).exporter | default dict -}}
+{{- $e := (.Values.metrics.advanced).exporter | default dict -}}
 {{- $flavorRepo := ternary "radiantone/rl-exporter" "radiantone/fid-exporter" (eq ($e.flavor | default "rl-exporter") "rl-exporter") -}}
 {{- $repo := $e.imageRepository | default $flavorRepo -}}
 {{- include "fid.image" (dict "image" (dict "repository" $repo "tag" $e.tag "registry" $e.registry "digest" $e.digest) "context" .) -}}
@@ -26,7 +26,7 @@ render is byte-identical to the pre-observability chart.
 {{/* Effective securityContext for the observability sidecar (same root reconciliation as
      the legacy path: uid 0 needs runAsNonRoot:false under a hardened profile). */}}
 {{- define "fid.obs.securityContext" -}}
-{{- $sc := (((.Values.observability).exporter).securityContext | default (fromYaml (include "fid.helperSecurityContext" .))) | default dict -}}
+{{- $sc := (((.Values.metrics.advanced).exporter).securityContext | default (fromYaml (include "fid.helperSecurityContext" .))) | default dict -}}
 {{- if and (kindIs "invalid" $sc.runAsNonRoot) (eq (toString $sc.runAsUser) "0") -}}
 {{- $sc = set (deepCopy $sc) "runAsNonRoot" false -}}
 {{- end -}}
@@ -35,8 +35,8 @@ render is byte-identical to the pre-observability chart.
 
 {{/* The observability sidecar container. */}}
 {{- define "fid.observabilitySidecar" -}}
-{{- $e := (.Values.observability).exporter | default dict -}}
-{{- $log := ((.Values.observability).logging).fluentd | default dict -}}
+{{- $e := (.Values.metrics.advanced).exporter | default dict -}}
+{{- $log := ((.Values.metrics.advanced).logging).fluentd | default dict -}}
 {{- $rl := (include "fid.obs.isRlExporter" .) | eq "true" -}}
 - name: {{ .Chart.Name }}-exporter
   image: {{ include "fid.obs.exporterImage" . }}
@@ -57,7 +57,7 @@ render is byte-identical to the pre-observability chart.
     name: exporter
   env:
   - name: METRICS_ENABLED
-    value: {{ .Values.observability.enabled | quote }}
+    value: {{ .Values.metrics.advanced.enabled | quote }}
   - name: LOGGING_ENABLED
     value: {{ $log.enabled | default false | quote }}
   - name: METRICS_PORT

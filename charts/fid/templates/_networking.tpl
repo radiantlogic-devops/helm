@@ -21,7 +21,7 @@ Returns a JSON list of resolved routes so callers can range over it.
   "admin"        (dict "path" "/admin-service" "service" (printf "%s-admin" $fullname) "port" 9100 "tlsPort" 9101 "order" 20)
 -}}
 {{- $out := list -}}
-{{- range $name, $cfg := (.Values.networking).routes | default dict -}}
+{{- range $name, $cfg := ((.Values.ingress).advanced).routes | default dict -}}
 {{- if $cfg.enabled -}}
 {{- $d := index $defaults $name | default dict -}}
 {{- $svc := $cfg.service | default $d.service -}}
@@ -56,8 +56,8 @@ All hostnames for the ingress: networking.hostname plus networking.extraHostname
 */}}
 {{- define "fid.networking.hosts" -}}
 {{- $h := list -}}
-{{- with (.Values.networking).hostname }}{{ $h = append $h . }}{{ end -}}
-{{- range (.Values.networking).extraHostnames }}{{ $h = append $h . }}{{ end -}}
+{{- with ((.Values.ingress).advanced).hostname }}{{ $h = append $h . }}{{ end -}}
+{{- range ((.Values.ingress).advanced).extraHostnames }}{{ $h = append $h . }}{{ end -}}
 {{- toJson $h -}}
 {{- end }}
 
@@ -71,5 +71,16 @@ Ingress with an empty host that silently swallows all traffic on the controller.
 {{- $hosts := fromJsonArray (include "fid.networking.hosts" .) -}}
 {{- if not $hosts -}}
 {{- fail "networking: a controller is enabled but networking.hostname is empty. Set networking.hostname (and optionally networking.extraHostnames)." -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Whether any advanced ingress controller (nginx/traefik/istio) is enabled. Used to suppress
+the legacy single Ingress so the two never render at once.
+*/}}
+{{- define "fid.ingress.advancedActive" -}}
+{{- $a := (.Values.ingress).advanced | default dict -}}
+{{- if or (($a.nginx).enabled) (($a.traefik).enabled) (($a.istio).enabled) -}}
+true
 {{- end -}}
 {{- end }}

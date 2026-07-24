@@ -95,12 +95,12 @@ comments; this is the map.
 
 | Key | Default | Purpose |
 |---|---|---|
-| `networking.hostname` | `""` | Required when any controller is enabled |
-| `networking.extraHostnames` | `[]` | |
-| `networking.tls` | `enabled: false` | |
-| `networking.routes` | controlPanel on | Shared by all three controllers; expandable |
-| `networking.ldaps` / `ldap` | `enabled: false` | TCP 636→2636 / 389→2389 |
-| `networking.nginx` / `traefik` / `istio` | `enabled: false` | See [05](05-ingress.md) |
+| `ingress.advanced.hostname` | `""` | Required when any controller is enabled |
+| `ingress.advanced.extraHostnames` | `[]` | |
+| `ingress.advanced.tls` | `enabled: false` | |
+| `ingress.advanced.routes` | controlPanel on | Shared by all three controllers; expandable |
+| `ingress.advanced.ldaps` / `ldap` | `enabled: false` | TCP 636→2636 / 389→2389 |
+| `ingress.advanced.nginx` / `traefik` / `istio` | `enabled: false` | See [05](05-ingress.md) |
 | `ingress` / `gateway` / `virtualservice` | `enabled: false` | **Legacy**, still supported |
 
 ## Metrics and logging

@@ -47,7 +47,7 @@ you must run the `kubectl delete --cascade=orphan` yourself first.
 | `startupProbe.enabled` | Yes |
 | Probe timeouts / thresholds | Yes |
 | `metrics.*` (sidecar) | Yes |
-| `networking.*` (ingress) | No — separate objects |
+| `ingress.advanced.*` | No — separate objects |
 | `podDisruptionBudget.*` | No |
 | `commonLabels` / `commonAnnotations` | No, on the pod template |
 

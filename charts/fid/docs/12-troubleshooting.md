@@ -136,8 +136,8 @@ kubectl -n my-ns exec fid-0 -c fid-exporter -- \
 
 ## Ingress returns 502
 
-- **nginx → an HTTPS port**: set `networking.nginx.backendProtocolHTTPS: true`.
-- **Traefik → self-signed FID cert**: set `networking.traefik.serversTransport` to a
+- **nginx → an HTTPS port**: set `ingress.advanced.nginx.backendProtocolHTTPS: true`.
+- **Traefik → self-signed FID cert**: set `ingress.advanced.traefik.serversTransport` to a
   transport with `insecureSkipVerify`.
 - **Wrong route order**: a `/` route matching before `/rest-service`. Lower the specific
   route's `order`.

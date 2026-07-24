@@ -1,36 +1,34 @@
 # 05 — Ingress and external access
 
-One `networking` block drives **NGINX, Traefik and Istio** off a shared route map, so
+One `ingress.advanced` block drives **NGINX, Traefik and Istio** off a shared route map, so
 switching controller does not mean redescribing your topology.
 
 > The legacy single-Ingress `ingress:` block still work and are
-> untouched. Use `networking:` for anything new.
+> untouched. Use `ingress.advanced:` for anything new.
 
 
-## `networking:` vs the legacy `ingress:`
+## `ingress:` legacy vs `ingress.advanced:`
 
-Two ways to get an HTTP Ingress, and you should use exactly one:
+`ingress.enabled` is the original single-Ingress mode. For multiple providers
+(nginx/traefik/istio) and LDAPS TCP, use `ingress.advanced` — the same `routes` map drives
+all three.
 
-| | `networking:` (preferred) | `ingress:` (legacy) |
-|---|---|---|
-| Controllers | nginx, traefik, istio | one nginx-style Ingress |
-| LDAPS/LDAP TCP | yes | no |
-| Multi-route / multi-host | yes (shared `routes` map) | single host |
+They never conflict: **enabling any `ingress.advanced` HTTP controller automatically
+suppresses the legacy single Ingress**, so an existing `ingress.enabled: true` values file
+keeps working until you opt into an advanced controller, at which point the advanced one
+takes over. No flag to set, nothing to migrate.
 
-Enabling the legacy `ingress:` **and** a `networking:` HTTP controller (nginx/traefik/istio)
-at the same time renders **two overlapping Ingress objects** for FID — a confusing,
-half-working setup. The chart stops this with a preflight check:
-
+```yaml
+ingress:
+  enabled: true            # legacy — renders UNLESS an advanced controller is on
+  hosts: [{host: fid.example.com, paths: ["/"]}]
+  advanced:
+    hostname: fid.example.com
+    routes: {controlPanel: {enabled: true}}
+    nginx: {enabled: true}   # <- this now takes precedence; the legacy Ingress yields
 ```
-PREFLIGHT: both the legacy `ingress:` and a `networking:` HTTP controller are enabled...
-Fix:    set ingress.enabled: false (keep networking), or disable the networking controller.
-Bypass: set preflight.ingressConflictCheck: false
-```
 
-`networking.ldaps` / `networking.ldap` are TCP and do **not** conflict with the legacy HTTP
-`ingress:` — you can run legacy HTTP ingress and networking LDAPS together if you bypass the
-check, though using `networking:` for both is cleaner.
-
+`ingress.advanced.ldaps` / `.ldap` are TCP and independent of the HTTP Ingress above.
 
 ## Ports
 
@@ -45,7 +43,8 @@ check, though using `networking:` for both is cleaner.
 ## Minimal example
 
 ```yaml
-networking:
+ingress:
+  advanced:
   hostname: fid.example.com
   tls:
     enabled: true
@@ -64,7 +63,8 @@ Swap `nginx` for `traefik` or `istio` — everything else stays the same.
 Add your own; anything with `{enabled, path, service, port}` renders:
 
 ```yaml
-networking:
+ingress:
+  advanced:
   routes:
     myapp:
       enabled: true
@@ -80,7 +80,8 @@ before `/`. The built-in defaults already do this (`api` 10, `admin` 20, `contro
 ## LDAPS
 
 ```yaml
-networking:
+ingress:
+  advanced:
   ldaps:
     enabled: true
     exposedPort: 636
@@ -91,7 +92,7 @@ networking:
 Terminating at the edge breaks certificate-based (SASL EXTERNAL) client authentication —
 which is usually the whole reason for exposing LDAPS.
 
-Plain LDAP (`networking.ldap`) is available but off by default: unencrypted directory
+Plain LDAP (`ingress.advanced.ldap`) is available but off by default: unencrypted directory
 traffic.
 
 ## Controller-specific notes
@@ -99,7 +100,8 @@ traffic.
 ### NGINX
 
 ```yaml
-networking:
+ingress:
+  advanced:
   nginx:
     enabled: true
     ingressClassName: nginx
@@ -136,7 +138,8 @@ get 502s.
 ### Traefik
 
 ```yaml
-networking:
+ingress:
+  advanced:
   traefik:
     enabled: true
     entryPoints:
@@ -156,7 +159,8 @@ chart cannot create them.
 ### Istio
 
 ```yaml
-networking:
+ingress:
+  advanced:
   istio:
     enabled: true
     selector: {istio: ingressgateway}
@@ -169,7 +173,7 @@ Renders a `Gateway` + `VirtualService` for HTTP, and a second pair using `protoc
 for LDAPS. TCP (not TLS with a `credentialName`) is deliberate — again, so FID terminates
 TLS itself.
 
-For TLS, `networking.tls.secretName` becomes the gateway `credentialName` and **must live
+For TLS, `ingress.advanced.tls.secretName` becomes the gateway `credentialName` and **must live
 in the istio-ingress namespace**, not this release's.
 
 The istio-ingressgateway Service must also publish `:636`; a Gateway resource alone does
@@ -177,7 +181,7 @@ not open the port.
 
 ## NetworkPolicy enforcement
 
-`hardened` and `paranoid` render a NetworkPolicy by default. `networking.networkPolicy` is
+`hardened` and `paranoid` render a NetworkPolicy by default. `ingress.advanced.networkPolicy` is
 tri-state: unset follows the profile, `true`/`false` always win.
 
 **Creating the object does nothing unless your CNI enforces it.**

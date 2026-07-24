@@ -16,12 +16,12 @@ namespace, not this release's. Two consequences:
 That is why this is opt-in rather than automatic: getting it wrong silently does nothing,
 and getting it aggressive breaks a shared controller.
 */ -}}
-{{- $n := (.Values.networking).nginx | default dict -}}
+{{- $n := ((.Values.ingress).advanced).nginx | default dict -}}
 {{- if $n.enabled }}
 {{- include "fid.networking.requireHost" . }}
 {{- $hosts := fromJsonArray (include "fid.networking.hosts" .) }}
 {{- $routes := fromJsonArray (include "fid.networking.routes" .) }}
-{{- $tls := (.Values.networking).tls | default dict }}
+{{- $tls := ((.Values.ingress).advanced).tls | default dict }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -75,8 +75,8 @@ spec:
 {{- end }}
 {{- /* ---------------------------------------------------------------- TCP (LDAP/LDAPS) */}}
 {{- $tcp := $n.tcp | default dict }}
-{{- $ldaps := (.Values.networking).ldaps | default dict }}
-{{- $ldap := (.Values.networking).ldap | default dict }}
+{{- $ldaps := ((.Values.ingress).advanced).ldaps | default dict }}
+{{- $ldap := ((.Values.ingress).advanced).ldap | default dict }}
 {{- if and $tcp.manageConfigMap (or $ldaps.enabled $ldap.enabled) }}
 ---
 apiVersion: v1
