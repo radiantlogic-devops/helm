@@ -142,34 +142,7 @@ containers:
     name: http
   - containerPort: 8090
     name: https
-  readinessProbe:
-    tcpSocket:
-      port: {{ .Values.fid.readinessProbe.port | default 2636 }}
-    initialDelaySeconds: {{ .Values.fid.readinessProbe.initialDelaySeconds }}
-    timeoutSeconds: {{ .Values.fid.readinessProbe.timeoutSeconds }}
-    periodSeconds: {{ .Values.fid.readinessProbe.periodSeconds | default 30 }}
-    failureThreshold: {{ .Values.fid.readinessProbe.failureThreshold | default 5 }}
-    successThreshold: {{ .Values.fid.readinessProbe.successThreshold | default 1 }}
-  livenessProbe:
-    exec:
-      command: {{ .Values.fid.livenessProbe.command | default (list "/opt/radiantone/check" "run" "-type" "liveness") | toJson }}
-    initialDelaySeconds: {{ .Values.fid.livenessProbe.initialDelaySeconds }}
-    timeoutSeconds: {{ .Values.fid.livenessProbe.timeoutSeconds }}
-    periodSeconds: {{ .Values.fid.livenessProbe.periodSeconds | default 30 }}
-    failureThreshold: {{ .Values.fid.livenessProbe.failureThreshold | default 5 }}
-    successThreshold: {{ .Values.fid.livenessProbe.successThreshold | default 1 }}
-{{- with .Values.fid.startupProbe }}
-{{- if .enabled }}
-  startupProbe:
-    exec:
-      command: {{ .command | default (list "/opt/radiantone/check" "run" "-type" "liveness") | toJson }}
-    initialDelaySeconds: {{ .initialDelaySeconds | default 0 }}
-    timeoutSeconds: {{ .timeoutSeconds | default 5 }}
-    periodSeconds: {{ .periodSeconds | default 20 }}
-    failureThreshold: {{ .failureThreshold | default 15 }}
-    successThreshold: 1
-{{- end }}
-{{- end }}
+  {{- include "fid.probes" . | nindent 2 }}
   envFrom:
   - configMapRef:
       name: {{ template "fid.fullname" . }}

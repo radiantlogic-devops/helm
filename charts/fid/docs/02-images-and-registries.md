@@ -106,3 +106,85 @@ helperImages:
   migration:        {repository: alpine/curl,  tag: latest}
   hooks:            {repository: alpine,       tag: ""}
 ```
+
+
+## Pull secrets
+
+Two independent ways to supply registry credentials; use either or both.
+
+### `imagePullSecrets` — reference existing secrets
+
+Names of `kubernetes.io/dockerconfigjson` Secrets you already have in the namespace:
+
+```yaml
+imagePullSecrets:
+  - name: regcred
+  - name: ecr-creds        # more than one is fine — all are attached to the pod
+```
+
+For a registry shared by every pod in the release, prefer `global.imagePullSecrets` — it is
+merged into all of them (and deduplicated):
+
+```yaml
+global:
+  imagePullSecrets:
+    - name: mirror-creds
+```
+
+### `imageCredentials` — let the chart create the secret
+
+When you would rather hand the chart a username/password than pre-create a Secret, it
+renders a `dockerconfigjson` Secret named `regcred` for you:
+
+```yaml
+imageCredentials:
+  enabled: true
+  registry: docker.io          # any registry host — see the golden-image table below
+  username: myuser
+  password: mypass
+  email: me@example.com
+```
+
+> `imageCredentials` puts the password in your values file. For anything sensitive, create
+> the Secret out of band (or via [ESO](04-secrets-and-eso.md)) and use `imagePullSecrets`.
+
+## Golden images — building your own from RadiantOne bases
+
+Many customers rebuild the RadiantOne images (FID, the helper images, the exporter) on top
+of a hardened internal base, then push them to their own registry. The chart supports this
+without any template changes — point each image at your registry.
+
+Everything at once, via the global prefix:
+
+```yaml
+global:
+  imageRegistry: "registry.internal.example.com"
+  imagePullSecrets:
+    - name: internal-registry
+```
+
+`imageCredentials.registry` (and per-image `registry:`) accept any host, so common targets
+all work:
+
+| Registry | `registry` value |
+|---|---|
+| Docker Hub | `docker.io` |
+| AWS ECR | `<acct>.dkr.ecr.<region>.amazonaws.com` |
+| Azure ACR | `<name>.azurecr.io` |
+| Google Artifact Registry | `<region>-docker.pkg.dev` |
+| GitHub GHCR | `ghcr.io` |
+| Harbor / Quay / Nexus | `harbor.example.com`, `quay.io`, `nexus.example.com:8443` |
+
+Override an individual image (e.g. your golden FID, unchanged helpers from a mirror):
+
+```yaml
+global:
+  imageRegistry: "registry.internal.example.com"   # applies to the helpers
+image:
+  registry: "123456789012.dkr.ecr.us-west-2.amazonaws.com"   # golden FID lives here
+  repository: golden/fid
+  tag: "7.4.23-hardened"
+```
+
+Per-image `registry:` wins over `global.imageRegistry`; a per-image `digest:` wins over its
+`tag`. See the image dict at the top of this page.

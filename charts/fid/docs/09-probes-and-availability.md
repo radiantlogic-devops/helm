@@ -63,6 +63,51 @@ gets killed while still loading a large dataset" — much better than inflating
 
 Disabled by default because enabling it changes the pod template (a rolling restart).
 
+## Full probe configurability
+
+The five timing fields above are the common knobs. Every other probe field is reachable too,
+without forking the chart — three levels, in increasing power:
+
+### 1. Timing fields
+
+`initialDelaySeconds`, `timeoutSeconds`, `periodSeconds`, `failureThreshold`,
+`successThreshold` on any of `fid.livenessProbe` / `readinessProbe` / `startupProbe`.
+
+### 2. Replace the handler
+
+By default readiness is a TCP check on 2636 and liveness/startup are `exec` the check
+binary. Set any of `exec` / `httpGet` / `tcpSocket` / `grpc` on a probe and it **replaces**
+the default handler entirely:
+
+```yaml
+fid:
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8089
+      scheme: HTTP
+  livenessProbe:
+    command: ["/opt/radiantone/check", "run", "-type", "liveness"]   # exec shortcut
+```
+
+### 3. `overrides` — any field the above don't model
+
+A raw map deep-merged onto the final probe, last. For anything else Kubernetes allows on a
+probe:
+
+```yaml
+fid:
+  livenessProbe:
+    overrides:
+      terminationGracePeriodSeconds: 45
+      httpGet:
+        httpHeaders:
+          - {name: X-Probe, value: fid}
+```
+
+Both StatefulSets — the main FID pods and the follower-only pods — render from the same
+`fid.*Probe` values, so probe configuration applies to both.
+
 ## PodDisruptionBudget
 
 ```yaml

@@ -119,8 +119,8 @@ networkPolicy:
 ## a hostname, and the same `routes` map is used by whichever you pick — switching
 ## controller does not mean redescribing your topology.
 ##
-## The legacy `ingress:`, `gateway:` and `virtualservice:` blocks further down still work
-## and are untouched. Use `networking:` for anything new.
+## The legacy `ingress:` block further down still works. The old istio `gateway:` /
+## `virtualservice:` blocks were removed — use `networking.istio` instead.
 ##
 ## Ports, for reference:
 ##   HTTP   7070/7171  Classic Control Panel   -> <release>-ext
@@ -457,12 +457,66 @@ fid:
   ## Deploy a readonly sts, that joins an existing FID cluster
   ##
   readonly: false
+  ## Seed a new cluster from an existing export.zip at first install.
+  ## Full guide (all source types, credential handling): docs/08-migration.md
   migration:
-  ## Migration file that will be imported during first install (export.zip)
-  # url: https://raw.githubusercontent.com/radiantlogic-devops/docker-compose/master/05-monitoring-stack/configs/fid/export.zip
-    url:
-  ## Post migration script to be run after install (configure_fid.sh)
-    script:
+    ## Legacy path — a plain URL. Ignored when advanced.enabled is true.
+    url:                       # https://.../export.zip
+    script:                    # optional post-migration configure_fid.sh URL
+    ## Advanced path — fetch from http | s3 | gcs | azure | git | db. Exclusive: when
+    ## enabled, url/script above are ignored. Credentials come from Secret refs, never
+    ## literals. Same shape as helm-v8. Details + examples: docs/08-migration.md
+    advanced:
+      enabled: false
+      source:
+        type: ""               # http | s3 | gcs | azure | git | db
+        http:
+          url: ""
+          flags: ""            # extra curl flags, e.g. "-L"
+        s3:
+          bucket: ""
+          key: ""
+          region: ""
+          endpoint: ""         # for S3-compatible stores (optional)
+          auth:
+            irsa: true         # use ambient IRSA/instance creds; else the *SecretRef below
+            accessKeyIdSecretRef: {name: "", key: "access-key-id"}
+            secretAccessKeySecretRef: {name: "", key: "secret-access-key"}
+        gcs:
+          bucket: ""
+          object: ""
+          auth:
+            workloadIdentity: true
+        azure:
+          accountName: ""
+          container: ""
+          blob: ""
+          auth:
+            managedIdentity: true
+            sasTokenSecretRef: {name: "", key: "sas-token"}
+            accountKeySecretRef: {name: "", key: "account-key"}
+        git:
+          repo: ""             # git@github.com:org/repo.git OR https://github.com/org/repo.git
+          ref: "main"
+          path: "export.zip"
+          auth:
+            sshKeySecretRef: {name: "", key: "ssh-privatekey"}
+            knownHostsConfigMapRef: {name: "", key: "known_hosts"}
+            usernameSecretRef: {name: "", key: "username"}
+            tokenSecretRef: {name: "", key: "token"}
+        db:
+          driver: ""           # postgres | mysql
+          host: ""
+          port: 0
+          database: ""
+          query: ""
+          outputEncoding: "raw" # raw | base64
+          auth:
+            usernameSecretRef: {name: "", key: "username"}
+            passwordSecretRef: {name: "", key: "password"}
+      ## Optional per-source image overrides (else sensible defaults, see docs/08).
+      # image:
+      #   s3: {repository: amazon/aws-cli, tag: "2.15.40"}
   ## Bring your own credentials Secret instead of letting the chart create one.
   ##
   ## When set, the chart renders NO Secret and every consumer (env secretKeyRef and the
@@ -1186,42 +1240,6 @@ metrics:
   readinessProbe:
     initialDelaySeconds: 120
     timeoutSeconds: 5
-
-# Istio specific settings
-gateway:
-  enabled: false
-  hosts:
-    - chart-example.local
-  http:
-    fid:
-      name: "http-fid"
-      port: 7070
-    admin:
-      name: "http-admin"
-      port: 9100
-    api:
-      name: "http-api"
-      port: 8089
-  https:
-    fid:
-      name: "https-fid"
-      port: 7171
-    admin:
-      name: "https-admin"
-      port: 9101
-    api:
-      name: "https-api"
-      port: 8090
-  ldap:
-    name: "ldap"
-    port: 2389
-  ldaps:
-    name: "ldaps"
-    port: 2636
-
-# Cronjob that runs migration export on a schedule
-# Uploads the artifact to an s3 bucket
-
 cronjob:
   migration:
     enabled: false
@@ -1278,10 +1296,17 @@ hooks:
   post_delete:
     enabled: false
 
-# Image Credentials
+## Image pull credentials the chart turns into a dockerconfigjson Secret (`regcred`).
+## Alternative to pre-creating a Secret and listing it under imagePullSecrets.
+## `registry` accepts any host — Docker Hub, ECR, ACR, GAR, GHCR, Harbor, Quay, Nexus —
+## which is what you want when running golden images from your own registry.
+## Full registry table + golden-image guidance: docs/02-images-and-registries.md
+##
+## NOTE: this puts the password in your values file. For anything sensitive, create the
+## Secret out of band (or via ESO, docs/04-secrets-and-eso.md) and use imagePullSecrets.
 imageCredentials:
   enabled: false
-  registry: docker.io
+  registry: docker.io          # e.g. <acct>.dkr.ecr.<region>.amazonaws.com | <name>.azurecr.io | ghcr.io
   username:
   password:
   email:
@@ -1299,126 +1324,44 @@ zookeeper:
     enabled: false
     storageClass: ""
 
-## Extra environment variables that will be pass onto deployment pods
+## Environment variables, volumes, sidecars and lifecycle scripts.
+## Full guide with examples: docs/14-env-and-volumes.md
 ##
-## env:
-##   AWS_ROLE_ARN: arn:aws:iam::123456789000:role/iam-role-name-here
-##   AWS_WEB_IDENTITY_TOKEN_FILE: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
-##   AWS_REGION: us-east-1
+## env             plain key/value env vars (templated)
+## envValueFrom    env from configMapKeyRef / secretKeyRef / fieldRef
+## envFromSecret   load all keys of one existing Secret (name templated)
+## envRenderSecret key/values the chart renders into a new Secret, then loads
+## envFromSecrets  load several Secrets — each {name, optional}
+## envFromConfigMaps load several ConfigMaps — each {name, optional}
 env: {}
-
-## "valueFrom" environment variable references that will be added to deployment pods. Name is templated.
-## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envvarsource-v1-core
-## Renders in container spec as:
-##   env:
-##     ...
-##     - name: <key>
-##       valueFrom:
-##         <value rendered as YAML>
 envValueFrom: {}
-  #  ENV_NAME:
-  #    configMapKeyRef:
-  #      name: configmap-name
-  #      key: value_key
-
-## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
-## This can be useful for auth tokens, etc. Value is templated.
 envFromSecret: ""
-
-## Sensible environment variables that will be rendered as new secret object
-## This can be useful for auth tokens, etc
 envRenderSecret: {}
-
-## The names of secrets in the same kubernetes namespace which contain values to be added to the environment
-## Each entry should contain a name key, and can optionally specify whether the secret must be defined with an optional key.
-## Name is templated.
 envFromSecrets: []
-## - name: secret-name
-##   optional: true
-
-## The names of conifgmaps in the same kubernetes namespace which contain values to be added to the environment
-## Each entry should contain a name key, and can optionally specify whether the configmap must be defined with an optional key.
-## Name is templated.
-## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#configmapenvsource-v1-core
 envFromConfigMaps: []
-## - name: configmap-name
-##   optional: true
 
-## Additional init containers (evaluated as template)
-## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-##
+## extraInitContainers    extra init containers (templated), run before FID
+## extraContainerVolumes  volumes for init containers only (not mounted into FID)
+## extraVolumes           pod volumes (e.g. keystore/truststore Secrets for TLS)
+## extraVolumeMounts      mount points for the above, on the FID container
+## sidecars               extra long-running containers in the FID pod
+## See docs/14-env-and-volumes.md. For arbitrary/unmodelled containers use extraContainers
+## (docs/11-escape-hatches.md).
 extraInitContainers: []
-
-## Volumes that can be used in init containers that will not be mounted to deployment pods
 extraContainerVolumes: []
-#  - name: volume-from-secret
-#    secret:
-#      secretName: secret-to-mount
-#  - name: empty-dir-volume
-#    emptyDir: {}
-
-## @param extraVolumes Optionally specify extra list of additional volumes for the FID pod(s)
-## Example Use Case: mount certificates to enable TLS
-## e.g:
-## extraVolumes:
-## - name: fid-keystore
-##   secret:
-##     defaultMode: 288
-##     secretName: fid-keystore
-## - name: zookeeper-truststore
-##   secret:
-##     defaultMode: 288
-##     secretName: fid-truststore
-##
 extraVolumes: []
-## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the ZooKeeper container(s)
-## Example Use Case: mount certificates to enable TLS
-## e.g:
-## extraVolumeMounts:
-## - name: fid-keystore
-##   mountPath: /certs/keystore
-##   readOnly: true
-## - name: fid-truststore
-##   mountPath: /certs/truststore
-##   readOnly: true
-##
 extraVolumeMounts: []
-## @param sidecars Add additional sidecar containers to the FID pod(s)
-## e.g:
-## sidecars:
-##   - name: your-image-name
-##     image: your-image
-##     imagePullPolicy: Always
-##     ports:
-##       - name: portname
-##         containerPort: 1234
-##
 sidecars: []
-## @param postInstall Add additional commands to run after install, these commnds will run after first install
-## Example:
-## postInstall:
-##     enabled: true
-##     leaderOnly: true
-##     script: |
-##       # Custom script
-##       /opt/radiantone/vds/bin/vdsconfig.sh set-property -name agentsApiServerEndpoint -value "https://example.com/example"
-##
+
+## Lifecycle scripts. postInstall runs once after the first install; postStart runs on every
+## container start. leaderOnly restricts to fid-0. See docs/14-env-and-volumes.md.
 postInstall:
   enabled: false
   leaderOnly: true
   script: |
     # Post install custom script
-## @param postStart Add additional commands to run after startup, these commnds will run after start up
-## Example:
-## postStart:
-##     enabled: true
-##     leaderOnly: true
-##     script: |
-##       # Custom script
-##       /opt/radiantone/vds/bin/runDerbyServer.sh
-##
 postStart:
   enabled: false
   leaderOnly: true
   script: |
-    # Post install custom script
+    # Post start custom script

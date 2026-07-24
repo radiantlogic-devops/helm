@@ -338,6 +338,75 @@ Used by the fluentd Loki aggregator labels (ported from helm-v8).
 {{- end }}
 
 {{/*
+Render a container probe with full configurability.
+
+Params: probe (the .Values.fid.<x>Probe map), defaults (timing defaults dict), handler
+(the default handler dict, e.g. {tcpSocket: {port: 2636}} or {exec: {command: [...]}}).
+
+Precedence, low to high:
+  1. `defaults` timing (initialDelaySeconds/timeoutSeconds/periodSeconds/failureThreshold/
+     successThreshold) and the default `handler`
+  2. any timing field set on the probe map
+  3. an explicit handler on the probe map (exec / httpGet / tcpSocket / grpc) replaces the
+     default handler entirely — so you can switch a TCP probe to httpGet, etc.
+  4. probe.overrides — a raw map deep-merged last, for any probe field the above do not
+     model (terminationGracePeriodSeconds on the probe, extra httpGet headers, ...)
+
+This makes every probe field reachable without forking the chart.  See docs/09.
+*/}}
+{{- define "fid.probe" -}}
+{{- $p := .probe | default dict -}}
+{{- $out := deepCopy (.defaults | default dict) -}}
+{{- /* timing overrides from the probe map */ -}}
+{{- range $k := (list "initialDelaySeconds" "timeoutSeconds" "periodSeconds" "failureThreshold" "successThreshold") -}}
+{{- $v := index $p $k -}}
+{{- if not (kindIs "invalid" $v) }}{{ $_ := set $out $k $v }}{{ end -}}
+{{- end -}}
+{{- /* handler: an explicit one on the probe replaces the default */ -}}
+{{- $userHandler := dict -}}
+{{- range $hk := (list "exec" "httpGet" "tcpSocket" "grpc") -}}
+{{- with index $p $hk }}{{ $_ := set $userHandler $hk . }}{{ end -}}
+{{- end -}}
+{{- if $userHandler }}
+{{- $out = merge $out $userHandler -}}
+{{- else }}
+{{- $out = merge $out (deepCopy (.handler | default dict)) -}}
+{{- end -}}
+{{- /* raw escape hatch, merged last */ -}}
+{{- with $p.overrides }}{{ $out = mergeOverwrite $out (deepCopy .) }}{{ end -}}
+{{- toYaml $out -}}
+{{- end }}
+
+{{/*
+The FID container's three probes, rendered from fid.readinessProbe / livenessProbe /
+startupProbe. Startup is only emitted when enabled. Shared by the main and follower
+StatefulSets so probe configuration applies to both.
+*/}}
+{{- define "fid.probes" -}}
+{{- $liveCmd := list "/opt/radiantone/check" "run" "-type" "liveness" -}}
+readinessProbe:
+{{- include "fid.probe" (dict
+    "probe" .Values.fid.readinessProbe
+    "defaults" (dict "initialDelaySeconds" 120 "timeoutSeconds" 5 "periodSeconds" 30 "failureThreshold" 5 "successThreshold" 1)
+    "handler" (dict "tcpSocket" (dict "port" (.Values.fid.readinessProbe.port | default 2636)))
+  ) | nindent 2 }}
+livenessProbe:
+{{- include "fid.probe" (dict
+    "probe" .Values.fid.livenessProbe
+    "defaults" (dict "initialDelaySeconds" 60 "timeoutSeconds" 5 "periodSeconds" 30 "failureThreshold" 5 "successThreshold" 1)
+    "handler" (dict "exec" (dict "command" (.Values.fid.livenessProbe.command | default $liveCmd)))
+  ) | nindent 2 }}
+{{- if (.Values.fid.startupProbe).enabled }}
+startupProbe:
+{{- include "fid.probe" (dict
+    "probe" .Values.fid.startupProbe
+    "defaults" (dict "initialDelaySeconds" 0 "timeoutSeconds" 5 "periodSeconds" 20 "failureThreshold" 15 "successThreshold" 1)
+    "handler" (dict "exec" (dict "command" (.Values.fid.startupProbe.command | default $liveCmd)))
+  ) | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{/*
 Security posture presets.
 
 These supply DEFAULTS ONLY. Anything set explicitly in values.yaml
