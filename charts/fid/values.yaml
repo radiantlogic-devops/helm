@@ -781,21 +781,41 @@ persistence:
 ##
 ## PUSH vs PULL — verified against radiantone/fid-exporter:iddm-8.4.5 on a live cluster.
 ##
-## This image only exports metrics in PUSH mode. Its entrypoint starts the exporter binary
-## solely when PUSH_MODE=true; with pushMode: false nothing listens on :9095 and Prometheus
-## has nothing to scrape. The containerPort 9095 the chart declares is vestigial for this
-## image — it is kept for exporters that do serve metrics (rl-exporter does).
+## `pushMode` does more than pick a transport: it decides whether the exporter binary runs
+## AT ALL. The image's entrypoint starts it only when PUSH_MODE=true.
 ##
-## So with fid-exporter you need a Pushgateway:
-##   metrics: {enabled: true, pushMode: true, pushGateway: "http://pushgateway:9091"}
+##   pushMode: false  ->  no exporter process, nothing listens on :9095, and there is
+##                        nothing for Prometheus to scrape. Metrics are simply off.
+##   pushMode: true   ->  the exporter runs, serves :9095 locally, AND a cron pushes to
+##                        pushGateway every pushMetricCron.
 ##
-## Verified: 70 FID metric series (ldap_connection, ldap_connection_count,
-## ldap_connection_max, ...) landed in a Pushgateway within one cron interval, and Fluentd
-## shipped vds_server.log, vds_events.log and web.log to Elasticsearch in the same run.
+## You CAN scrape :9095 directly with Prometheus (verified: 65 series served there), but
+## read the warning below first — you still need a reachable pushGateway.
+##
+## ⚠️  A PUSHGATEWAY OUTAGE SILENTLY KILLS LOG SHIPPING.
+##
+## The image's entrypoint runs `verify_pushgateway || exit 1` BEFORE it starts Fluentd. If
+## pushGateway is unreachable the entrypoint blocks there and never reaches the logging
+## block, so Fluentd never starts — with no error in the container logs saying so. The
+## container stays Running and Ready the whole time.
+##
+## Proven on a live cluster: with the gateway deleted, 0 fluentd processes and no indices;
+## with it restored, 5 fluentd processes, 8 files tailed and 1,013 documents shipped —
+## same values, same chart, only the gateway's reachability changed.
+##
+## So if you enable pushMode you must keep a Pushgateway reachable, even when you intend to
+## scrape :9095 instead of using it. To run logging WITHOUT that coupling, set
+## pushMode: false — Fluentd then starts unconditionally, and you get no metrics.
 ##
 ## Prometheus' own guidance is that a Pushgateway is the wrong shape for long-lived
-## services (it breaks up/down detection and staleness). rl-exporter serving a scrape
-## endpoint is the better end state; until it is published, this is the working path.
+## services: it breaks up/down detection and staleness. Prefer scraping :9095.
+##
+## Verified both paths: 70 FID metric series (ldap_connection, ldap_connection_count,
+## ldap_connection_max, ...) reached a Pushgateway within one cron interval, and 65 series
+## were readable directly from :9095 at the same time.
+##
+## To scrape with the Prometheus Operator, add a ServiceMonitor via extraObjects — the
+## chart does not render one (see docs/07-metrics-and-logging.md).
 ##
 metrics:
   enabled: false

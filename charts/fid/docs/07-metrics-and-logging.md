@@ -21,28 +21,77 @@ why this is the container that OOMs, not FID.
 
 ## Push vs pull — read this before wiring Prometheus
 
-**`radiantone/fid-exporter` only exports metrics in PUSH mode.** Its entrypoint starts the
-exporter binary solely when `PUSH_MODE=true`. With `pushMode: false`, nothing listens on
-`:9095` and Prometheus has nothing to scrape. The `containerPort: 9095` the chart declares
-is vestigial for this image.
+`pushMode` does more than choose a transport. **It decides whether the exporter binary runs
+at all** — the image's entrypoint starts it only when `PUSH_MODE=true`.
 
-So with `fid-exporter` you need a Pushgateway:
+| `pushMode` | Exporter process | `:9095` | Pushgateway |
+|---|---|---|---|
+| `false` | not started | nothing listening | — |
+| `true` | running | **serves metrics** | pushed every `pushMetricCron` |
+
+So `pushMode: false` does not mean "pull instead of push" — it means **no metrics at all**.
+
+### ⚠️ A Pushgateway outage silently kills log shipping
+
+This is the single most surprising behaviour of this sidecar.
+
+The image's entrypoint runs `verify_pushgateway || exit 1` **before** it starts Fluentd. If
+`pushGateway` is unreachable, the entrypoint blocks there and never reaches the logging
+block — **Fluentd never starts**, and nothing in the container logs says so. The container
+stays `Running` and `Ready` throughout, and the pod looks healthy.
+
+Proven on a live cluster with identical values, changing only the gateway's reachability:
+
+| Pushgateway | `Initialization complete` | Fluentd processes | Files tailed | ES documents |
+|---|---|---|---|---|
+| deleted | ✗ never logged | **0** | 0 | none |
+| restored | ✓ | **5** | 8 | 1,013 |
+
+So if you enable `pushMode`, you must keep a Pushgateway reachable **even if you intend to
+scrape `:9095` instead of using it**.
+
+To run logging without that coupling, set `pushMode: false` — Fluentd then starts
+unconditionally, and you get no metrics. Metrics and logging are not independently
+selectable in this image.
+
+### Scraping :9095 directly
+
+Verified: **65 FID metric series** served on `:9095` when the exporter is running. Combined
+with the constraint above:
 
 ```yaml
 metrics:
   enabled: true
-  pushMode: true
-  pushGateway: "http://pushgateway:9091"
-  pushMetricCron: "* * * * *"
+  pushMode: true                                   # starts the exporter AND requires...
+  pushGateway: "http://pushgateway:9091"           # ...this to be reachable
 ```
 
-Verified end-to-end on a live cluster: **70 FID metric series** (`ldap_connection`,
-`ldap_connection_count`, `ldap_connection_max`, `ldap_connection_idle_timeout`, …) landed
-in a Pushgateway within one cron interval.
+Then scrape the pod's `:9095` and ignore the gateway's contents if you prefer.
+
+Verified both paths simultaneously: **70 series** reached a Pushgateway within one cron
+interval, and **65 series** were readable directly from `:9095`.
 
 > Prometheus' own guidance is that a Pushgateway is the wrong shape for long-lived services
-> — it breaks up/down detection and staleness handling. An exporter serving a scrape
-> endpoint is the better end state; see `rl-exporter` below.
+> — it breaks up/down detection and staleness handling. **Prefer scraping `:9095`.**
+
+### Scraping with the Prometheus Operator
+
+The chart does not render a ServiceMonitor. Add one via `extraObjects`:
+
+```yaml
+extraObjects:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: "{{ include \"fid.fullname\" . }}"
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+      endpoints:
+        - port: exporter      # containerPort 9095
+          interval: 30s
+```
 
 ## Exporter flavour
 
@@ -88,12 +137,51 @@ metrics:
       #   splunk_index: fid
 ```
 
-Verified: Fluentd tails all nine FID log files and shipped `vds_server.log`,
-`vds_events.log` and `web.log` to Elasticsearch — 3,361 documents across three indices
-within a few minutes of startup.
-
 Per-log control lives under `metrics.fluentd.logs.<name>` (`enabled`, `path`, `index`, and
 Splunk-specific `splunk_index` / `splunk_source` / `splunk_sourcetype`).
+
+### Which logs actually appear in Elasticsearch
+
+The chart configures **10** log files, but you will normally see far fewer indices. That is
+correct behaviour, not a failure — Fluentd cannot ship a file that is empty or absent.
+
+Measured on a freshly installed FID 7.4.23:
+
+| Log | On disk | Index created |
+|---|---|---|
+| `vds_server.log` | 175 KB | ✅ |
+| `vds_events.log` | 105 KB | ✅ |
+| `jetty/web.log` | 708 KB | ✅ |
+| `vds_server_access.csv` | **0 bytes** | ✗ |
+| `jetty/web_access.log` | **0 bytes** | ✗ |
+| `adap_access.log` | **0 bytes** | ✗ |
+| `admin_rest_api_access.log` | **0 bytes** | ✗ |
+| `periodiccache.log` | **0 bytes** | ✗ |
+| `sync_engine.log` | **absent** | ✗ |
+| `alerts.log` | **absent** | ✗ |
+
+Fluentd tailed 8 of the 10 (it skips the two that do not exist, and picks them up later if
+they appear).
+
+**The access logs stay at 0 bytes even under load.** Generating 30 HTTP requests and 30+
+LDAP binds against a running FID did not add a single byte to `vds_server_access.csv`,
+`web_access.log` or `admin_rest_api_access.log`. Access logging is a **FID-side setting**,
+not a chart one — enable it in FID's own configuration (Control Panel → logging, or
+`vds_server.conf`) if you need those indices.
+
+So "only three indices appeared" is the expected result on a quiet, freshly installed
+instance. Check the file sizes before assuming the pipeline is broken:
+
+```bash
+kubectl -n my-ns exec fid-0 -c fid -- \
+  ls -la /opt/radiantone/vds/vds_server/logs/
+```
+
+### Fluentd resumes from its last position
+
+Fluentd records how far it has read. After a restart it continues from there, so a pod
+restart does **not** re-ship existing log content — only newly appended lines. If you
+recreate Elasticsearch, previously shipped documents are gone and will not be re-sent.
 
 ## The OOM
 

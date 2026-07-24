@@ -87,6 +87,53 @@ Fixed in current chart versions (values are preserved from the live Secret). On 
 versions, any upgrade without `fid.rootPassword` / `zk.password` set regenerated them.
 Always set them explicitly, or use [ESO](04-secrets-and-eso.md).
 
+## No logs in Elasticsearch, but the pod looks healthy
+
+Check in this order.
+
+**1. Is Fluentd even running?**
+
+```bash
+kubectl -n my-ns exec fid-0 -c fid-exporter -- ps aux | grep -c '[f]luentd'
+```
+
+`0` means it never started. The usual cause is a **Pushgateway outage**: the entrypoint
+runs `verify_pushgateway || exit 1` before the logging block, so with `pushMode: true` and
+an unreachable gateway it blocks there forever. The container stays `Running` and `Ready`
+and logs nothing about it.
+
+```bash
+# the tell: initialization never completed
+kubectl -n my-ns logs fid-0 -c fid-exporter | grep -c "Initialization complete"   # 0 = stuck
+```
+
+Fix: make `metrics.pushGateway` reachable, or set `pushMode: false` (which disables metrics
+but lets Fluentd start unconditionally).
+
+**2. Do the log files have content?**
+
+```bash
+kubectl -n my-ns exec fid-0 -c fid -- ls -la /opt/radiantone/vds/vds_server/logs/
+```
+
+On a quiet, freshly installed FID only `vds_server.log`, `vds_events.log` and
+`jetty/web.log` have content — the five access logs are 0 bytes and two files do not exist.
+Fluentd cannot ship an empty file, so seeing three indices is normal. Access logging is a
+**FID-side setting**, not a chart one.
+
+**3. Did anything new get written?**
+
+Fluentd resumes from its last read position, so it only ships **newly appended** lines. A
+pod restart does not re-ship existing content, and recreating Elasticsearch does not bring
+old documents back.
+
+**4. Is the aggregator reachable?**
+
+```bash
+kubectl -n my-ns exec fid-0 -c fid-exporter -- \
+  curl -s --max-time 5 http://<es-host>:9200/_cluster/health
+```
+
 ## Ingress returns 502
 
 - **nginx → an HTTPS port**: set `networking.nginx.backendProtocolHTTPS: true`.
