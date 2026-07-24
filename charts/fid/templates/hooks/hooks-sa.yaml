@@ -6,8 +6,14 @@ Two fixes over the historical template:
  1. These objects are now hook resources themselves, at hook-weight -5. Previously they
     were ordinary manifests, so on a fresh install they were created AFTER pre-install
     hooks ran — meaning any enabled pre-install hook referenced a ServiceAccount that did
-    not exist yet. `before-hook-creation` is deliberately NOT in the delete policy: the
-    Role must outlive each Job so later hooks in the same release can still use it.
+    not exist yet.
+
+    They are registered for EVERY hook phase, and deleted once each phase succeeds. The
+    weight of -5 puts them ahead of the hook Jobs (weight 0) within a phase, so the account
+    always exists while a Job needs it; re-registering per phase means there is no gap
+    between phases. Deleting on success matters because Helm does not track hook resources
+    as part of the release: with a failure-only delete policy they survive `helm uninstall`
+    and orphan in the namespace.
 
  2. The Role no longer grants `resources: ["*"]` on the core and apps API groups. That was
     effectively namespace-admin — it included every Secret in the namespace, and because
@@ -28,9 +34,9 @@ metadata:
     {{- include "fid.labels" . | nindent 4 }}
     {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook": pre-install,post-install,pre-upgrade,post-upgrade,pre-rollback,post-rollback,pre-delete,post-delete
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": hook-failed
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     {{- with .Values.commonAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -43,9 +49,9 @@ metadata:
     {{- include "fid.labels" . | nindent 4 }}
     {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook": pre-install,post-install,pre-upgrade,post-upgrade,pre-rollback,post-rollback,pre-delete,post-delete
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": hook-failed
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     {{- with .Values.commonAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -72,9 +78,9 @@ metadata:
     {{- include "fid.labels" . | nindent 4 }}
     {{- with .Values.commonLabels }}{{ toYaml . | nindent 4 }}{{- end }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback,pre-delete
+    "helm.sh/hook": pre-install,post-install,pre-upgrade,post-upgrade,pre-rollback,post-rollback,pre-delete,post-delete
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": hook-failed
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     {{- with .Values.commonAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

@@ -83,6 +83,15 @@ extraObjects: []
 ## it: FID needs DNS, ZooKeeper and every backend your virtual view federates, and
 ## guessing that set wrong fails in ways that are hard to diagnose.
 ##
+## IMPORTANT — enforcement is a cluster property, not a chart one. Creating a
+## NetworkPolicy object does nothing unless the CNI enforces it:
+##   - EKS with the AWS VPC CNI needs the node agent started with
+##     `--enable-network-policy=true` (check:
+##     kubectl -n kube-system get ds aws-node -o jsonpath='{..args}')
+##     With it false, the object is accepted by the API server and silently ignored.
+##   - Calico, Cilium, Antrea and Weave enforce by default.
+## Verify on your cluster before relying on this for isolation.
+##
 networkPolicy:
   # enabled: true
   ## Extra `from` selectors added to the default ingress rule, e.g. your ingress controller:
