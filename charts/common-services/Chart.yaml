@@ -110,11 +110,11 @@ dependencies:
   condition: flink-kubernetes-operator.enabled
 - name: loki
   repository: https://grafana-community.github.io/helm-charts
-  version: 18.5.3
+  version: 18.9.0
   condition: loki.enabled
 - name: alloy
   repository: https://grafana.github.io/helm-charts
-  version: 1.11.0
+  version: 1.11.1
   condition: alloy.enabled
 - name: prometheus-elasticsearch-exporter
   version: 6.6.0
