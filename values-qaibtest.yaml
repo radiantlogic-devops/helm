@@ -172,6 +172,3 @@ opensearch:
 
 flink-kubernetes-operator:
   enabled: false
-
-nebula-operator:
-  enabled: false

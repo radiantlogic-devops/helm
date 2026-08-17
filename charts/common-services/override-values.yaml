@@ -106,7 +106,7 @@ velero:
       enabled: true
 
 # 7. Loki - Metrics: 3100, Dashboard: ID 13639
-# DISABLED - requires object storage (S3/GCS/Minio)
+# grafana-community/loki chart 18.x — requires object storage (S3) when enabled
 loki:
   enabled: false
 
@@ -252,9 +252,6 @@ curator:
   enabled: false
 
 zoonavigator:
-  enabled: false
-
-nebula-operator:
   enabled: false
 
 backupManager:

@@ -18,12 +18,6 @@ spec:
       {{- if and (eq ((.Values.backupManager.service.type) | default "ClusterIP") "NodePort") .Values.backupManager.service.nodePort }}
       nodePort: {{ .Values.backupManager.service.nodePort }}
       {{- end }}
-    {{- if and .Values.backupManager.swagger.enabled (ne (.Values.backupManager.swagger.port | toString) "8080") }}
-    - name: api-doc
-      port: {{ .Values.backupManager.swagger.port }}
-      targetPort: {{ .Values.backupManager.swagger.port }}
-      protocol: TCP
-    {{- end }}
   selector:
     {{- include "backup-manager.selectorLabels" . | nindent 4 }}
 {{- end }}
