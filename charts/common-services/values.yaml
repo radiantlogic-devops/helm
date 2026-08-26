@@ -1200,6 +1200,10 @@ curator:
     - name: "periodiccache.log"
     - name: "admin_rest_api_access.log"
     - name: "sync_engine.log"
+    # Sync-agent connector logs. Highest-volume index the fid-exporter ships
+    # (one document per connector event, across every sync agent); without a
+    # retention action these indices accumulate indefinitely.
+    - name: "connector.log"
     - name: "alerts.log"
     - name: "approvals_audit.log"
     - name: "scim.log"
