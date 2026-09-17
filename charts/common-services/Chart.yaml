@@ -93,7 +93,7 @@ dependencies:
   repository: https://fluent.github.io/helm-charts
   condition: fluent-bit.enabled
 - name: velero
-  version: 12.1.0
+  version: 12.2.0
   repository: https://vmware-tanzu.github.io/helm-charts
   condition: velero.enabled
 - name: cloudnative-pg
@@ -110,11 +110,11 @@ dependencies:
   condition: flink-kubernetes-operator.enabled
 - name: loki
   repository: https://grafana-community.github.io/helm-charts
-  version: 18.9.0
+  version: 18.13.2
   condition: loki.enabled
 - name: alloy
   repository: https://grafana.github.io/helm-charts
-  version: 1.11.1
+  version: 1.12.1
   condition: alloy.enabled
 - name: prometheus-elasticsearch-exporter
   version: 6.6.0
