@@ -16,6 +16,7 @@ Montée de version et durcissement Ops de **common-services 2.0.3** pour cluster
 | Databases | CloudNativePG |
 | Data processing | Flink Kubernetes Operator |
 | Observability / logs | Alloy, Loki |
+| Rétention logs | Curator (action `connector.log`) |
 | Retrait | Nebula Operator (complet) |
 
 Livraison via **Argo CD** : **un seul état Git final** `common-services` **2.0.3**, **une sync** vers cet état. Pas de paliers Helm intermédiaires, pas de RC, pas de runner de migration multi-sync.
@@ -92,6 +93,35 @@ Overlays mis à jour pour le nouveau dépôt / retrait Nebula : `charts/common-s
 - Topologie **DaemonSet** conservée (`controller.type: daemonset`).
 - Pas de clustering HA / StatefulSet dans ce cut.
 
+### Curator — rétention `connector.log`
+
+`connector.log` est expédié vers Elasticsearch par le sidecar **fid-exporter** (source déclarée dans le chart
+fid : `/opt/radiantone/vds/logs/sync_agents/*/connector.log`, `index: connector.log`), mais `curator.logs`
+n'avait aucune entrée pour ce préfixe. Ses index quotidiens s'accumulaient donc indéfiniment, alors que les
+24 autres préfixes sont purgés à 7 jours — et c'est l'index le plus volumineux de la stack.
+
+Mesuré sur les clusters BSWH avant nettoyage manuel :
+
+| Cluster | Index `connector.log` | Taille | Plus ancien | Part du volume total |
+|---|---|---|---|---|
+| `bswh-use1` | 90 | 55,8 Go | `2026-05-13` | 78 % |
+| `bswh-use2` | 348 | 167,6 Go | `2025-08-28` | 85 % |
+
+- Ajout d'une entrée `- name: "connector.log"` dans `curator.logs`, juste après `sync_engine.log` (les deux
+  sont des logs de sync-agent). Elle hérite des défauts du chart (`action: delete_indices`, `unit: days`,
+  `unit_count: 7`, `direction: older`) : rétention strictement identique aux 24 autres préfixes.
+- `action_file.yml` rendu : **24 → 25 actions**, `connector.log` en position 11, `unit_count: 7` uniforme sur
+  les 25. La renumérotation des actions suivantes est inhérente au `range $index` du template et sans effet
+  fonctionnel (curator traite ces identifiants comme des clés ordonnées opaques).
+- Premier passage après la montée : la purge du backlog est ponctuelle et bornée (`chunk_index_list` découpe
+  ~340 index en 3 appels `DELETE`, `master_timeout` 300 s). Surveiller le premier Job curator nocturne sur
+  `bswh-use1` / `bswh-use2` ; le régime permanent retombe ensuite à ~1 index/nuit.
+- Reprise de la PR #64, repliée dans 2.0.3 : isolée, elle ne pouvait pas passer `ct lint` faute de bump de
+  version de chart.
+- **Rollout** : `curator.logs` est une liste, donc Helm la *remplace* et ne la fusionne pas. Les clusters qui
+  la surchargent n'héritent pas de l'entrée — sur `master` des dépôts `radiantlogic-saas` : `ense-use2` (28
+  entrées) et `alit-use1` (24) sont à traiter par PR dédiée ; `rlqa-usw2` la porte déjà.
+
 ### Nebula — retrait complet
 
 Hypothèse Ops : **plus aucune application n’utilise Nebula**. S’il reste des CR en cluster, elles sont **supprimées quand même** (pas de fail-closed).
@@ -131,7 +161,8 @@ helm template test charts/common-services --kube-version 1.35.0 >/dev/null
 
 **Checklist runtime non-prod puis prod :**
 
-- [ ] Diff manifests limité aux cinq composants upgradés + retrait Nebula
+- [ ] Diff manifests limité aux cinq composants upgradés + retrait Nebula + action curator `connector.log`
+- [ ] Curator : `action_file.yml` à 25 actions, premier Job nocturne OK sur un cluster à fort backlog
 - [ ] Velero : backup/restore smoke test après sync
 - [ ] Loki : push + query logs historiques S3 + nouveaux writes ; pas de mixed-version prolongé
 - [ ] CNPG / Flink : operator Ready, CR existants inchangés fonctionnellement
