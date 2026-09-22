@@ -11,9 +11,14 @@ spec:
     spec:
       template:
         spec:
+          {{- with .Values.postgresql.backup.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           containers:
           - name: postgres-backup
-            image: postgres:15.2
+            image: "{{ .Values.postgresql.backup.image.repository }}:{{ .Values.postgresql.backup.image.tag }}"
+            imagePullPolicy: {{ .Values.postgresql.backup.image.pullPolicy }}
             env:
             - name: PGHOST
               value: postgresql

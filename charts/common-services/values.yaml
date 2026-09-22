@@ -754,8 +754,14 @@ postgresql:
       user: agentsadmin
       password: iJukleKLG9fNihIQ
       schema: agents
-  # backup:
-    # enabled: false
+  backup:
+    enabled: false
+    imagePullSecrets: []
+    # Image for the backup and restore CronJobs.
+    image:
+      repository: radiantone/postgres-backup
+      tag: 15-bookworm
+      pullPolicy: Always
     # s3bucketName: ""
     # folderName: "postgresql"
     # latestBackupName: "postgresql-latest.sql.gz"
