@@ -53,11 +53,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.backupManager.containerPort | default 8080 }}
-            {{- if and .Values.backupManager.swagger.enabled (ne (.Values.backupManager.swagger.port | toString) "8080") }}
-            - name: api-doc
-              containerPort: {{ .Values.backupManager.swagger.port }}
-            {{- end }}
+              containerPort: {{ .Values.backupManager.service.containerPort | default 8080 }}
           resources:
             {{- toYaml .Values.backupManager.resources | nindent 12 }}
           volumeMounts:
@@ -66,19 +62,13 @@ spec:
               readOnly: true
           env:
             - name: LISTEN_PORT
-              value: {{ .Values.backupManager.containerPort | default 8080 | quote }}
+              value: {{ .Values.backupManager.service.containerPort | default 8080 | quote }}
             - name: LOG_FORMAT
-              value: {{ .Values.backupManager.log.format | default "text" | quote }}
+              value: {{ .Values.backupManager.log.format | default "json" | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.backupManager.log.level | default "info" | quote }}
             - name: DEV_MODE
               value: "false"
-            - name: SWAGGER_ENABLED
-              value: {{ .Values.backupManager.swagger.enabled | default false | quote }}
-            - name: SWAGGER_HOST
-              value: {{ .Values.backupManager.swagger.host | default "localhost" | quote }}
-            - name: SWAGGER_PORT
-              value: {{ .Values.backupManager.swagger.port | default "8080" | quote }}
             - name: VELERO_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -106,6 +96,10 @@ spec:
               value: {{ $webhookRestore.timeout | default "1h" | quote }}
             - name: PODS_WAIT_TIMEOUT
               value: {{ .Values.backupManager.podsWaitTimeout | default "5m" | quote }}
+            {{- range $key, $value := .Values.backupManager.env }}
+            - name: {{ $key | upper | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
           livenessProbe:
             initialDelaySeconds: 5
             periodSeconds: 5
@@ -114,7 +108,7 @@ spec:
             httpGet:
               scheme: HTTP
               path: /probes/healthz
-              port: {{ .Values.backupManager.containerPort | default 8080 }}
+              port: {{ .Values.backupManager.service.containerPort | default 8080 }}
           readinessProbe:
             initialDelaySeconds: 5
             periodSeconds: 5
@@ -123,5 +117,5 @@ spec:
             httpGet:
               scheme: HTTP
               path: /probes/readyz
-              port: {{ .Values.backupManager.containerPort | default 8080 }}
+              port: {{ .Values.backupManager.service.containerPort | default 8080 }}
 {{- end }}

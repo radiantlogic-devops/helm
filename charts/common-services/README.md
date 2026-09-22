@@ -1,10 +1,19 @@
 # common-services
 
-![Version: 2.0.1](https://img.shields.io/badge/Version-2.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0](https://img.shields.io/badge/AppVersion-2.0-informational?style=flat-square)
+![Version: 2.0.3](https://img.shields.io/badge/Version-2.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0](https://img.shields.io/badge/AppVersion-2.0-informational?style=flat-square)
 
 A Helm chart for deploying RadiantOne Common Services on Kubernetes
 
-## What's New in 2.0.1
+See the repository root [`CHANGELOG.md`](../../CHANGELOG.md) for the full common-services **2.0.3** migration notes (Velero, CNPG, Flink, Alloy, Loki community, Nebula removal).
+
+## What's New in 2.0.3
+
+- Velero chart `12.1.0` / app `1.18.1` (AWS plugin `v1.14.2`)
+- CloudNativePG chart `0.29.0` / operator `1.30.0`
+- Flink Kubernetes Operator `1.15.0`
+- Alloy chart `1.11.0` / app `v1.18.0` (DaemonSet topology unchanged)
+- Loki migrated to `grafana-community/loki` chart `18.5.3` / app `3.7.4`
+- Nebula Operator removed; remaining Nebula CRs/CRDs purged via `crds-installer`
 
 ### Automatic Metrics & Dashboards
 
@@ -57,27 +66,30 @@ Kubernetes: `>=1.24.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://argoproj.github.io/argo-helm | argo-cd | 5.6.0 |
+| https://argoproj.github.io/argo-helm | argo-cd | 7.8.0 |
 | https://charts.bitnami.com/bitnami | postgresql | 12.1.3 |
 | https://charts.bitnami.com/bitnami | zookeeper | 11.0.0 |
-| https://cloudnative-pg.github.io/charts | cloudnative-pg | 0.21.4 |
-| https://fluent.github.io/helm-charts | fluent-bit | 0.39.0 |
-| https://grafana.github.io/helm-charts | grafana | 6.40.0 |
-| https://haproxytech.github.io/helm-charts | haproxy | 1.17.3 |
+| https://cloudnative-pg.github.io/charts | cloudnative-pg | 0.29.0 |
+| https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0 | flink-kubernetes-operator | 1.15.0 |
+| https://fluent.github.io/helm-charts | fluent-bit | 0.48.0 |
+| https://grafana.github.io/helm-charts | alloy | 1.11.0 |
+| https://grafana.github.io/helm-charts | grafana | 8.10.0 |
+| https://grafana-community.github.io/helm-charts | loki | 18.5.3 |
+| https://haproxytech.github.io/helm-charts | haproxy | 1.24.0 |
 | https://helm.elastic.co | elasticsearch | 7.17.3 |
 | https://helm.elastic.co | kibana | 7.17.3 |
 | https://helm.runix.net | pgadmin4 | 1.13.8 |
 | https://opensearch-project.github.io/helm-charts | opensearch | 2.16.1 |
 | https://opensearch-project.github.io/helm-charts | opensearch-dashboards | 2.14.0 |
-| https://prometheus-community.github.io/helm-charts | prometheus | 15.13.0 |
-| https://vmware-tanzu.github.io/helm-charts | velero | 7.2.1 |
+| https://prometheus-community.github.io/helm-charts | prometheus | 20.2.1 |
+| https://vmware-tanzu.github.io/helm-charts | velero | 12.1.0 |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argo-cd | object | `{"applicationSet":{"enabled":false},"configs":{"params":{"server.insecure":true,"server.rootpath":"/argocd"}},"controller":{"nodeSelector":{}},"crds":{"keep":false},"dex":{"enabled":false},"enabled":true,"fullnameOverride":"argocd","notifications":{"enabled":false},"redis":{"nodeSelector":{}},"repoServer":{"nodeSelector":{}},"server":{"nodeSelector":{},"service":{"type":"NodePort"}}}` | -------------------  This section enables and configures Argo CD, a GitOps continuous delivery tool for Kubernetes.  Key Features: - Automated application deployment and synchronization from Git repositories - Declarative configuration using Kubernetes manifests - Visual UI for managing applications and observing their state - Optional integration with Dex for authentication and authorization - Customizable server settings (root path, security) - Node selector configuration for different Argo CD components  Note: Review and adjust settings for production environments. |
-| backupManager | object | `{"affinity":{},"enabled":false,"image":{"pullPolicy":"Always","repository":"radiantone/backup-manager","tag":"dev"},"imagePullSecrets":[],"log":{"format":"text","level":"info"},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"replicas":1,"resources":{"limits":{"cpu":"250m","memory":"512Mi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{},"service":{"containerPort":8080,"port":80},"swagger":{"enabled":false,"host":"localhost","port":8080},"tolerations":[],"webhook":{"backup":{"timeout":"1h","url":""},"enabled":false,"restore":{"timeout":"1h","url":""},"syncPeriod":"1m"}}` | --------------------------------------------------------------- |
+| backupManager | object | `{"affinity":{},"enabled":false,"env":{},"image":{"pullPolicy":"Always","repository":"radiantone/eoc-backup-manager","tag":"1.18.1"},"imagePullSecrets":[],"log":{"format":"json","level":"info"},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"podsWaitTimeout":"5m","replicas":1,"resources":{"limits":{"cpu":"250m","memory":"512Mi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{},"service":{"containerPort":8080,"port":80,"type":"ClusterIP"},"tolerations":[],"webhook":{"backup":{"timeout":"1h","url":""},"enabled":false,"restore":{"timeout":"1h","url":""},"syncPeriod":"1m"}}` | --------------------------------------------------------------- |
 | cloudnative-pg | object | `{"affinity":{},"config":{"create":true,"data":{"INHERITED_ANNOTATIONS":"meta.helm.sh/*, helm.sh/*","INHERITED_LABELS":"app.kubernetes.io/*, radiantlogic.io/*"},"name":"cnpg-controller-manager-config"},"enabled":false,"fullnameOverride":"cnpg","nodeSelector":{},"tolerations":[]}` | --------------------------------------------------------------- |
 | curator | object | `{"client":{"certificate":"","client_cert":"","client_key":"","hosts":["elasticsearch-master"],"master_only":false,"password":"","port":9200,"ssl_no_validate":true,"timeout":300,"use_ssl":false,"username":""},"cronjob":{"annotations":{},"concurrencyPolicy":"","failedJobsHistoryLimit":"","jobRestartPolicy":"Never","labels":{},"schedule":"0 0 * * *","startingDeadlineSeconds":"","successfulJobsHistoryLimit":""},"dryrun":false,"enabled":true,"hooks":{"install":false,"upgrade":false},"logging":{"blacklist":["elasticsearch","urllib3"],"logfile":"","logformat":"default","loglevel":"INFO"},"logs":[{"name":"vds_server.log"},{"name":"vds_server_access.log"},{"name":"adap_access.log"},{"name":"adap.log"},{"name":"web.log"},{"name":"web_access.log"},{"name":"event.log"},{"name":"periodiccache.log"},{"name":"admin_rest_api_access.log"},{"name":"sync_engine.log"},{"name":"alerts.log"},{"name":"approvals_audit.log"},{"name":"scim.log"},{"name":"audit.log"},{"name":"internal-container.log"}],"nodeSelector":{},"pod":{"annotations":{}},"priorityClassName":"","psp":{"create":false},"rbac":{"enabled":false},"resources":{},"securityContext":{"runAsUser":16},"serviceAccount":{"annotations":{},"create":false}}` | ------------------ This section controls the behavior of Elasticsearch Curator, a tool for managing Elasticsearch indices. Curator can perform actions like deleting, closing, or creating indices based on configured filters. |
 | curator.client | object | `{"certificate":"","client_cert":"","client_key":"","hosts":["elasticsearch-master"],"master_only":false,"password":"","port":9200,"ssl_no_validate":true,"timeout":300,"use_ssl":false,"username":""}` | --------------------------- Specify the connection details for your Elasticsearch cluster. |
