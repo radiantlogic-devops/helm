@@ -1471,7 +1471,7 @@ backupManager:
   replicas: 1
   image:
     repository: radiantone/eoc-backup-manager
-    tag: "1.18.1"
+    tag: "1.18.2"
     pullPolicy: Always
   imagePullSecrets: []
   service:

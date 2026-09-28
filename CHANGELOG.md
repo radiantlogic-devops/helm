@@ -6,121 +6,121 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [common-services 2.0.3] — 2026-07-24
 
-### Périmètre
+### Scope
 
-Montée de version et durcissement Ops de **common-services 2.0.3** pour clusters **Kubernetes 1.34 / 1.35** :
+Version bump and Ops hardening of **common-services 2.0.3** for **Kubernetes 1.34 / 1.35** clusters:
 
-| Domaine | Composants |
+| Domain | Components |
 |---|---|
 | Backup / DR | Velero |
 | Databases | CloudNativePG |
 | Data processing | Flink Kubernetes Operator |
 | Observability / logs | Alloy, Loki |
-| Retrait | Nebula Operator (complet) |
+| Removal | Nebula Operator (complete) |
 
-Livraison via **Argo CD** : **un seul état Git final** `common-services` **2.0.3**, **une sync** vers cet état. Pas de paliers Helm intermédiaires, pas de RC, pas de runner de migration multi-sync.
+Delivery via **Argo CD**: **a single final Git state** `common-services` **2.0.3**, **one sync** to that state. No intermediate Helm steps, no RC, no multi-sync migration runner.
 
-### Tableau versions (actuel → cible)
+### Version table (current → target)
 
-| Composant | Chart actuel | App actuel | Chart cible | App cible |
+| Component | Current chart | Current app | Target chart | Target app |
 |---|---|---|---|---|
-| Velero | `10.1.2` | `1.16.2` | `12.1.0` | `1.18.1` |
-| CloudNativePG | `0.28.3` | `1.29.1` | `0.29.0` | `1.30.0` |
+| Velero | `10.1.2` | `1.16.2` | `12.2.0` | `1.18.2` |
+| CloudNativePG | `0.28.3` | `1.29.1` | `0.29.1` | `1.30.1` |
 | Flink Kubernetes Operator | `1.14.0` | `1.14.0` | `1.15.0` | `1.15.0` |
-| Alloy | `1.2.1` | `v1.10.1` | `1.11.0` | `v1.18.0` |
-| Loki | `grafana/loki` `6.40.0` | `3.5.3` | `grafana-community/loki` `18.5.3` | `3.7.4` |
-| Nebula Operator | `1.8.6` | — | **retiré** | — |
+| Alloy | `1.2.1` | `v1.10.1` | `1.13.0` | `v1.20.0` |
+| Loki | `grafana/loki` `6.40.0` | `3.5.3` | `grafana-community/loki` `18.13.7` | `3.7.8` |
+| Nebula Operator | `1.8.6` | — | **removed** | — |
 
-Repository Flink mis à jour vers `https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0`.
+Flink repository updated to `https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0`.
 
-### Décisions de livraison
+### Delivery decisions
 
-- **Un seul état Git final 2.0.3**, sync Argo CD unique.
-- **Pas de paliers Helm / RC / runner multi-sync** pour Velero ni Loki.
-- Justification Velero : la documentation officielle est structurée version-par-version ; avec les **CRDs finales** appliquées par `crds-installer` et l’image Velero / plugin AWS de la cible, un cut direct 1.16 → 1.18 est acceptable Ops (pas besoin de déployer 1.17 en paliers dans ce dépôt).
-- Justification Loki : le guide Grafana Community décrit un **`helm upgrade`** après adaptation des values, pas une chaîne de douze déploiements intermédiaires. Les values locales sont corrigées pour être cohérentes S3 + SimpleScalable avant le cut.
+- **A single final Git state 2.0.3**, one Argo CD sync.
+- **No Helm steps / RC / multi-sync runner** for Velero or Loki.
+- Velero rationale: official documentation is structured version-by-version; with the **final CRDs** applied by `crds-installer` and the target Velero image / AWS plugin, a direct 1.16 → 1.18 cut is acceptable for Ops (no need to deploy 1.17 as an intermediate step in this repository).
+- Loki rationale: the Grafana Community guide describes a **`helm upgrade`** after adapting values, not a chain of twelve intermediate deployments. Local values are corrected so they are consistent with S3 + SimpleScalable before the cut.
 
-### Pourquoi le repository Helm Loki change
+### Why the Loki Helm repository changes
 
-- L’OSS Loki Helm chart a été déplacé vers **Grafana Community**.
-- Sur l’ancien dépôt `https://grafana.github.io/helm-charts`, les charts Loki **7.x+** ciblent **GEL (Grafana Enterprise Logs)** uniquement.
-- Ne **pas** utiliser `grafana/loki` `7.1.0` (ou toute série 7.x du dépôt Grafana historique) pour cette stack OSS.
-- Lien officiel de migration : https://grafana.com/docs/loki/latest/setup/upgrade/upgrade-to-community/
-- Cible : repository `https://grafana-community.github.io/helm-charts`, chart **`18.5.3`**, application Loki **`3.7.4`**.
+- The OSS Loki Helm chart moved to **Grafana Community**.
+- On the old repository `https://grafana.github.io/helm-charts`, Loki charts **7.x+** target **GEL (Grafana Enterprise Logs)** only.
+- Do **not** use `grafana/loki` `7.1.0` (or any 7.x series from the historical Grafana repository) for this OSS stack.
+- Official migration link: https://grafana.com/docs/loki/latest/setup/upgrade/upgrade-to-community/
+- Target: repository `https://grafana-community.github.io/helm-charts`, chart **`18.13.7`**, Loki application **`3.7.8`**.
 
-### Breaking / values Loki
+### Breaking / Loki values
 
-Corrections obligatoires dans `charts/common-services/values.yaml` :
+Required corrections in `charts/common-services/values.yaml`:
 
-| Sujet | Avant (problématique) | Après (2.0.3) |
+| Topic | Before (problematic) | After (2.0.3) |
 |---|---|---|
 | Repository | `grafana/loki` | `grafana-community/loki` |
-| `deploymentMode` | `SimpleScalable` | `SimpleScalable` **explicite** (défaut community = `Monolithic`) |
-| `loki.storage.type` | `filesystem` (incohérent avec schema S3) | `s3` |
-| Schema | `object_store: s3`, TSDB **v13**, période `2024-04-01` | **inchangé** (pas de rewrite schema) |
+| `deploymentMode` | `SimpleScalable` | **explicit** `SimpleScalable` (community default = `Monolithic`) |
+| `loki.storage.type` | `filesystem` (inconsistent with S3 schema) | `s3` |
+| Schema | `object_store: s3`, TSDB **v13**, period `2024-04-01` | **unchanged** (no schema rewrite) |
 | Compactor | `delete_request_store: filesystem` | `delete_request_store: s3` |
-| Monitoring chart 18 | `monitoring.rules.alerting` | `monitoring.alerts` (+ `monitoring.rules` sans clé obsolète) |
-| ServiceAccount | généré / non piné | `serviceAccount.name: loki` (stabilité IRSA / pod identity) |
-| PVC backend | défaut community (`whenDeleted: Delete` + auto-delete) | `enableStatefulSetAutoDeletePVC: true` + `whenDeleted/whenScaled: Retain` |
+| Monitoring chart 18 | `monitoring.rules.alerting` | `monitoring.alerts` (+ `monitoring.rules` without the obsolete key) |
+| ServiceAccount | generated / not pinned | `serviceAccount.name: loki` (IRSA / pod identity stability) |
+| Backend PVC | community default (`whenDeleted: Delete` + auto-delete) | `enableStatefulSetAutoDeletePVC: true` + `whenDeleted/whenScaled: Retain` |
 
-Les `bucketNames` / région S3 restent des **placeholders documentés** ; secrets et IRSA restent hors Git (overlays environnement).
+S3 `bucketNames` / region remain **documented placeholders**; secrets and IRSA stay out of Git (environment overlays).
 
-Overlays mis à jour pour le nouveau dépôt / retrait Nebula : `charts/common-services/override-values.yaml`, `values-qaibtest.yaml`.
+Overlays updated for the new repository / Nebula removal: `charts/common-services/override-values.yaml`, `values-qaibtest.yaml`.
 
 ### Backup Manager
 
-- Image alignée : `radiantone/eoc-backup-manager:1.18.1`.
-- Retrait de la configuration documentation UI legacy et des variables d'environnement associées (documentation Huma sur `/docs`, `/openapi.json`, `/openapi.yaml`).
-- Ajout de `backupManager.env` (passthrough) pour les overrides runtime (ex. `HTTP_READ_HEADER_TIMEOUT`).
-- Ports, probes et `LISTEN_PORT` alignés sur `backupManager.service.containerPort`.
+- Image aligned: `radiantone/eoc-backup-manager:1.18.2`.
+- Removed the legacy documentation UI configuration and associated environment variables (Huma documentation at `/docs`, `/openapi.json`, `/openapi.yaml`).
+- Added `backupManager.env` (passthrough) for runtime overrides (e.g. `HTTP_READ_HEADER_TIMEOUT`).
+- Ports, probes, and `LISTEN_PORT` aligned on `backupManager.service.containerPort`.
 
 ### Velero
 
-- Chart `12.1.0` / app `1.18.1`.
-- Plugin AWS aligné : `velero/velero-plugin-for-aws:v1.14.2` (compatible Velero 1.18 ; doc upgrade 1.18 utilise `v1.14.0`).
-- `upgradeCRDs: false` conservé — les CRDs sont appliquées par **`crds-installer`** sur la version finale pinée.
-- Smoke test runtime attendu après sync : backup + restore.
+- Chart `12.2.0` / app `1.18.2`.
+- AWS plugin aligned: `velero/velero-plugin-for-aws:v1.14.4` (compatible with Velero 1.18.2).
+- `upgradeCRDs: false` kept — CRDs are applied by **`crds-installer`** at the pinned final version.
+- Expected runtime smoke test after sync: backup + restore.
 
 ### CloudNativePG / Flink
 
-- CNPG chart `0.29.0` / operator `1.30.0` ; CRDs via `crds-installer` ; values locales inchangées sauf incompatibilité (aucune requise dans ce cut).
-- Flink Operator `1.15.0` + URL Apache versionnée ; CRDs via `crds-installer` ; webhook reste `create: false`.
+- CNPG chart `0.29.1` / operator `1.30.1`; CRDs via `crds-installer`; local values unchanged except for incompatibility (none required in this cut).
+- Flink Operator `1.15.0` + versioned Apache URL; CRDs via `crds-installer`; webhook remains `create: false`.
 
 ### Alloy
 
-- Bump chart `1.11.0` / app `v1.18.0` **uniquement**.
-- Topologie **DaemonSet** conservée (`controller.type: daemonset`).
-- Pas de clustering HA / StatefulSet dans ce cut.
+- Chart bump `1.13.0` / app `v1.20.0` **only**.
+- **DaemonSet** topology kept (`controller.type: daemonset`).
+- No HA clustering / StatefulSet in this cut.
 
-### Nebula — retrait complet
+### Nebula — complete removal
 
-Hypothèse Ops : **plus aucune application n’utilise Nebula**. S’il reste des CR en cluster, elles sont **supprimées quand même** (pas de fail-closed).
+Ops assumption: **no application still uses Nebula**. If CRs remain in the cluster, they are **deleted anyway** (not fail-closed).
 
-Retiré du chart :
+Removed from the chart:
 
-- dépendance `nebula-operator` dans `Chart.yaml` ;
-- bloc values `nebula-operator` ;
-- overlays (`override-values.yaml`, `values-qaibtest.yaml`) ;
-- template workaround `templates/nebula/controller-manager-patch-rbac.yml` ;
-- dashboards Nebula (`dashboards/ido/graph-database.json`, `dashboards-logs/ido/nebula-*.json`) ;
-- RBAC backup-manager spécifique Nebula ;
-- entrée d’**install** Nebula dans `crds-installer` (plus de chart à installer).
+- `nebula-operator` dependency in `Chart.yaml`;
+- `nebula-operator` values block;
+- overlays (`override-values.yaml`, `values-qaibtest.yaml`);
+- workaround template `templates/nebula/controller-manager-patch-rbac.yml`;
+- Nebula dashboards (`dashboards/ido/graph-database.json`, `dashboards-logs/ido/nebula-*.json`);
+- backup-manager RBAC specific to Nebula;
+- Nebula **install** entry in `crds-installer` (no chart left to install).
 
-Extension de **`crds-installer`** (pas de Job/hook séparé) :
+**`crds-installer`** extension (no separate Job/hook):
 
-1. entrée config `action: delete` / `cleanup: true` pour le pattern `\.nebula-graph\.io` ;
-2. liste les CRDs matchantes ;
-3. pour chaque CRD, purge **toutes** les instances CR (cluster-wide / namespaced) ;
-4. retire les finalizers bloquants si nécessaire ;
-5. supprime les CRDs ;
-6. no-op si déjà absentes ;
-7. n’échoue pas parce que des CR existaient — on les purge (`|| true` sur le cleanup).
+1. config entry `action: delete` / `cleanup: true` for the `\.nebula-graph\.io` pattern;
+2. list matching CRDs;
+3. for each CRD, purge **all** CR instances (cluster-wide / namespaced);
+4. remove blocking finalizers if needed;
+5. delete the CRDs;
+6. no-op if already absent;
+7. does not fail because CRs existed — they are purged (`|| true` on cleanup).
 
-RBAC du Job élargi avec verbes sur `apps.nebula-graph.io` et `autoscaling.nebula-graph.io`.
+Job RBAC widened with verbs on `apps.nebula-graph.io` and `autoscaling.nebula-graph.io`.
 
 ### Validation
 
-**Rendu Git (obligatoire avant merge) :**
+**Git render (required before merge):**
 
 ```bash
 helm dependency update charts/common-services
@@ -129,16 +129,16 @@ helm template test charts/common-services --kube-version 1.34.0 >/dev/null
 helm template test charts/common-services --kube-version 1.35.0 >/dev/null
 ```
 
-**Checklist runtime non-prod puis prod :**
+**Runtime checklist, non-prod then prod:**
 
-- [ ] Diff manifests limité aux cinq composants upgradés + retrait Nebula
-- [ ] Velero : backup/restore smoke test après sync
-- [ ] Loki : push + query logs historiques S3 + nouveaux writes ; pas de mixed-version prolongé
-- [ ] CNPG / Flink : operator Ready, CR existants inchangés fonctionnellement
-- [ ] Alloy : pods Ready, logs vers gateway Loki, scrapes Prometheus
-- [ ] Nebula : opérateur absent, CR absents, CRDs absentes, sync Healthy
+- [ ] Manifest diff limited to the five upgraded components + Nebula removal
+- [ ] Velero: backup/restore smoke test after sync
+- [ ] Loki: push + query historical S3 logs + new writes; no prolonged mixed-version window
+- [ ] CNPG / Flink: operator Ready, existing CRs functionally unchanged
+- [ ] Alloy: pods Ready, logs to Loki gateway, Prometheus scrapes
+- [ ] Nebula: operator absent, CRs absent, CRDs absent, sync Healthy
 
-### Liens officiels
+### Official links
 
 - Velero upgrade 1.17 : https://velero.io/docs/v1.17/upgrade-to-1.17/
 - Velero upgrade 1.18 : https://velero.io/docs/v1.18/upgrade-to-1.18/
@@ -149,13 +149,13 @@ helm template test charts/common-services --kube-version 1.35.0 >/dev/null
 - Flink Kubernetes Operator 1.15.0 : https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0
 - Alloy chart : https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy
 
-### Hors scope (volontaire)
+### Out of scope (intentional)
 
-- Paliers Velero 1.17 / Loki 6.55 et scripts/RC associés
-- Refonte topologie Alloy (clustering HA)
-- Migration Loki hors de `SimpleScalable` (à planifier avant Loki 4.0, pas dans ce cut)
-- Bump `velero-ui` sauf blocage par le nouveau Velero (non constaté comme bloquant ici)
+- Velero 1.17 / Loki 6.55 intermediate steps and associated scripts/RCs
+- Alloy topology redesign (HA clustering)
+- Moving Loki off `SimpleScalable` (to be planned before Loki 4.0, not in this cut)
+- `velero-ui` bump unless blocked by the new Velero (not observed as blocking here)
 
 ---
 
-Ce fichier est la **source de vérité Ops** pour la montée common-services 2.0.3.
+This file is the **Ops source of truth** for the common-services 2.0.3 upgrade.
