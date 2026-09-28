@@ -1321,8 +1321,8 @@ velero:
     volumeSnapshotLocation: []
   initContainers:
     - name: velero-plugin-for-aws
-      # Compatible with Velero 1.18.x (chart 12.1.0 / app 1.18.1)
-      image: "velero/velero-plugin-for-aws:v1.14.2"
+      # Compatible with Velero 1.18.x (chart 12.2.0 / app 1.18.2)
+      image: "velero/velero-plugin-for-aws:v1.14.4"
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
