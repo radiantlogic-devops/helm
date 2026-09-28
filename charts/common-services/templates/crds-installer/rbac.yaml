@@ -25,6 +25,11 @@ rules:
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list", "create", "update", "patch", "delete"]
+  # Nebula forced cleanup (CR instances then CRDs) — common-services 2.0.3
+  - apiGroups: ["apps.nebula-graph.io", "autoscaling.nebula-graph.io"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "delete", "deletecollection", "patch", "update"]
+
 
 ---
 

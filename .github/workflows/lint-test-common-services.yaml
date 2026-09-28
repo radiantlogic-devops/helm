@@ -55,6 +55,7 @@ jobs:
         run: |
           helm repo add prometheus https://prometheus-community.github.io/helm-charts
           helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add grafana-community https://grafana-community.github.io/helm-charts
           helm repo add elastic https://helm.elastic.co
           helm repo add kibana https://helm.elastic.co
           helm repo add argo-cd https://argoproj.github.io/argo-helm
@@ -66,6 +67,7 @@ jobs:
           helm repo add velero https://vmware-tanzu.github.io/helm-charts
           helm repo add cnpg https://cloudnative-pg.github.io/charts
           helm repo add velero-ui https://helm.otwld.com
+          helm repo add flink-kubernetes-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ env.DEFAULT_BRANCH }}
