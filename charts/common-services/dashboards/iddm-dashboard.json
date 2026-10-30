@@ -370,19 +370,19 @@
             "max": 100,
             "min": 1,
             "thresholds": {
-              "mode": "percentage",
+              "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "red",
                   "value": null
                 },
                 {
-                  "color": "orange",
-                  "value": 80
+                  "color": "yellow",
+                  "value": 20
                 },
                 {
-                  "color": "red",
-                  "value": 90
+                  "color": "green",
+                  "value": 50
                 }
               ]
             },
@@ -430,7 +430,8 @@
             "refId": "cpu_used"
           }
         ],
-        "title": "Physical Memory Used",
+        "title": "Node Memory Used (incl. cache)",
+        "description": "Memory of the whole worker node as Linux reports it: total minus free. Linux keeps spare RAM as disk cache and counts it as used, so 90-99% is normal on a healthy node. Green = normal. For the service's own memory see the Memory Used gauge (Java heap).",
         "type": "stat"
       },
       {
