@@ -13,7 +13,9 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where the 7-node kind cluster does not start
+    # reliably and the preinstalled Helm rejects the ghcr login used below.
+    runs-on: ubuntu-24.04
     outputs:
       changed: ${{ steps.list-changed.outputs.changed }}
     steps:
@@ -74,7 +76,9 @@ jobs:
 
   test:
     needs: lint
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where the 7-node kind cluster does not start
+    # reliably and the preinstalled Helm rejects the ghcr login used below.
+    runs-on: ubuntu-24.04
     if: needs.lint.outputs.changed == 'true'
     steps:
       - name: Checkout
@@ -143,7 +147,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where the 7-node kind cluster does not start
+    # reliably and the preinstalled Helm rejects the ghcr login used below.
+    runs-on: ubuntu-24.04
     needs: lint
     steps:
       - name: Checkout
@@ -161,9 +167,10 @@ jobs:
         uses: appany/helm-oci-chart-releaser@v0.4.1
         with:
           name: common-services
-          repository: helm
+          repository: ${{ github.repository_owner }}/helm
           tag: ${{ steps.read_chart.outputs.result }}
-          registry: ghcr.io/${{ github.repository_owner }}
+          # helm registry login takes a host only; the owner belongs in the repository path.
+          registry: ghcr.io
           path: charts/common-services
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
