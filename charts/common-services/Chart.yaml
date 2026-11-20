@@ -10,7 +10,7 @@ type: application
 # Chart Version
 # -------------
 # This version should be incremented following Semantic Versioning (https://semver.org/) whenever the chart's structure or templates change.
-version: 2.0.3
+version: 2.0.4
 
 # Application Version (Informational)
 # -----------------------------------
@@ -50,9 +50,10 @@ dependencies:
   repository: https://prometheus-community.github.io/helm-charts
   condition: prometheus.enabled
 - name: grafana
-  version: 8.10.0
-  # version: 6.40.0
-  repository: https://grafana.github.io/helm-charts
+  # The grafana chart moved from grafana.github.io to grafana-community.
+  # values.yaml pins grafana.image.tag so the application version does not change.
+  version: 11.6.1
+  repository: https://grafana-community.github.io/helm-charts
   condition: grafana.enabled
 - name: elasticsearch
   version: 7.17.3

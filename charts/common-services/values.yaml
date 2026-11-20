@@ -249,6 +249,16 @@ grafana:
   enabled: true
   fullnameOverride: grafana
   nodeSelector: {}
+  # Grafana keeps its data on one ReadWriteOnce volume. A rolling update starts the new
+  # pod before the old one stops; when the two land on different nodes the volume cannot
+  # attach and the rollout hangs. Recreate stops the old pod first.
+  deploymentStrategy:
+    type: Recreate
+  # The grafana chart 11.6.1 defaults to Grafana 12.4.3. Keep the application version this
+  # chart shipped before (the grafana 8.10.0 chart default) so the chart upgrade alone does
+  # not change Grafana itself. Environments that set grafana.image.tag keep their own value.
+  image:
+    tag: "11.5.1"
   # Sidecar configuration for dashboard provisioning
   sidecar:
     dashboards:
@@ -376,7 +386,7 @@ grafana:
 
 elasticsearch:
   enabled: true
-  imageTag: "7.17.25"
+  imageTag: "7.17.29"
   replicas: 1
   nodeSelector: {}
   service:
@@ -400,7 +410,7 @@ elasticsearch:
 
 kibana:
   enabled: true
-  imageTag: "7.17.25"
+  imageTag: "7.17.29"
   fullnameOverride: kibana
   nodeSelector: {}
   service:
@@ -1206,6 +1216,10 @@ curator:
     - name: "periodiccache.log"
     - name: "admin_rest_api_access.log"
     - name: "sync_engine.log"
+    # Sync-agent connector logs. Highest-volume index the fid-exporter ships
+    # (one document per connector event, across every sync agent); without a
+    # retention action these indices accumulate indefinitely.
+    - name: "connector.log"
     - name: "alerts.log"
     - name: "approvals_audit.log"
     - name: "scim.log"
