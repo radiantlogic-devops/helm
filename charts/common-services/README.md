@@ -1,10 +1,18 @@
 # common-services
 
-![Version: 2.0.3](https://img.shields.io/badge/Version-2.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0](https://img.shields.io/badge/AppVersion-2.0-informational?style=flat-square)
+![Version: 2.0.4](https://img.shields.io/badge/Version-2.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0](https://img.shields.io/badge/AppVersion-2.0-informational?style=flat-square)
 
 A Helm chart for deploying RadiantOne Common Services on Kubernetes
 
 See the repository root [`CHANGELOG.md`](../../CHANGELOG.md) for the full common-services **2.0.3** migration notes (Velero, CNPG, Flink, Alloy, Loki community, Nebula removal).
+
+## What's New in 2.0.4
+
+- Grafana chart `11.6.1` from `grafana-community`; Grafana itself stays at `11.5.1` unless `grafana.image.tag` is set
+- Grafana rollout strategy `Recreate` (single ReadWriteOnce volume)
+- Elasticsearch and Kibana `7.17.29`
+- Curator retention for `connector.log`
+- IDDM dashboard node memory tile fix
 
 ## What's New in 2.0.3
 

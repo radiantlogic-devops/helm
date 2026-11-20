@@ -4,6 +4,58 @@ All notable changes to this Helm repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [common-services 2.0.4] — unreleased
+
+### Scope
+
+A small maintenance release on top of **common-services 2.0.3**. Existing environment `values.yaml` files
+need no change: every change is in the chart's dependencies and defaults.
+
+| Component | 2.0.3 | 2.0.4 |
+|---|---|---|
+| Grafana chart | `8.10.0` (`grafana.github.io`) | `11.6.1` (`grafana-community.github.io`) |
+| Grafana application | `11.5.1` (chart default) | `11.5.1` (pinned in `values.yaml`) |
+| Grafana dashboard sidecar | `1.30.0` | `2.6.0` |
+| Grafana rollout | `RollingUpdate` | `Recreate` |
+| Elasticsearch | `7.17.25` | `7.17.29` |
+| Kibana | `7.17.25` | `7.17.29` |
+| Curator | 24 log prefixes | 25 (adds `connector.log`) |
+
+### Grafana
+
+- The grafana chart moved from `grafana.github.io` to `grafana-community.github.io`; the dependency now points
+  at chart `11.6.1` there.
+- `grafana.image.tag` is pinned to `11.5.1`, the application version the previous chart shipped, so the chart
+  upgrade alone does not change Grafana. Environments that already set `grafana.image.tag` keep their value.
+- `grafana.deploymentStrategy.type` is now `Recreate`. Grafana keeps its data on one ReadWriteOnce volume; with
+  a rolling update the new pod can be scheduled on a different node while the old pod still holds the volume,
+  and the rollout then waits forever. `Recreate` stops the old pod first, at the cost of a short Grafana
+  outage during an upgrade.
+- The chart's `grafana-test` test Pod, ConfigMap and ServiceAccount are no longer rendered.
+
+### Elasticsearch and Kibana
+
+- `elasticsearch.imageTag` and `kibana.imageTag` move from `7.17.25` to `7.17.29`, the latest 7.17 patch. The
+  charts stay at `7.17.3`. Elasticsearch restarts as a rolling update; data stays on the same volume.
+
+### Curator: `connector.log` retention
+
+- Adds `- name: "connector.log"` to `curator.logs`, after `sync_engine.log`. The fid-exporter ships this index
+  but Curator had no action for it, so its daily indices were never deleted. It inherits the chart defaults
+  (`delete_indices`, older than 7 days), the same as the other prefixes.
+- `curator.logs` is a list, so an environment that overrides the list does not inherit the new entry.
+- The first Curator run after the upgrade deletes the whole backlog for that prefix.
+
+### Dashboards
+
+- IDDM dashboards: the node memory tile no longer shows red on healthy nodes.
+
+### Rendered difference from 2.0.3
+
+Rendered with an existing environment values file, the manifests differ in the `grafana` Deployment, Service
+and ConfigMap, the `kibana` Deployment, the `elasticsearch-master` StatefulSet, the `curator-config` ConfigMap
+and the two IDDM dashboard ConfigMaps. No selector changes, no volume changes.
+
 ## [common-services 2.0.3] — 2026-07-24
 
 ### Scope
